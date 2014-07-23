@@ -78,8 +78,6 @@ datamodel()
         fieldname: self.params.field
       }
     };
-    debug('opts', opts);
-
     coll.mapReduce(map, reduce, opts).then(function(newcoll) {
         newcoll.find().skip((Number(pageNumber) - 1) * nPerPage).limit(nPerPage).toArray(function (err, res) {
             fill(err ? err : res)

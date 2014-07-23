@@ -58,7 +58,7 @@ if (fs.existsSync(dataPath)) {
     }
   );
 
-  config.set('collectionName', fr.options.collname);
+  config.set('collectionName', fr.options.collectionName);
 }
 
 
@@ -95,7 +95,9 @@ app.route('/browse-docs.:format').all(require('./downstream/browse-docs.js'));
 app.route('/distinct-:field.:format').all(require('./downstream/distinct-field.js'));
 app.route('/ventilate-:fields.:format').all(require('./downstream/ventilate-fields.js'));
 app.route('/display-:doc.:format').all(require('./downstream/display-doc.js'));
+app.route('/index.:format').all(require('./downstream/overview-docs.js'));
 app.route('/webdav/*').all(require('./helpers/webdav.js')({debug: false}));
+app.route('/').all(function(req, res) { res.redirect('index.html') });
 
 
 /// catch 404 and forward to error handler

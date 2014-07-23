@@ -2,47 +2,29 @@
 
 {% block content %}
 <h1>{{ page.title }}</h1>
-{% for item in items %}
-<h1>{{ item.dateModified.format('short') }}</h1>
-<div class="blog-posts hfeed"  itemscope itemtype="http://schema.org/MediaObject">
-  <div class="title">
-    <h2 itemprop="name">
-      <a href="./display-{{ item.wid }}.html">{{ item.object|d('n/a') }}</a>
-    </h2>
-  </div>
-  <div class="postmeta">
-    <div class="alignright">
-      <span class="meta">
-        <i class="fa fa-info"></i>
-        <span  itemprop="contentSize">{{ item.contentSize }}</span>
-      </span>
-      <span class="meta">
-        <i class="fa fa-calendar"></i>
-        <span itemprop="dateModified">{{ item.dateModified }}</span>
-      </span>
-    </div>
-    <div>
-      <span class="">
-        <a href="./display-{{ item.wid }}.raw" itemprop="url">
-          {{ item.name }}
-        </a>
-      </span>
-      <span class="meta">
-        <i class="fa fa-bookmark-o"></i>
-        <span>{{ item.subject|d('n/a') }}!</span>
-      </span>
-      <span class="meta">
-        <i class="fa fa-ticket"></i>
-        <span>{{ item.category|d('n/a') }}</span>
-      </span>
-
-    </div>
-  </div>
-  <div class="entry">
-    <span itemprop="description" >{{ item.description|d('no description') }} </span>
-    <div class="clear"> </div>
-  </div>
-</div><!-- hfeed -->
-{% endfor %}
+<table>
+	<thead>
+		<tr>
+			<th>Object</th>
+			<th>Date Modified</th>
+			<th>Content Size</th>
+			<th>Subject</th>
+			<th>Category</th>
+			<th>Description</th>
+		</tr>
+	</thead>
+	<tbody>
+	{% for item in items %}
+	<tr>
+		<td><a href="./display-{{ item.wid }}.html">{{ item.object|d('n/a') }}</a></td>
+		<td>{{ item.dateModified.format('short') }}</td>
+		<td>{{ item.contentSize }}</td>
+		<td>{{ item.subject|d('n/a') }}</td>
+		<td>{{ item.category|d('n/a') }}</td>
+		<td>{{ item.description|d('no description') }} </td>
+	</tr>
+	{% endfor %}
+	</tbody>
+</table>
 
 {% endblock %}
