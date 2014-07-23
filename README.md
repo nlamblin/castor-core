@@ -1,8 +1,8 @@
-# castor
+# Castor DMS
 
 
 ## How to use
 
-	$ npm install castor
+	$ npm install castor-cli
 	$ castor
 
