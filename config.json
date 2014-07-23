@@ -1,0 +1,9 @@
+{
+  "port": 3000,
+  "theme": "default",
+  "connexionURI" : "mongodb://localhost:27017/castor/",
+  "itemsPerPage" : 5,
+  "userfields" : {
+    "title" : "@object"
+  }
+}

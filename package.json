@@ -1,0 +1,56 @@
+{
+  "name": "castor",
+  "version": "0.0.1",
+  "author": "Nicolas Thouvenin <nthouvenin@gmail.com>",
+  "contributors": [],
+  "description": "",
+  "keywords": [],
+  "homepage": "http://github.com/castorjs/castor",
+  "bin": {
+    "castor": "./bin/cli"
+  },
+  "scripts": {
+    "start": "node ./index.js",
+    "test": "mocha"
+  },
+  "main": "./index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/castorjs/catsor.git"
+  },
+  "dependencies": {
+    "debug": "^0.8.1",
+    "nconf": "^0.6.9",
+    "optimist": "^0.6.1",
+    "portfinder": "^0.2.1",
+    "filerake": "^3.0.0",
+    "promised-mongo": "^0.11.1",
+    "prettysize": "0.0.3",
+    "mimetype": "0.0.5",
+    "shorthash": "0.0.2",
+    "sugar": "^1.4.1",
+    "kuler": "0.0.0",
+    "express": "^4.4.3",
+    "datamodel": "^1.0.0",
+    "archiver": "^0.10.0",
+    "xml-writer": "^1.4.1",
+    "atom-writer": "^1.1.2",
+    "xml-mapping": "^1.6.1",
+    "nunjucks": "^1.0.5",
+    "ecstatic": "^0.5.3",
+    "browserify-middleware": "^3.0.0",
+    "jquery": "^2.1.1",
+    "vue": "^0.10.4",
+    "primus": "^2.2.4",
+    "ws": "^0.4.31",
+    "primus-resource": "^2.0.6",
+    "primus-emitter": "^3.0.2",
+    "primus-multiplex": "^3.0.2",
+    "jsDAV": "^0.3.2",
+    "jsel": "^1.0.1"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=0.10.0"
+  }
+}

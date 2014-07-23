@@ -1,0 +1,18 @@
+<html>
+  <head>
+    {% block head %}
+    <title> {{ page.title }} | {{ site.title }} </title>
+    <meta name="description" content="{{ page.description|d(site.description) }}">
+    <link rel="stylesheet" type="text/css" href="./assets/css/layout.css">
+    {% endblock %}
+  </head>
+  <body>
+	<div id="content">
+	  {% block content %}{% endblock %}
+	  </div>
+
+	{% block scripts %}
+	<script type="text/javascript" charset="utf-8" src="/bundle.js"></script>
+	{% endblock %}
+  </body>
+</html>
