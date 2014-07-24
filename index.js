@@ -17,12 +17,16 @@ var path = require('path')
   , view = require('./helpers/view.js')
   , browserify = require('browserify-middleware')
   , Primus = require('primus')
+  , hook = require('./helpers/hook.js')
   ;
 
 console.log(kuler('castor@' + pck.version, 'orange'));
+console.log(kuler('Theme :', 'olive'), kuler(view(), 'limegreen'));
+
 
 //
-// Setup data path
+// Data path :
+// Check and fix a data source directory 
 //
 var dataPath = config.get('dataPath') ;
 if (!dataPath) {
@@ -33,11 +37,15 @@ if (fs.existsSync(confile)) {
   console.log(kuler('Load configuration file :', 'olive'), kuler(confile, 'limegreen'));
   config.load(confile);
 }
-
 config.set('dataPath', dataPath);
 
+
+//
+// Upstream :
+// add some statements when loading files to MongoDB
+//
 if (fs.existsSync(dataPath)) {
-  console.log(kuler('Scan directory :', 'olive'), kuler(dataPath, 'limegreen'));
+  console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
   var FilerakeOptions = {
     "connexionURI" : config.get('connexionURI'),
     "concurrency" : require('os').cpus().length,
@@ -46,35 +54,36 @@ if (fs.existsSync(dataPath)) {
     ]
   };
   var fr = new Filerake(dataPath, FilerakeOptions);
-  fr.use('**/*', require('./upstream/initialize-tags.js'));
-  fr.use('**/*.xml', require('./upstream/convert-xml.js'));
+  fr.use('**/*', require('./upstream/initialize-tags.js')(config));
+  // fr.use('**/*.xml', require('./upstream/convert-xml.js')(config));
   // fr.use('**/*.pdf', require('./upstream/append-yaml.js')());
-  // load(optconf, 'middlewares', function (middleware) {
-  // fr.use(middleware);
-  // }
-  // );
+
+  hook()
+  .from(path.join(__dirname, 'upstream'))
+  .over(config.get('upstreamModules') || {})
+  .apply(function(hash, func) {
+      fr.use(hash, func(config));
+    }
+  );
   fr.sync(function(err) {
       console.log(kuler('Files and Database are synchronised.', 'green'));
     }
   );
-
   config.set('collectionName', fr.options.collectionName);
 }
 
 
 //
-// Setup Express
-//
+// Middlewares :
+// add middlewares to Express
+// 
 var app = express();
 
-
-// Setup views
 nunjucks.configure(view(), {
     autoescape: true,
     express: app
 });
 
-// Setup Middlewares
 app.use(require('ecstatic')({
     root          : view('assets'),
     baseDir       : '/assets',
@@ -87,37 +96,54 @@ app.use(require('ecstatic')({
     gzip          : false
 }));
 
-// Setup routes
-app.route('/bundle.js').get(browserify(['vue', 'jquery']));
-app.route('/robots.txt').get(require('./downstream/inform-robots.js'));
-app.route('/sitemap.xml').get(require('./downstream/inform-searchengines.js'));
-app.route('/browse-docs.:format').all(require('./downstream/browse-docs.js'));
-app.route('/distinct-:field.:format').all(require('./downstream/distinct-field.js'));
-app.route('/ventilate-:fields.:format').all(require('./downstream/ventilate-fields.js'));
-app.route('/display-:doc.:format').all(require('./downstream/display-doc.js'));
-app.route('/index.:format').all(require('./downstream/overview-docs.js'));
+hook()
+.from(path.join(__dirname, 'middlewares'))
+.over(config.get('middlewareModules') || {})
+.apply(function(hash, func) {
+    app.use(hash, func(config));
+  }
+);
+
+
+//
+// Downstream :
+// add routes to send data on the Web
+//
+hook()
+.from(path.join(__dirname, 'downstream'))
+.over(config.get('downstreamModules') || {})
+.apply(function(hash, func) {
+    app.route(hash).all(func(config));
+  }
+);
+
+app.route('/robots.txt').get(require('./downstream/inform-robots.js')(config));
+app.route('/sitemap.xml').get(require('./downstream/inform-searchengines.js')(config));
+app.route('/browse-docs.:format').all(require('./downstream/browse-docs.js')(config));
+app.route('/distinct-:field.:format').all(require('./downstream/distinct-field.js')(config));
+app.route('/ventilate-:fields.:format').all(require('./downstream/ventilate-fields.js')(config));
+app.route('/display-:doc.:format').all(require('./downstream/display-doc.js')(config));
+app.route('/index.:format').all(require('./downstream/overview-docs.js')(config));
+
+app.route('/bundle.js').get(browserify(config.get('browserifyModules') || ['jquery']));
 app.route('/webdav/*').all(require('./helpers/webdav.js')({debug: false}));
 app.route('/').all(function(req, res) { res.redirect('index.html') });
 
 
-/// catch 404 and forward to error handler
+// catch 404 and forward to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');
     err.status = 404;
     next(err);
 });
 
-
-
-
-
 //
-// Setup HTTP Server
+// HTTP Server :
+// initialize the HTTP server and the "realtime" server 
 //
 var server = require('http').createServer(app)
   , primus = new Primus(server, {});
 
-// Setup Primus
 primus
 .use('multiplex', 'primus-multiplex')
 .use('emitter', 'primus-emitter')
@@ -127,7 +153,8 @@ primus.resource('docs', require('./resources/docs.js'));
 primus.resource('doc', require('./resources/doc.js'));
 
 //
-// Listen
+// Listen :
+// get or find  a port number and launche the server.
 //
 portfinder.basePort = config.get('port');
 portfinder.getPort(function (err, newport) {
@@ -141,4 +168,4 @@ portfinder.getPort(function (err, newport) {
   }
 );
 
-
+module.exports = app;

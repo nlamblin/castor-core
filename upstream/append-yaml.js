@@ -10,19 +10,12 @@ var path = require('path')
 ;
 
 
-module.exports = function (options) {
+module.exports = function (config) {
 
-  if (!options) {
-    options = {};
-  }
-  if (!options.name) {
-    options.name = '__metadata.yml';
-  }
-  if (!options.encoding) {
-    options.encoding = 'utf8';
-  }
-  if (options.schema) {
-    options.schema = 'JSON_SCHEMA';
+  var options = {
+    "name" : "__metadata.yml",
+    "encoding" : "utf8",
+    "schema" : "JSON_SCHEMA"
   }
 
   return function (doc, next) {

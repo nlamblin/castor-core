@@ -62,7 +62,12 @@ Configuration.prototype.load = function load(filename) {
   nconf.file({ file: filename});
 };
 
+Configuration.prototype.merge = function load(obj) {
+  nconf.overrides(obj);
+};
+
+
 //
 // Expose the module as singleton.
 //
-module.exports = new Configuration;
+module.exports = new Configuration();
