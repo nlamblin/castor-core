@@ -6,9 +6,6 @@
   "description": "CastorJS the Document Management System",
   "keywords": [],
   "homepage": "http://github.com/castorjs/castor-core",
-  "bin": {
-    "castor": "./bin/cli"
-  },
   "scripts": {
     "start": "node ./index.js",
     "test": "mocha"
