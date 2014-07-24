@@ -18,7 +18,6 @@
   "dependencies": {
     "debug": "^0.8.1",
     "nconf": "^0.6.9",
-    "optimist": "^0.6.1",
     "portfinder": "^0.2.1",
     "filerake": "^3.0.0",
     "promised-mongo": "^0.11.1",
