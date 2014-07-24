@@ -8,7 +8,6 @@ var path = require('path')
   , pck = require('./package.json')
   , config = require('./config.js')
   , Filerake = require('filerake')
-  , load = require('./helpers/load.js')
   , portfinder = require('portfinder')
   , sugar = require('sugar')
   , kuler = require('kuler')
@@ -163,7 +162,7 @@ portfinder.getPort(function (err, newport) {
     }
     config.set('port', newport);
     server.listen(newport, function() {
-        console.log(kuler('Express server listening on port', 'olive'), kuler(server.address().port,'limegreen'));
+        console.log(kuler('Server is listening on port ' + server.address().port + '.', 'green'));
     });
   }
 );
