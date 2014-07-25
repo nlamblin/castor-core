@@ -14,6 +14,7 @@ var path = require('path')
   , express = require('express')
   , nunjucks = require('nunjucks')
   , view = require('./helpers/view.js')
+  , morgan  = require('morgan')
   , browserify = require('browserify-middleware')
   , Primus = require('primus')
   , hook = require('./helpers/hook.js')
@@ -81,6 +82,10 @@ function serve () {
       express: app
   });
 
+  app.use(morgan(config.get('logFormat') || 'combined', {
+        stream : process.stderr
+  }));
+
   app.use(require('ecstatic')({
         root          : view('assets'),
         baseDir       : '/assets',
@@ -122,16 +127,15 @@ function serve () {
   app.route('/display-:doc.:format').all(require('./downstream/display-doc.js')(config));
   app.route('/index.:format').all(require('./downstream/overview-docs.js')(config));
 
-  app.route('/bundle.js').get(browserify(config.get('browserifyModules') || ['jquery']));
+  var modules = config.get('browserifyModules');
+  if (Array.isArray(modules) && modules.length > 0) {
+    app.route('/bundle.js').get(browserify(modules));
+  }
   app.route('/webdav/*').all(require('./helpers/webdav.js')({debug: false}));
   app.route('/').all(function(req, res) { res.redirect('index.html') });
 
-
-  // catch 404 and forward to error handler
   app.use(function(req, res, next) {
-      var err = new Error('Not Found');
-      err.status = 404;
-      next(err);
+      res.send(404);
   });
 
   //
