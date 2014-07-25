@@ -19,152 +19,163 @@ var path = require('path')
   , hook = require('./helpers/hook.js')
   ;
 
-console.log(kuler('castor@' + pck.version, 'orange'));
-console.log(kuler('Theme :', 'olive'), kuler(view(), 'limegreen'));
+function serve () {
+  console.log(kuler('castor@' + pck.version, 'orange'));
+  console.log(kuler('Theme :', 'olive'), kuler(view(), 'limegreen'));
+
+  //
+  // Data path :
+  // Check and fix a data source directory
+  //
+  var dataPath = config.get('dataPath') ;
+
+  var confile = path.normalize(dataPath) + '.json';
+  if (fs.existsSync(confile)) {
+    console.log(kuler('Load configuration file :', 'olive'), kuler(confile, 'limegreen'));
+    config.load(confile);
+  }
+  config.set('dataPath', dataPath);
 
 
-//
-// Data path :
-// Check and fix a data source directory 
-//
-var dataPath = config.get('dataPath') ;
-if (!dataPath) {
-  dataPath = path.join(__dirname, 'data');
-}
-var confile = path.normalize(dataPath) + '.json';
-if (fs.existsSync(confile)) {
-  console.log(kuler('Load configuration file :', 'olive'), kuler(confile, 'limegreen'));
-  config.load(confile);
-}
-config.set('dataPath', dataPath);
+  //
+  // Upstream :
+  // add some statements when loading files to MongoDB
+  //
+  if (fs.existsSync(dataPath)) {
+    console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
+    var FilerakeOptions = {
+      "connexionURI" : config.get('connexionURI'),
+      "concurrency" : require('os').cpus().length,
+      "ignore" : [
+        "**/.*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules"
+      ]
+    };
+    var fr = new Filerake(dataPath, FilerakeOptions);
+    fr.use('**/*', require('./upstream/initialize-tags.js')(config));
+    // fr.use('**/*.xml', require('./upstream/convert-xml.js')(config));
+    // fr.use('**/*.pdf', require('./upstream/append-yaml.js')());
+
+    hook()
+    .from(path.join(__dirname, 'upstream'))
+    .over(config.get('upstreamModules') || {})
+    .apply(function(hash, func) {
+        fr.use(hash, func(config));
+      }
+    );
+    fr.sync(function(err) {
+        console.log(kuler('Files and Database are synchronised.', 'green'));
+      }
+    );
+    config.set('collectionName', fr.options.collectionName);
+  }
 
 
-//
-// Upstream :
-// add some statements when loading files to MongoDB
-//
-if (fs.existsSync(dataPath)) {
-  console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
-  var FilerakeOptions = {
-    "connexionURI" : config.get('connexionURI'),
-    "concurrency" : require('os').cpus().length,
-    "ignore" : [
-      "**/.*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules"
-    ]
-  };
-  var fr = new Filerake(dataPath, FilerakeOptions);
-  fr.use('**/*', require('./upstream/initialize-tags.js')(config));
-  // fr.use('**/*.xml', require('./upstream/convert-xml.js')(config));
-  // fr.use('**/*.pdf', require('./upstream/append-yaml.js')());
+  //
+  // Middlewares :
+  // add middlewares to Express
+  //
+  var app = express();
+
+  nunjucks.configure(view(), {
+      autoescape: true,
+      express: app
+  });
+
+  app.use(require('ecstatic')({
+        root          : view('assets'),
+        baseDir       : '/assets',
+        cache         : 3600,
+        showDir       : true,
+        autoIndex     : true,
+        humanReadable : true,
+        si            : false,
+        defaultExt    : 'html',
+        gzip          : false
+  }));
 
   hook()
-  .from(path.join(__dirname, 'upstream'))
-  .over(config.get('upstreamModules') || {})
+  .from(path.join(__dirname, 'middlewares'))
+  .over(config.get('middlewareModules') || {})
   .apply(function(hash, func) {
-      fr.use(hash, func(config));
+      app.use(hash, func(config));
     }
   );
-  fr.sync(function(err) {
-      console.log(kuler('Files and Database are synchronised.', 'green'));
+
+
+  //
+  // Downstream :
+  // add routes to send data on the Web
+  //
+  hook()
+  .from(path.join(__dirname, 'downstream'))
+  .over(config.get('downstreamModules') || {})
+  .apply(function(hash, func) {
+      app.route(hash).all(func(config));
     }
   );
-  config.set('collectionName', fr.options.collectionName);
+
+  app.route('/robots.txt').get(require('./downstream/inform-robots.js')(config));
+  app.route('/sitemap.xml').get(require('./downstream/inform-searchengines.js')(config));
+  app.route('/browse-docs.:format').all(require('./downstream/browse-docs.js')(config));
+  app.route('/distinct-:field.:format').all(require('./downstream/distinct-field.js')(config));
+  app.route('/ventilate-:fields.:format').all(require('./downstream/ventilate-fields.js')(config));
+  app.route('/display-:doc.:format').all(require('./downstream/display-doc.js')(config));
+  app.route('/index.:format').all(require('./downstream/overview-docs.js')(config));
+
+  app.route('/bundle.js').get(browserify(config.get('browserifyModules') || ['jquery']));
+  app.route('/webdav/*').all(require('./helpers/webdav.js')({debug: false}));
+  app.route('/').all(function(req, res) { res.redirect('index.html') });
+
+
+  // catch 404 and forward to error handler
+  app.use(function(req, res, next) {
+      var err = new Error('Not Found');
+      err.status = 404;
+      next(err);
+  });
+
+  //
+  // HTTP Server :
+  // initialize the HTTP server and the "realtime" server
+  //
+  var server = require('http').createServer(app)
+    , primus = new Primus(server, {});
+
+  primus
+  .use('multiplex', 'primus-multiplex')
+  .use('emitter', 'primus-emitter')
+  .use('resource', 'primus-resource');
+
+  primus.resource('docs', require('./resources/docs.js'));
+  primus.resource('doc', require('./resources/doc.js'));
+
+  //
+  // Listen :
+  // get or find  a port number and launche the server.
+  //
+  portfinder.basePort = config.get('port');
+  portfinder.getPort(function (err, newport) {
+      if (err) {
+        throw err;
+      }
+      config.set('port', newport);
+      server.listen(newport, function() {
+          console.log(kuler('Server is listening on port ' + server.address().port + '.', 'green'));
+      });
+    }
+  );
+
+  return server;
 }
 
+module.exports = function(callback) {
+  callback(config, serve);
+}
 
-//
-// Middlewares :
-// add middlewares to Express
-// 
-var app = express();
-
-nunjucks.configure(view(), {
-    autoescape: true,
-    express: app
-});
-
-app.use(require('ecstatic')({
-    root          : view('assets'),
-    baseDir       : '/assets',
-    cache         : 3600,
-    showDir       : true,
-    autoIndex     : true,
-    humanReadable : true,
-    si            : false,
-    defaultExt    : 'html',
-    gzip          : false
-}));
-
-hook()
-.from(path.join(__dirname, 'middlewares'))
-.over(config.get('middlewareModules') || {})
-.apply(function(hash, func) {
-    app.use(hash, func(config));
-  }
-);
-
-
-//
-// Downstream :
-// add routes to send data on the Web
-//
-hook()
-.from(path.join(__dirname, 'downstream'))
-.over(config.get('downstreamModules') || {})
-.apply(function(hash, func) {
-    app.route(hash).all(func(config));
-  }
-);
-
-app.route('/robots.txt').get(require('./downstream/inform-robots.js')(config));
-app.route('/sitemap.xml').get(require('./downstream/inform-searchengines.js')(config));
-app.route('/browse-docs.:format').all(require('./downstream/browse-docs.js')(config));
-app.route('/distinct-:field.:format').all(require('./downstream/distinct-field.js')(config));
-app.route('/ventilate-:fields.:format').all(require('./downstream/ventilate-fields.js')(config));
-app.route('/display-:doc.:format').all(require('./downstream/display-doc.js')(config));
-app.route('/index.:format').all(require('./downstream/overview-docs.js')(config));
-
-app.route('/bundle.js').get(browserify(config.get('browserifyModules') || ['jquery']));
-app.route('/webdav/*').all(require('./helpers/webdav.js')({debug: false}));
-app.route('/').all(function(req, res) { res.redirect('index.html') });
-
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
-});
-
-//
-// HTTP Server :
-// initialize the HTTP server and the "realtime" server 
-//
-var server = require('http').createServer(app)
-  , primus = new Primus(server, {});
-
-primus
-.use('multiplex', 'primus-multiplex')
-.use('emitter', 'primus-emitter')
-.use('resource', 'primus-resource');
-
-primus.resource('docs', require('./resources/docs.js'));
-primus.resource('doc', require('./resources/doc.js'));
-
-//
-// Listen :
-// get or find  a port number and launche the server.
-//
-portfinder.basePort = config.get('port');
-portfinder.getPort(function (err, newport) {
-    if (err) {
-      throw err;
+if (!module.parent) {
+  module.exports(function(cfg, srv) {
+      cfg.set('dataPath', path.normalize(path.resolve(__dirname, cfg.get('dataPath') || './data')));
+      srv();
     }
-    config.set('port', newport);
-    server.listen(newport, function() {
-        console.log(kuler('Server is listening on port ' + server.address().port + '.', 'green'));
-    });
-  }
-);
-
-module.exports = app;
+  );
+}

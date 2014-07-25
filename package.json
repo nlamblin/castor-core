@@ -43,7 +43,8 @@
     "primus-emitter": "^3.0.2",
     "primus-multiplex": "^3.0.2",
     "jsDAV": "^0.3.2",
-    "jsel": "^1.0.1"
+    "jsel": "^1.0.1",
+    "extend": "^1.3.0"
   },
   "devDependencies": {},
   "engines": {
