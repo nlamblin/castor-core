@@ -86,18 +86,6 @@ function serve () {
         stream : process.stderr
   }));
 
-  app.use('/assets', require('ecstatic')({
-        root          : view('assets'),
-        baseDir       : '/assets',
-        cache         : 3600,
-        showDir       : true,
-        autoIndex     : true,
-        humanReadable : true,
-        si            : false,
-        defaultExt    : 'html',
-        gzip          : false
-  }));
-
   hook()
   .from(path.join(__dirname, 'middlewares'))
   .over(config.get('middlewareModules') || {})
@@ -131,7 +119,20 @@ function serve () {
   if (Array.isArray(modules) && modules.length > 0) {
     app.get('/bundle.js', browserify(modules));
   }
-  app.route('/webdav/*').all(require('./helpers/webdav.js')({debug: false}));
+  app.route('/webdav/*').all(require('./helpers/webdav.js')({
+        debug: false
+  }));
+  app.route('/assets/*').all(require('ecstatic')({ 
+        root : view('assets'), baseDir : '/assets',
+        cache         : 3600,
+        showDir       : true,
+        autoIndex     : true,
+        humanReadable : true,
+        si            : false,
+        defaultExt    : 'html',
+        gzip          : false
+  }));
+
   app.route('/').all(function(req, res) { res.redirect('index.html') });
 
   app.use(function(req, res, next) {
