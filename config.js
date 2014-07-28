@@ -21,7 +21,7 @@ var options = {
 //
 // CLI arguments should override.
 //
-nconf.argv(options).env();
+nconf.argv(options);
 
 /**
  * Simple configuration fetcher and updater.
