@@ -56,6 +56,9 @@ module.exports = function(config) {
   .declare('user', function(req, fill) {
       fill(req.user ? req.user : {});
   })
+  .declare('config', function(req, fill) {
+      fill(config.get());
+  })
   .declare('url', function(req, fill) {
       fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
   })

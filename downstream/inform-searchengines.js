@@ -12,6 +12,9 @@ var path = require('path')
 module.exports = function(config) {
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'));
   return datamodel()
+  .declare('config', function(req, fill) {
+      fill(config.get());
+  })
   .declare('url', function(req, fill) {
       fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
   })

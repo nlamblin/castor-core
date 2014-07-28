@@ -11,6 +11,9 @@ var path = require('path')
 
 module.exports = function(config) {
   return datamodel()
+  .declare('config', function(req, fill) {
+      fill(config.get());
+  })
   .declare('url', function(req, fill) {
       fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
   })
