@@ -86,7 +86,7 @@ function serve () {
         stream : process.stderr
   }));
 
-  app.use(require('ecstatic')({
+  app.use('/assets', require('ecstatic')({
         root          : view('assets'),
         baseDir       : '/assets',
         cache         : 3600,
@@ -129,7 +129,7 @@ function serve () {
 
   var modules = config.get('browserifyModules');
   if (Array.isArray(modules) && modules.length > 0) {
-    app.get('/bundle.js', function(req, res, next) { res.status(200); next();}, browserify(modules));
+    app.get('/bundle.js', browserify(modules));
   }
   app.route('/webdav/*').all(require('./helpers/webdav.js')({debug: false}));
   app.route('/').all(function(req, res) { res.redirect('index.html') });
