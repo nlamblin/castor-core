@@ -52,7 +52,7 @@ module.exports = function(config) {
   .append('language', function(file, fill) {
       fill('none');
   })
-  .append('@content', function(file, fill) {
+  .append('content', function(file, fill) {
       var self = this;
       fill({});
       /*
@@ -69,7 +69,7 @@ module.exports = function(config) {
        );
        */
   })
-  .complete('@userfields', function(file, fill) {
+  .complete('userfields', function(file, fill) {
       var self = this,
           values = {},
           fields = config.get('userfields'),
