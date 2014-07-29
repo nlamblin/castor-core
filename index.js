@@ -77,6 +77,7 @@ function serve () {
   //
   var app = express();
 
+
   nunjucks.configure(view(), {
       autoescape: true,
       express: app
@@ -122,7 +123,7 @@ function serve () {
   app.route('/webdav/*').all(require('./helpers/webdav.js')({
         debug: false
   }));
-  app.route('/assets/*').all(require('ecstatic')({ 
+  app.route('/assets/*').all(require('ecstatic')({
         root : view('assets'), baseDir : '/assets',
         cache         : 3600,
         showDir       : true,

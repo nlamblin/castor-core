@@ -23,6 +23,27 @@ catch (e) {
 if (typeof themeconf !== 'object') {
   themeconf = {};
 }
+
+if (Array.isArray(themeconf.browserifyModules)) {
+  themeconf.browserifyModules = themeconf.browserifyModules.map(function(i) {
+      var modulepath, moduledesc = {};
+      try {
+        modulepath = require.resolve(i);
+      }
+      catch (e) {
+        modulepath = path.join(themepath, 'node_modules', i);
+      }
+      moduledesc[modulepath] = {expose : i};
+      return moduledesc;
+    }
+  );
+}
+else {
+  themeconf.browserifyModules = [];
+}
+
+console.log('browserifyModules', themeconf.browserifyModules);
+
 config.merge(themeconf);
 
 module.exports = function(filename) {
