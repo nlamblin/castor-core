@@ -42,8 +42,6 @@ else {
   themeconf.browserifyModules = [];
 }
 
-console.log('browserifyModules', themeconf.browserifyModules);
-
 config.merge(themeconf);
 
 module.exports = function(filename) {
