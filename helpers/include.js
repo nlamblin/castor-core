@@ -1,3 +1,4 @@
+/*jshint node:true, laxcomma:true */
 "use strict";
 
 var path = require('path')
@@ -17,16 +18,16 @@ module.exports = function(basedir, modname) {
   var module = path.join(basedir, modname);
   try {
     module = require.resolve(module);
-    return module;
+    return require(module);
   }
   catch (e) {
     try {
       module = require.resolve(modname);
-      return module;
+      return require(module);
     }
     catch(e) {
       throw new Error(util.format('Unknown (or Missing) Module `%s`', modname));
     }
   }
-}
+};
 
