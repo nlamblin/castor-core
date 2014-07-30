@@ -1,3 +1,4 @@
+/*jshint node:true, laxcomma:true*/
 "use strict";
 
 var path = require('path')
@@ -134,7 +135,7 @@ function serve () {
         gzip          : false
   }));
 
-  app.route('/').all(function(req, res) { res.redirect('index.html') });
+  app.route('/').all(function(req, res) { res.redirect('index.html'); });
 
   app.use(function(req, res, next) {
       res.send(404);
@@ -176,11 +177,11 @@ function serve () {
 
 module.exports = function(callback) {
   callback(config, serve);
-}
+};
 
 if (!module.parent) {
   module.exports(function(cfg, srv) {
-      cfg.set('dataPath', path.normalize(path.resolve(__dirname, cfg.get('dataPath') || './data')));
+      cfg.set('dataPath', path.normalize(path.resolve(__dirname, cfg.get('dataPath'))));
       srv();
     }
   );
