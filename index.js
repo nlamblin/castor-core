@@ -137,7 +137,7 @@ function serve () {
   app.route('/').all(function(req, res) { res.redirect('index.html') });
 
   app.use(function(req, res, next) {
-      res.send(404);
+      res.status(404).end()
   });
 
   //
@@ -147,13 +147,39 @@ function serve () {
   var server = require('http').createServer(app)
     , primus = new Primus(server, {});
 
-  primus
-  .use('multiplex', 'primus-multiplex')
-  .use('emitter', 'primus-emitter')
-  .use('resource', 'primus-resource');
+  primus.use('emitter', require('primus-emitter'));
 
-  primus.resource('docs', require('./resources/docs.js'));
-  primus.resource('doc', require('./resources/doc.js'));
+  primus.on('connection', function (spark) {
+      fr.on('changed', function(err, doc) {
+          if (!err) {
+          debug('changed', err, doc);
+            spark.send('changed', doc);
+          }
+        }
+      );
+      fr.on('cancelled', function(err, doc) {
+          if (!err) {
+            debug('cancelled', err, doc);
+            spark.send('cancelled', doc);
+          }
+        }
+      );
+      fr.on('dropped', function(err, doc) {
+          if (!err) {
+            debug('dropped', err, doc);
+            spark.send('dropped', doc);
+          }
+        }
+      );
+      fr.on('added', function(err, doc) {
+          if (!err) {
+            debug('added', err, doc);
+            spark.send('added', doc);
+          }
+        }
+      );
+    }
+  );
 
   //
   // Listen :
