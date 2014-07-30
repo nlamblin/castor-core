@@ -207,7 +207,7 @@ module.exports = function(callback) {
 
 if (!module.parent) {
   module.exports(function(cfg, srv) {
-      cfg.set('dataPath', path.normalize(path.resolve(__dirname, cfg.get('dataPath'))));
+      cfg.set('dataPath', path.normalize(path.resolve(__dirname, cfg.get('dataPath') || '')));
       srv();
     }
   );
