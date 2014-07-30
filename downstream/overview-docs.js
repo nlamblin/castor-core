@@ -2,7 +2,7 @@
 
 var path = require('path')
   , basename = path.basename(__filename, '.js')
-  , debug = require('debug')('catsor:' + basename)
+  , debug = require('debug')('castor:' + basename)
   , util = require('util')
   , datamodel = require('datamodel')
   , render = require('../helpers/render.js')

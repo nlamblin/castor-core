@@ -13,7 +13,7 @@
   "main": "./index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/castorjs/catsor.git"
+    "url": "https://github.com/castorjs/castor.git"
   },
   "dependencies": {
     "debug": "^0.8.1",
