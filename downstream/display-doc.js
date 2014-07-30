@@ -11,7 +11,6 @@ var path = require('path')
 
 module.exports = function(config) {
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
-    , nPerPage = config.get('itemsPerPage') || 30
     ;
 
   return datamodel()

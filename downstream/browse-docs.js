@@ -11,7 +11,6 @@ var path = require('path')
 
 module.exports = function(config) {
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
-    , nPerPage = config.get('itemsPerPage') || 30
     ;
 
   return datamodel()
@@ -52,8 +51,9 @@ module.exports = function(config) {
       fill(headers);
   })
   .append('items', function(req, fill) {
-      var pageNumber = 1;
-      coll.find().skip((Number(pageNumber) - 1) * nPerPage).limit(nPerPage).toArray().then(fill).catch(fill);
+      var pageNumber = req.query.page || 1
+        , nPerPage = req.query.count || config.get('itemsPerPage') || 30;
+      coll.find().skip((Number(pageNumber) - 1) * nPerPage).limit(Number(nPerPage)).toArray().then(fill).catch(fill);
   })
   .send(function(res, next) {
       res.set(this.headers);

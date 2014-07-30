@@ -9,7 +9,6 @@ var path = require('path')
   , render = require('../helpers/render.js')
   , pmongo = require('promised-mongo')
   , coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
-  , nPerPage = config.get('itemsPerPage') || 30
   ;
 
 datamodel()

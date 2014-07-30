@@ -34,7 +34,6 @@ var reduce = function (key, values) {
 
 module.exports = function(config) {
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
-    , nPerPage = config.get('itemsPerPage') || 30
     ;
 
   return datamodel()
@@ -92,7 +91,9 @@ module.exports = function(config) {
       debug('opts', opts);
 
       coll.mapReduce(map, reduce, opts).then(function(newcoll) {
-          newcoll.find().skip((Number(pageNumber) - 1) * nPerPage).limit(nPerPage).toArray(function (err, res) {
+          var pageNumber = req.query.page || 1
+            , nPerPage = req.query.count || config.get('itemsPerPage') || 30;
+          newcoll.find().skip((Number(pageNumber) - 1) * nPerPage).limit(Number(nPerPage)).toArray(function (err, res) {
               fill(err ? err : res)
             }
           );
