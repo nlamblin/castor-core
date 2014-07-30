@@ -33,12 +33,6 @@ module.exports = function(config) {
   .declare('template', function(req, fill) {
       fill(basename + '.html');
   })
-  .declare('params', function(req, fill) {
-      fill({
-          field : req.params.field || 'wid',
-          format : req.params.format
-      });
-  })
   .declare('site', function(req, fill) {
       fill({
           title : 'Castor',
@@ -64,27 +58,44 @@ module.exports = function(config) {
   .declare('selector', function(req, fill) {
       fill({ state: { $nin: [ "deleted", "hidden" ] } });
   })
+  .declare('parameters', function(req, fill) {
+      fill({
+          field: req.params.field || 'wid'
+        , format: req.params.format
+        , startPage: Number(req.query.page || 1)
+        , nPerPage: Number(req.query.count || config.get('itemsPerPage') || 30)
+      });
+  })
   .append('headers', function(req, fill) {
       var headers = {};
-      headers['Content-Type'] = require('../helpers/format.js')(this.params.format);
+      headers['Content-Type'] = require('../helpers/format.js')(this.parameters.format);
       fill(headers);
   })
+  .append('response', function(req, fill) {
+      var r = {
+        totalResults: 0
+      , startIndex: ((this.parameters.startPage - 1) * this.parameters.nPerPage) + 1
+      , itemsPerPage: this.parameters.itemsPerPage
+      , startPage: this.parameters.startPage
+        //,  searchTerms:
+      }
+      // coll.find().count().then(function(c) { r.totalResults = c; fill(r); }).catch(function() { fill(r); });
+      fill(r);
+  })
   .append('items', function(req, fill) {
-      var self = this , pageNumber = 1;
+      var self = this;
 
       var opts = {
         out : {
-          replace: basename + '_' + self.params.field
+          replace: basename + '_' + self.parameters.field
         },
         query: self.selector,
         scope: {
-          fieldname: self.params.field
+          fieldname: self.parameters.field
         }
       };
       coll.mapReduce(map, reduce, opts).then(function(newcoll) {
-          var pageNumber = req.query.page || 1
-            , nPerPage = req.query.count || config.get('itemsPerPage') || 30;
-          newcoll.find().skip((Number(pageNumber) - 1) * nPerPage).limit(Number(nPerPage)).toArray(function (err, res) {
+          newcoll.find().skip((self.parameters.startPage - 1) * self.parameters.nPerPage).limit(self.parameters.nPerPage).toArray(function (err, res) {
               fill(err ? err : res)
             }
           );

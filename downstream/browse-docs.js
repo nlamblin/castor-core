@@ -42,6 +42,12 @@ module.exports = function(config) {
   .declare('selector', function(req, fill) {
       fill({ state: { $nin: [ "deleted", "hidden" ] } });
   })
+  .declare('parameters', function(req, fill) {
+      fill({
+          startPage: Number(req.query.page || 1)
+        , nPerPage: Number(req.query.count || config.get('itemsPerPage') || 30)
+      });
+  })
   .append('headers', function(req, fill) {
       var headers = {};
       headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
@@ -50,10 +56,18 @@ module.exports = function(config) {
       }
       fill(headers);
   })
+  .append('response', function(req, fill) {
+      var r = {
+        totalResults: 0
+      , startIndex: ((this.parameters.startPage - 1) * this.parameters.nPerPage) + 1
+      , itemsPerPage: this.parameters.itemsPerPage
+      , startPage: this.parameters.startPage
+        //,  searchTerms:
+      }
+      coll.find().count().then(function(c) { r.totalResults = c; fill(r); }).catch(function() { fill(r); });
+  })
   .append('items', function(req, fill) {
-      var pageNumber = req.query.page || 1
-        , nPerPage = req.query.count || config.get('itemsPerPage') || 30;
-      coll.find().skip((Number(pageNumber) - 1) * nPerPage).limit(Number(nPerPage)).toArray().then(fill).catch(fill);
+      coll.find().skip((this.parameters.startPage - 1) * this.parameters.nPerPage).limit(this.parameters.nPerPage).toArray().then(fill).catch(fill);
   })
   .send(function(res, next) {
       res.set(this.headers);
