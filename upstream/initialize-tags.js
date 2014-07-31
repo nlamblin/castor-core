@@ -11,7 +11,6 @@ var path = require('path')
   , shorthash = require('shorthash')
   , datamodel = require('datamodel')
   , extend = require('extend')
-  , jsel = require('jsel')
   ;
 
 module.exports = function(config) {
@@ -68,35 +67,6 @@ module.exports = function(config) {
          }
        );
        */
-  })
-  .complete('userfields', function(file, fill) {
-      var self = this,
-          values = {},
-          fields = config.get('userfields'),
-          dom = jsel(self);
-      if (typeof fields === 'object') {
-        Object.keys(fields).forEach(function (key) {
-            var xpr = fields[key];
-            var val = typeof xpr === 'string' && xpr !== '' ? dom.selectAll(xpr) : undefined;
-            debug(xpr, val);
-            if (Array.isArray(val)) {
-              if (val.length === 0) {
-                values[key] = undefined;
-              }
-              else if (val.length === 1) {
-                values[key] = val.pop();
-              }
-              else {
-                values[key] = val;
-              }
-            }
-            else {
-              values[key] = undefined;
-            }
-          }
-        );
-      }
-      fill(values);
   })
   .transform(function(file, fill) {
       var doc = this;

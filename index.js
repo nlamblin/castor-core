@@ -76,7 +76,6 @@ function serve () {
     fr.use('**/*', require('./upstream/initialize-tags.js')(config));
     // fr.use('**/*.xml', require('./upstream/convert-xml.js')(config));
     // fr.use('**/*.pdf', require('./upstream/append-yaml.js')());
-
     hook()
     .from(path.join(__dirname, 'upstream'))
     .over(config.get('upstreamModules'))
@@ -84,6 +83,7 @@ function serve () {
         fr.use(hash, func(config));
       }
     );
+    fr.use('**/*', require('./upstream/set-userfields.js')(config));
     fr.sync(function(err) {
         console.log(kuler('Files and Database are synchronised.', 'green'));
       }

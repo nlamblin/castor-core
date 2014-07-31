@@ -24,7 +24,7 @@ module.exports = function(config) {
           return next(err);
         }
         extend(output, input);
-        output['@content']['application/json'] = xm.load(xml.toString(), options);
+        output['content']['application/json'] = xm.load(xml.toString(), options);
         next();
       }
     );
