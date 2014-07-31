@@ -22,6 +22,7 @@ var options = {
 // CLI arguments should override.
 //
 nconf.argv(options);
+nconf.use('memory');
 
 /**
  * Simple configuration fetcher and updater.
@@ -34,7 +35,7 @@ function Configuration() {
   // Now load the file potentially passed in from
   // --config|-c
   //
-  nconf.file({ file: this.get('config') });
+  this.load(this.get('config'));
 }
 
 /**
@@ -59,7 +60,9 @@ Configuration.prototype.set = function set() {
 
 
 Configuration.prototype.load = function load(filename) {
-  nconf.file({ file: filename});
+  if (fs.existsSync(filename)) {
+    nconf.file({ file: filename});
+  }
 };
 
 Configuration.prototype.merge = function load(obj) {

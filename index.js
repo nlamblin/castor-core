@@ -29,6 +29,8 @@ function serve () {
   //
   var dataPath = config.get('dataPath') ;
 
+  debug('dataPath', dataPath);
+
   var confile = path.normalize(dataPath) + '.json';
   if (fs.existsSync(confile)) {
     console.log(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
@@ -52,6 +54,8 @@ function serve () {
   config.set('upstreamModules',   config.get('upstreamModules') || {});
   config.set('downstreamModules', config.get('downstreamModules') || {});
   config.set('browserifyModules', config.get('browserifyModules') || []);
+  config.set('userfields',        config.get('userfields') || {});
+
 
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
 
