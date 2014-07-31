@@ -23,7 +23,6 @@ var path = require('path')
 
 function serve () {
   console.log(kuler('castor@' + pck.version, 'orange'));
-  console.log(kuler('Theme :', 'olive'), kuler(view(), 'limegreen'));
 
   //
   // Data path :
@@ -33,11 +32,24 @@ function serve () {
 
   var confile = path.normalize(dataPath) + '.json';
   if (fs.existsSync(confile)) {
-    console.log(kuler('Load configuration file :', 'olive'), kuler(confile, 'limegreen'));
+    console.log(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
     config.load(confile);
   }
   config.set('dataPath', dataPath);
 
+
+  //
+  // Check & Fix required config parameters
+  //
+  config.set('connexionURI',      config.get('connexionURI') || 'mongodb://localhost:27017/castor/');
+  config.set('port',              config.get('port') || '3000');
+  config.set('logFormat',         config.get('logFormat') || 'combined');
+  config.set('middlewareModules', config.get('middlewareModules') || {});
+  config.set('upstreamModules',   config.get('upstreamModules') || {});
+  config.set('downstreamModules', config.get('downstreamModules') || {});
+  config.set('browserifyModules', config.get('browserifyModules') || []);
+
+  console.log(kuler('Theme :', 'olive'), kuler(view(), 'limegreen'));
 
   //
   // Upstream :
@@ -59,7 +71,7 @@ function serve () {
 
     hook()
     .from(path.join(__dirname, 'upstream'))
-    .over(config.get('upstreamModules') || {})
+    .over(config.get('upstreamModules'))
     .apply(function(hash, func) {
         fr.use(hash, func(config));
       }
@@ -84,13 +96,13 @@ function serve () {
       express: app
   });
 
-  app.use(morgan(config.get('logFormat') || 'combined', {
+  app.use(morgan(config.get('logFormat'), {
         stream : process.stderr
   }));
 
   hook()
   .from(path.join(__dirname, 'middlewares'))
-  .over(config.get('middlewareModules') || {})
+  .over(config.get('middlewareModules'))
   .apply(function(hash, func) {
       app.use(hash, func(config));
     }
@@ -103,7 +115,7 @@ function serve () {
   //
   hook()
   .from(path.join(__dirname, 'downstream'))
-  .over(config.get('downstreamModules') || {})
+  .over(config.get('downstreamModules'))
   .apply(function(hash, func) {
       app.route(hash).all(func(config));
     }
