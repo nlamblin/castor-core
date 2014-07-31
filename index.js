@@ -14,7 +14,6 @@ var path = require('path')
   , kuler = require('kuler')
   , express = require('express')
   , nunjucks = require('nunjucks')
-  , view = require('./helpers/view.js')
   , morgan  = require('morgan')
   , browserify = require('browserify-middleware')
   , Primus = require('primus')
@@ -37,6 +36,11 @@ function serve () {
   }
   config.set('dataPath', dataPath);
 
+  //
+  // View path :
+  // Find and Check the directory's templates
+  //
+  var viewPath = require('./helpers/view.js')(config);
 
   //
   // Check & Fix required config parameters
@@ -49,7 +53,7 @@ function serve () {
   config.set('downstreamModules', config.get('downstreamModules') || {});
   config.set('browserifyModules', config.get('browserifyModules') || []);
 
-  console.log(kuler('Theme :', 'olive'), kuler(view(), 'limegreen'));
+  console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
 
   //
   // Upstream :
@@ -91,7 +95,7 @@ function serve () {
   var app = express();
 
 
-  nunjucks.configure(view(), {
+  nunjucks.configure(viewPath, {
       autoescape: true,
       express: app
   });
@@ -130,6 +134,7 @@ function serve () {
   app.route('/index.:format').all(require('./downstream/overview-docs.js')(config));
 
   var modules = config.get('browserifyModules');
+
   if (Array.isArray(modules) && modules.length > 0) {
     app.get('/bundle.js', browserify(modules));
   }
@@ -137,7 +142,8 @@ function serve () {
         debug: false
   }));
   app.route('/assets/*').all(require('ecstatic')({
-        root : view('assets'), baseDir : '/assets',
+        root : path.join(viewPath, 'assets'), 
+        baseDir : '/assets',
         cache         : 3600,
         showDir       : true,
         autoIndex     : true,

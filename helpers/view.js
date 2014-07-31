@@ -5,46 +5,49 @@ var path = require('path')
   , debug = require('debug')('castor:' + basename)
   , util = require('util')
   , fs = require('fs')
-  , config  = require('../config.js')
   ;
 
-var themename = config.get('theme') || path.join(__dirname, '..', 'themes', 'default'),
-    themepath,
-    themeconf;
 
-try {
-  themepath = require.resolve(themename);
-  themeconf = require(themepath);
-  themepath = path.dirname(themepath);
-}
-catch (e) {
-  throw new Error(util.format('Unknown (or Missing) Theme `%s`', themename));
-}
-if (typeof themeconf !== 'object') {
-  themeconf = {};
-}
+module.exports = function(config) {
+  var themename, themepath, themefile, themeconf;
+  try {
+    themename = config.get('theme') || path.join(__dirname, '..', 'themes', 'default');
+    themefile = require.resolve(themename);
+    themepath = path.dirname(themefile);
+    themeconf = require(themefile);
+  }
+  catch (e) {
+    throw new Error(util.format('Unknown (or Missing) Theme `%s`', themename));
+  }
+  if (typeof themeconf !== 'object') {
+    themeconf = {};
+  }
 
-if (Array.isArray(themeconf.browserifyModules)) {
-  themeconf.browserifyModules = themeconf.browserifyModules.map(function(i) {
-      var modulepath, moduledesc = {};
-      try {
-        modulepath = require.resolve(i);
+  if (Array.isArray(themeconf.browserifyModules)) {
+    themeconf.browserifyModules = themeconf.browserifyModules.map(function(modulename) {
+        var modulefile, moduledesc = {};
+        try {
+          modulefile = require.resolve(modulename);
+          moduledesc[modulename] = {expose : modulename};
+        }
+        catch (e) {
+          var modulename2 = path.join(themepath, 'node_modules', modulename);
+          try {
+            modulefile = require.resolve(modulename2);
+            moduledesc[modulename2] = {expose : modulename};
+          }
+          catch (e) {
+            // ignore module
+          }
+        }
+        return moduledesc;
       }
-      catch (e) {
-        modulepath = path.join(themepath, 'node_modules', i);
-      }
-      moduledesc[modulepath] = {expose : i};
-      return moduledesc;
-    }
-  );
-}
-else {
-  themeconf.browserifyModules = [];
-}
-
-config.merge(themeconf);
-
-module.exports = function(filename) {
-  return path.join(themepath, filename || '');
+    );
+  }
+  else {
+    themeconf.browserifyModules = [];
+  }
+  config.merge(themeconf);
+  return themepath;
 }
 
