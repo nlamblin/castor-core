@@ -17,20 +17,23 @@ module.exports = function(config) {
     if (typeof fields === 'object') {
       Object.keys(fields).forEach(function (key) {
           var xpr = fields[key];
-          var val = typeof xpr === 'string' && xpr !== '' ? dom.selectAll(xpr) : undefined;
+          if (typeof xpr !== 'string' || xpr === '') {
+            return;
+          }
+          var val = dom.selectAll(xpr), vals = dom.select(xpr);
           if (Array.isArray(val)) {
-            if (val.length === 0) {
-              values[key] = undefined;
+            if (vals.length === 0) {
+              values[key] = val;
             }
-            else if (val.length === 1) {
-              values[key] = val.pop();
+            else if (vals.length === 1) {
+              values[key] = val;
             }
             else {
-              values[key] = val;
+              values[key] = vals;
             }
           }
           else {
-            values[key] = undefined;
+            values[key] = val;
           }
         }
       );

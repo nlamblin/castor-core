@@ -69,7 +69,7 @@ function serve () {
       "connexionURI" : config.get('connexionURI'),
       "concurrency" : require('os').cpus().length,
       "ignore" : [
-        "**/.*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules"
+        "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules"
       ]
     };
     var fr = new Filerake(dataPath, FilerakeOptions);
