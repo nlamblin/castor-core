@@ -89,7 +89,7 @@ module.exports = function(config) {
       debug('opts', opts);
 
       coll.mapReduce(map, reduce, opts).then(function(newcoll) {
-          newcoll.find().skip((self.parameters.startPage - 1) * self.parameters.nPerPage).limit(self.parameters.nPerPage).toArray(function (err, res) {
+          newcoll.find().toArray(function (err, res) {
               fill(err ? err : res)
             }
           );
