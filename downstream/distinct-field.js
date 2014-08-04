@@ -17,7 +17,6 @@ var map = function () {
 };
 var reduce = function (key, values) {
   var c = 0;
-  print('values', values);
   values.forEach(function (cur) {
       c += cur;
     }
