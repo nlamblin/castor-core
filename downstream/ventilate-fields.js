@@ -13,22 +13,19 @@ var map = function () {
   /* global fields, emit */
   var doc = this;
   fields.forEach(function (x) {
-      emit(x, doc[x]);
+      var f = new Function('d', 'return d.' + x.replace(/[^\w\._$]/g, ''));
+      emit(x + '=' + f(doc), 1);
     }
   )
 };
 
 var reduce = function (key, values) {
-  var o = {}, i, j, l = values.length, r = [];
-  for (i = 0; i < l; i += 1) {
-    o[values[i]] = values[i];
-  }
-  for (j in o) {
-    if (o[j]) {
-      r.push(o[j]);
+  var c = 0;
+  values.forEach(function (cur) {
+      c += cur;
     }
-  }
-  return r.toString();
+  );
+  return c;
 }
 
 
@@ -80,7 +77,6 @@ module.exports = function(config) {
   })
   .append('items', function(req, fill) {
       var self = this;
-
       var opts = {
         out : {
           replace: basename + '_' + self.parameters.fields.join('_')
@@ -100,8 +96,17 @@ module.exports = function(config) {
       }).catch(fill);
   })
   .transform(function(req, fill) {
-      var n = this;
-      n.items = this.items.map(function(e) { return { _id: e._id, values: e.value.split(',') } });
+      var n = this, r = {};
+      this.items.each(function(e) {
+          var id = e._id.split('=', 1).shift(),
+              value = e._id.slice(e._id.indexOf('=') + 1),
+              count = e.value;
+          if (r[id] === undefined) {
+            r[id] = [];
+          }
+          r[id].push({value: value, count:count});
+      });
+      n.items = r;
       fill(n);
   })
   .send(function(res, next) {
