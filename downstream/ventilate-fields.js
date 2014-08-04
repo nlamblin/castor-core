@@ -13,7 +13,7 @@ var map = function () {
   /* global fields, emit */
   var doc = this;
   fields.forEach(function (x) {
-      var f = new Function('d', 'return d.' + x.replace(/[^\w\._$]/g, ''));
+      var f = new Function('d', 'return d.' + x);
       emit(x + '=' + f(doc), 1);
     }
   )
@@ -64,7 +64,7 @@ module.exports = function(config) {
   })
   .declare('parameters', function(req, fill) {
       fill({
-          fields : req.params.fields.split(',') || ['wid']
+          fields : req.params.fields.split(',').map(function(x) {return x.replace(/[^\w\._$]/g, '')}) || ['wid']
         , format: req.params.format
         , startPage: Number(req.query.page || 1)
         , nPerPage: Number(req.query.count || config.get('itemsPerPage') || 30)
