@@ -1,3 +1,4 @@
+/*jshint node:true, laxcomma:true */
 'use strict';
 
 var path = require('path')
@@ -15,7 +16,7 @@ var map = function () {
 };
 var reduce = function (key, values) {
   return null;
-}
+};
 
 module.exports = function(config) {
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
@@ -68,7 +69,7 @@ return datamodel()
         };
         coll.mapReduce(map, reduce, opts).then(function(newcoll) {
             newcoll.find().toArray(function (err, res) {
-                fill(err ? err : res)
+                fill(err ? err : res);
               }
             );
         }).catch(fill);
@@ -84,4 +85,4 @@ return datamodel()
       }
     )
     .takeout();
-  }
+  };
