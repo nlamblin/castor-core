@@ -77,18 +77,22 @@ module.exports = function(config) {
     })
     .append('years', function(req, fill) {
       coll
-      .aggregate(
+      .aggregate(                                 // WARNING mongo 2.6+ only!
         { $project: { Py: 1, _id: 0} },
         { $group: { _id: "$Py", occ: { $sum: 1} } })
       .then(fill)
-      // .toArray(function (err, res) {
-      //   fill(err ? err : res);
-      // })
       .catch(fill);
     })
     .transform(function(req, fill) {
         var n = this;
+        var y = {};
         n.fields = this.fields.map(function(e) { return e._id; });
+
+        this.years.each(function (e) {
+            y[e._id] = e.occ;
+        });
+        n.years = y;
+
         fill(n);
     })
     .send(function(res, next) {
