@@ -75,6 +75,17 @@ module.exports = function(config) {
         }).catch(fill);
 
     })
+    .append('years', function(req, fill) {
+      coll
+      .aggregate(
+        { $project: { Py: 1, _id: 0} },
+        { $group: { _id: "$Py", occ: { $sum: 1} } })
+      .then(fill)
+      // .toArray(function (err, res) {
+      //   fill(err ? err : res);
+      // })
+      .catch(fill);
+    })
     .transform(function(req, fill) {
         var n = this;
         n.fields = this.fields.map(function(e) { return e._id; });
