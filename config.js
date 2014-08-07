@@ -39,6 +39,17 @@ function Configuration() {
 }
 
 /**
+ * Fix value if not exist
+ *
+ * @param
+ * @api public
+ */
+Configuration.prototype.fix = function fix(name, value) {
+  return nconf.set(name, nconf.get(name) || value);
+};
+
+
+/**
  * Retrieve a value from the configuration.
  *
  * @param

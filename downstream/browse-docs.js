@@ -45,7 +45,7 @@ module.exports = function(config) {
   .declare('parameters', function(req, fill) {
       fill({
           startPage: Number(req.query.page || 1)
-        , nPerPage: Number(req.query.count || config.get('itemsPerPage') || 30)
+        , nPerPage: Number(req.query.count || config.get('itemsPerPage'))
       });
   })
   .append('headers', function(req, fill) {

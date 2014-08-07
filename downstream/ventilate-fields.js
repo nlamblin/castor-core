@@ -67,7 +67,7 @@ module.exports = function(config) {
           fields : req.params.fields.split(',').map(function(x) {return x.replace(/[^\w\._$]/g, '')}) || ['wid']
         , format: req.params.format
         , startPage: Number(req.query.page || 1)
-        , nPerPage: Number(req.query.count || config.get('itemsPerPage') || 30)
+        , nPerPage: Number(req.query.count || config.get('itemsPerPage'))
       });
   })
   .append('headers', function(req, fill) {

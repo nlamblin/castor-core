@@ -62,7 +62,7 @@ module.exports = function(config) {
           field: req.params.field || 'wid'
         , format: req.params.format
         , startPage: Number(req.query.page || 1)
-        , nPerPage: Number(req.query.count || config.get('itemsPerPage') || 30)
+        , nPerPage: Number(req.query.count || config.get('itemsPerPage'))
       });
   })
   .append('headers', function(req, fill) {

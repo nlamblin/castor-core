@@ -47,14 +47,20 @@ function serve () {
   //
   // Check & Fix required config parameters
   //
-  config.set('connexionURI',      config.get('connexionURI') || 'mongodb://localhost:27017/castor/');
-  config.set('port',              config.get('port') || '3000');
-  config.set('logFormat',         config.get('logFormat') || 'combined');
-  config.set('middlewareModules', config.get('middlewareModules') || {});
-  config.set('upstreamModules',   config.get('upstreamModules') || {});
-  config.set('downstreamModules', config.get('downstreamModules') || {});
-  config.set('browserifyModules', config.get('browserifyModules') || []);
-  config.set('userfields',        config.get('userfields') || {});
+  config.fix('connexionURI',      'mongodb://localhost:27017/castor/');
+  config.fix('port',              '3000');
+  config.fix('logFormat',         'combined');
+  config.fix('middlewareModules', {});
+  config.fix('upstreamModules',   {});
+  config.fix('downstreamModules', {});
+  config.fix('browserifyModules', []);
+  config.fix('userfields',        {});
+  config.fix('itemsPerPage',      30);
+  config.fix('concurrency',       require('os').cpus().length);
+  config.fix('turnoffSync',       false);
+  config.fix('turnoffPrimus',     false);
+  config.fix('turnoffWebdav',     false);
+  config.fix('filesToIgnore',     [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules" ]);
 
 
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
@@ -67,10 +73,8 @@ function serve () {
     console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
     var FilerakeOptions = {
       "connexionURI" : config.get('connexionURI'),
-      "concurrency" : require('os').cpus().length,
-      "ignore" : [
-        "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules"
-      ]
+      "concurrency" : config.get('concurrency'),
+      "ignore" : config.get('filesToIgnore')
     };
     var fr = new Filerake(dataPath, FilerakeOptions);
     fr.use('**/*', require('./upstream/initialize-tags.js')(config));
@@ -84,9 +88,11 @@ function serve () {
       fr.use(hash, func(config));
     });
     fr.use('**/*', require('./upstream/set-userfields.js')(config));
-    fr.sync(function(err) {
-      console.log(kuler('Files and Database are synchronised.', 'green'));
-    });
+    if (config.get('turnoffSync') === false) {
+      fr.sync(function(err) {
+        console.log(kuler('Files and Database are synchronised.', 'green'));
+      });
+    }
     config.set('collectionName', fr.options.collectionName);
   }
 
@@ -139,9 +145,11 @@ function serve () {
   if (Array.isArray(modules) && modules.length > 0) {
     app.get('/bundle.js', browserify(modules));
   }
-  app.route('/webdav/*').all(require('./helpers/webdav.js')({
-    debug: false
-  }));
+  if (config.get('turnoffWebdav') === false) {
+    app.route('/webdav/*').all(require('./helpers/webdav.js')({
+      debug: false
+    }));
+  }
   app.route('/assets/*').all(require('ecstatic')({
     root : path.join(viewPath, 'assets'),
     baseDir : '/assets',
@@ -164,37 +172,40 @@ function serve () {
   // HTTP Server :
   // initialize the HTTP server and the "realtime" server
   //
-  var server = require('http').createServer(app)
-    , primus = new Primus(server, {});
+  var server = require('http').createServer(app);
 
-  primus.use('emitter', require('primus-emitter'));
+  if (config.get('turnoffPrimus') === false) {
+    var primus = new Primus(server, {});
 
-  primus.on('connection', function (spark) {
-    fr.on('changed', function(err, doc) {
-      if (!err) {
-        debug('changed', err, doc);
-        spark.send('changed', doc);
-      }
+    primus.use('emitter', require('primus-emitter'));
+
+    primus.on('connection', function (spark) {
+      fr.on('changed', function(err, doc) {
+        if (!err) {
+          debug('changed', err, doc);
+          spark.send('changed', doc);
+        }
+      });
+      fr.on('cancelled', function(err, doc) {
+        if (!err) {
+          debug('cancelled', err, doc);
+          spark.send('cancelled', doc);
+        }
+      });
+      fr.on('dropped', function(err, doc) {
+        if (!err) {
+          debug('dropped', err, doc);
+          spark.send('dropped', doc);
+        }
+      });
+      fr.on('added', function(err, doc) {
+        if (!err) {
+          debug('added', err, doc);
+          spark.send('added', doc);
+        }
+      });
     });
-    fr.on('cancelled', function(err, doc) {
-      if (!err) {
-        debug('cancelled', err, doc);
-        spark.send('cancelled', doc);
-      }
-    });
-    fr.on('dropped', function(err, doc) {
-      if (!err) {
-        debug('dropped', err, doc);
-        spark.send('dropped', doc);
-      }
-    });
-    fr.on('added', function(err, doc) {
-      if (!err) {
-        debug('added', err, doc);
-        spark.send('added', doc);
-      }
-    });
-  });
+  }
 
   //
   // Listen :
