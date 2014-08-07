@@ -26,7 +26,8 @@ module.exports = function(basedir, modname) {
       return require(module);
     }
     catch(e) {
-      throw new Error(util.format('Unknown (or Missing) Module `%s`', modname));
+      throw new Error(util.format('Unknown (or Missing or Error in) Module `%s`\n  %s',
+                      modname, e));
     }
   }
 };

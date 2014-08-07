@@ -22,11 +22,11 @@ module.exports = function(config) {
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
   ;
 
-return datamodel()
-.declare('template', function(req, fill) {
+  return datamodel()
+  .declare('template', function(req, fill) {
     fill(basename + '.html');
-})
-.declare('site', function(req, fill) {
+  })
+  .declare('site', function(req, fill) {
     fill({
         title : 'Castor',
         description : null,
@@ -34,7 +34,7 @@ return datamodel()
     })
     .declare('page', function(req, fill) {
         fill({
-            title : 'Overview documents',
+            title : 'Dashboard',
             description : null,
             types : ['text/html', 'application/json']
         });
@@ -75,9 +75,24 @@ return datamodel()
         }).catch(fill);
 
     })
+    .append('years', function(req, fill) {
+      coll
+      .aggregate(                                 // WARNING mongo 2.6+ only!
+        { $project: { Py: 1, _id: 0} },
+        { $group: { _id: "$Py", occ: { $sum: 1} } })
+      .then(fill)
+      .catch(fill);
+    })
     .transform(function(req, fill) {
         var n = this;
+        var y = {};
         n.fields = this.fields.map(function(e) { return e._id; });
+
+        this.years.each(function (e) {
+            y[e._id] = e.occ;
+        });
+        n.years = y;
+
         fill(n);
     })
     .send(function(res, next) {
@@ -85,4 +100,4 @@ return datamodel()
       }
     )
     .takeout();
-  };
+};

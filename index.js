@@ -138,6 +138,7 @@ function serve () {
   app.route('/distinct-:field.:format').all(require('./downstream/distinct-field.js')(config));
   app.route('/ventilate-:fields.:format').all(require('./downstream/ventilate-fields.js')(config));
   app.route('/display-:doc.:format').all(require('./downstream/display-doc.js')(config));
+  app.route('/dashboard.:format').all(require('./downstream/dashboard-docs.js')(config));
   app.route('/index.:format').all(require('./downstream/overview-docs.js')(config));
 
   var modules = config.get('browserifyModules');
@@ -151,21 +152,21 @@ function serve () {
     }));
   }
   app.route('/assets/*').all(require('ecstatic')({
-    root : path.join(viewPath, 'assets'),
-    baseDir : '/assets',
-    cache         : 3600,
-    showDir       : true,
-    autoIndex     : true,
-    humanReadable : true,
-    si            : false,
-    defaultExt    : 'html',
-    gzip          : false
+        root : path.join(viewPath, 'assets'),
+        baseDir : '/assets',
+        cache         : 3600,
+        showDir       : true,
+        autoIndex     : true,
+        humanReadable : true,
+        si            : false,
+        defaultExt    : 'html',
+        gzip          : false
   }));
 
   app.route('/').all(function(req, res) { res.redirect('index.html'); });
 
   app.use(function(req, res, next) {
-    res.status(404).end()
+    res.status(404).end();
   });
 
   //
