@@ -74,20 +74,19 @@ function serve () {
     };
     var fr = new Filerake(dataPath, FilerakeOptions);
     fr.use('**/*', require('./upstream/initialize-tags.js')(config));
-    // fr.use('**/*.xml', require('./upstream/convert-xml.js')(config));
+    fr.use('**/*.csv', require('./upstream/convert-csv.js')(config));
+    fr.use('**/*.xml', require('./upstream/convert-xml.js')(config));
     // fr.use('**/*.pdf', require('./upstream/append-yaml.js')());
     hook()
     .from(path.join(__dirname, 'upstream'))
     .over(config.get('upstreamModules'))
     .apply(function(hash, func) {
-        fr.use(hash, func(config));
-      }
-    );
+      fr.use(hash, func(config));
+    });
     fr.use('**/*', require('./upstream/set-userfields.js')(config));
     fr.sync(function(err) {
-        console.log(kuler('Files and Database are synchronised.', 'green'));
-      }
-    );
+      console.log(kuler('Files and Database are synchronised.', 'green'));
+    });
     config.set('collectionName', fr.options.collectionName);
   }
 
@@ -100,21 +99,20 @@ function serve () {
 
 
   nunjucks.configure(viewPath, {
-      autoescape: true,
-      express: app
+    autoescape: true,
+    express: app
   });
 
   app.use(morgan(config.get('logFormat'), {
-        stream : process.stderr
+    stream : process.stderr
   }));
 
   hook()
   .from(path.join(__dirname, 'middlewares'))
   .over(config.get('middlewareModules'))
   .apply(function(hash, func) {
-      app.use(hash, func(config));
-    }
-  );
+    app.use(hash, func(config));
+  });
 
 
   //
@@ -125,9 +123,8 @@ function serve () {
   .from(path.join(__dirname, 'downstream'))
   .over(config.get('downstreamModules'))
   .apply(function(hash, func) {
-      app.route(hash).all(func(config));
-    }
-  );
+    app.route(hash).all(func(config));
+  });
 
   app.route('/robots.txt').get(require('./downstream/inform-robots.js')(config));
   app.route('/sitemap.xml').get(require('./downstream/inform-searchengines.js')(config));
@@ -143,24 +140,24 @@ function serve () {
     app.get('/bundle.js', browserify(modules));
   }
   app.route('/webdav/*').all(require('./helpers/webdav.js')({
-        debug: false
+    debug: false
   }));
   app.route('/assets/*').all(require('ecstatic')({
-        root : path.join(viewPath, 'assets'), 
-        baseDir : '/assets',
-        cache         : 3600,
-        showDir       : true,
-        autoIndex     : true,
-        humanReadable : true,
-        si            : false,
-        defaultExt    : 'html',
-        gzip          : false
+    root : path.join(viewPath, 'assets'),
+    baseDir : '/assets',
+    cache         : 3600,
+    showDir       : true,
+    autoIndex     : true,
+    humanReadable : true,
+    si            : false,
+    defaultExt    : 'html',
+    gzip          : false
   }));
 
   app.route('/').all(function(req, res) { res.redirect('index.html'); });
 
   app.use(function(req, res, next) {
-      res.status(404).end()
+    res.status(404).end()
   });
 
   //
@@ -173,36 +170,31 @@ function serve () {
   primus.use('emitter', require('primus-emitter'));
 
   primus.on('connection', function (spark) {
-      fr.on('changed', function(err, doc) {
-          if (!err) {
-          debug('changed', err, doc);
-            spark.send('changed', doc);
-          }
-        }
-      );
-      fr.on('cancelled', function(err, doc) {
-          if (!err) {
-            debug('cancelled', err, doc);
-            spark.send('cancelled', doc);
-          }
-        }
-      );
-      fr.on('dropped', function(err, doc) {
-          if (!err) {
-            debug('dropped', err, doc);
-            spark.send('dropped', doc);
-          }
-        }
-      );
-      fr.on('added', function(err, doc) {
-          if (!err) {
-            debug('added', err, doc);
-            spark.send('added', doc);
-          }
-        }
-      );
-    }
-  );
+    fr.on('changed', function(err, doc) {
+      if (!err) {
+        debug('changed', err, doc);
+        spark.send('changed', doc);
+      }
+    });
+    fr.on('cancelled', function(err, doc) {
+      if (!err) {
+        debug('cancelled', err, doc);
+        spark.send('cancelled', doc);
+      }
+    });
+    fr.on('dropped', function(err, doc) {
+      if (!err) {
+        debug('dropped', err, doc);
+        spark.send('dropped', doc);
+      }
+    });
+    fr.on('added', function(err, doc) {
+      if (!err) {
+        debug('added', err, doc);
+        spark.send('added', doc);
+      }
+    });
+  });
 
   //
   // Listen :
@@ -210,15 +202,14 @@ function serve () {
   //
   portfinder.basePort = config.get('port');
   portfinder.getPort(function (err, newport) {
-      if (err) {
-        throw err;
-      }
-      config.set('port', newport);
-      server.listen(newport, function() {
-          console.log(kuler('Server is listening on port ' + server.address().port + '.', 'green'));
-      });
+    if (err) {
+      throw err;
     }
-  );
+    config.set('port', newport);
+    server.listen(newport, function() {
+      console.log(kuler('Server is listening on port ' + server.address().port + '.', 'green'));
+    });
+  });
 
   return server;
 }
@@ -229,8 +220,7 @@ module.exports = function(callback) {
 
 if (!module.parent) {
   module.exports(function(cfg, srv) {
-      cfg.set('dataPath', path.normalize(path.resolve(__dirname, cfg.get('dataPath') || '')));
-      srv();
-    }
-  );
+    cfg.set('dataPath', path.normalize(path.resolve(__dirname, cfg.get('dataPath') || '')));
+    srv();
+  });
 }

@@ -11,20 +11,21 @@ var path = require('path')
 
 
 module.exports = function(config) {
+
+  var options = config.get('upstream:'+basename) || {};
+  options.specialChar = '#';
+  options.throwErrors = false;
+  options.longTag = true;
+  options.comments = options.comments ? options.comments : false;
+
   return function (input, output, next) {
-    var options = {
-      throwErrors: false,
-      nested : false,
-      comments : false,
-      specialChar: '#',
-      longTag: true
-    };
+
     fs.readFile(input.location, function (err, xml) {
         if (err) {
           return next(err);
         }
         extend(output, input);
-        output['content']['application/json'] = xm.load(xml.toString(), options);
+        output['content']['json'] = xm.load(xml.toString(), options);
         next();
       }
     );
