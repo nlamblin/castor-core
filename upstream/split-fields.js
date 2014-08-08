@@ -32,6 +32,7 @@ module.exports = function(config) {
           values[key] =  CSV.parse(val, separator).shift();
         }
       });
+      output['multivaluedFields'] = values;
       debug('multivaluedFields', output['multivaluedFields']);
     }
     next();
