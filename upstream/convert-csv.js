@@ -11,7 +11,9 @@ var path = require('path')
 
 module.exports = function(config) {
 
-  var options = config.get('upstream:'+basename) || {};
+  var options = {
+    separator : config.get('csvSeparator')
+  };
 
   return function (input, output, next) {
 

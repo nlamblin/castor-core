@@ -63,7 +63,7 @@ function serve () {
   config.fix('filesToIgnore',     [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules" ]);
   config.fix('multivaluedFields', []);
   config.get('multivaluedSeparator', undefined); // auto
-
+  config.get('csvSeparator', undefined); // auto
 
 
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
