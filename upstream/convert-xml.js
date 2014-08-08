@@ -16,6 +16,7 @@ module.exports = function(config) {
   options.specialChar = '#';
   options.throwErrors = false;
   options.longTag = true;
+  options.nested = options.nested ? options.nested : true;
   options.comments = options.comments ? options.comments : false;
 
   return function (input, output, next) {
