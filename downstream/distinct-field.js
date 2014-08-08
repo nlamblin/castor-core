@@ -1,3 +1,4 @@
+/*jshint node:true,laxcomma:true*/
 'use strict';
 
 var path = require('path')
@@ -11,8 +12,14 @@ var path = require('path')
 
 var map = function () {
   /* global fieldname, emit */
-  if (this[fieldname]) {
-    emit(this[fieldname], 1);
+  var doc = this;
+  var f = new Function('d', 'return d.' + fieldname);
+  var field = f(doc);
+  if (field) {
+    emit(field, 1);
+  }
+  else {
+    emit('?', 1);
   }
 };
 var reduce = function (key, values) {
@@ -22,7 +29,7 @@ var reduce = function (key, values) {
     }
   );
   return c;
-}
+};
 
 module.exports = function(config) {
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
@@ -77,7 +84,7 @@ module.exports = function(config) {
       , itemsPerPage: this.parameters.itemsPerPage
       , startPage: this.parameters.startPage
         //,  searchTerms:
-      }
+      };
       // coll.find().count().then(function(c) { r.totalResults = c; fill(r); }).catch(function() { fill(r); });
       fill(r);
   })
@@ -88,14 +95,14 @@ module.exports = function(config) {
         out : {
           replace: basename + '_' + self.parameters.field
         },
-        query: self.selector,
+        // query: self.selector, // FIXME: bug in filerake synchronisation
         scope: {
           fieldname: self.parameters.field
         }
       };
       coll.mapReduce(map, reduce, opts).then(function(newcoll) {
-          newcoll.find().skip((self.parameters.startPage - 1) * self.parameters.nPerPage).limit(self.parameters.nPerPage).toArray(function (err, res) {
-              fill(err ? err : res)
+          newcoll.find().toArray(function (err, res) {
+              fill(err ? err : res);
             }
           );
       }).catch(fill);
@@ -106,4 +113,4 @@ module.exports = function(config) {
     }
   )
   .takeout();
-}
+};
