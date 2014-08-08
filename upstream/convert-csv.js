@@ -19,7 +19,7 @@ module.exports = function(config) {
 
     var columns = []
       , docs = []
-      , stream = fs.createReadStream(input.location, {encoding: 'utf8'})
+      , stream = fs.createReadStream(input.location, {encoding: config.get('csvEncoding')})
       , parser = CSV.createStream(options);
 
     parser.on('data', function (row) {

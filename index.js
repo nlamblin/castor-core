@@ -47,23 +47,24 @@ function serve () {
   //
   // Check & Fix required config parameters
   //
-  config.fix('connexionURI',      'mongodb://localhost:27017/castor/');
-  config.fix('port',              '3000');
-  config.fix('logFormat',         'combined');
-  config.fix('middlewareModules', {});
-  config.fix('upstreamModules',   {});
-  config.fix('downstreamModules', {});
-  config.fix('browserifyModules', []);
-  config.fix('userfields',        {});
-  config.fix('itemsPerPage',      30);
-  config.fix('concurrency',       require('os').cpus().length);
-  config.fix('turnoffSync',       false);
-  config.fix('turnoffPrimus',     false);
-  config.fix('turnoffWebdav',     false);
-  config.fix('filesToIgnore',     [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules" ]);
-  config.fix('multivaluedFields', []);
-  config.get('multivaluedSeparator', undefined); // auto
-  config.get('csvSeparator', undefined); // auto
+  config.fix('connexionURI',         'mongodb://localhost:27017/castor/');
+  config.fix('port',                 '3000');
+  config.fix('logFormat',            'combined');
+  config.fix('middlewareModules',    {});
+  config.fix('upstreamModules',      {});
+  config.fix('downstreamModules',    {});
+  config.fix('browserifyModules',    []);
+  config.fix('userfields',           {});
+  config.fix('itemsPerPage',         30);
+  config.fix('concurrency',          require('os').cpus().length);
+  config.fix('turnoffSync',          false);
+  config.fix('turnoffPrimus',        false);
+  config.fix('turnoffWebdav',        false);
+  config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules" ]);
+  config.fix('multivaluedFields',    []);
+  config.fix('multivaluedSeparator', undefined); // auto
+  config.fix('csvSeparator',         undefined); // auto
+  config.fix('csvEncoding',         'utf8'); 
 
 
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
