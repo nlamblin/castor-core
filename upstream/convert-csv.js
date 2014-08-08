@@ -4,7 +4,7 @@ var path = require('path')
 , basename = path.basename(__filename, '.js')
 , debug = require('debug')('castor:upstream:' + basename)
 , path = require('path')
-, extend = require('extend')
+, clone = require('clone')
 , fs = require('fs')
 , CSV = require('csv-string')
 ;
@@ -25,8 +25,7 @@ module.exports = function(config) {
           columns = row;
         }
         else {
-          var doc = {};
-          extend(doc, input);
+          var doc = clone(input, false);
           doc.content = {};
           doc.content.json = {};
           columns.forEach(function(x, i) {

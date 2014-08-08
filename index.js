@@ -61,6 +61,9 @@ function serve () {
   config.fix('turnoffPrimus',     false);
   config.fix('turnoffWebdav',     false);
   config.fix('filesToIgnore',     [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules" ]);
+  config.fix('multivaluedFields', []);
+  config.get('multivaluedSeparator', undefined); // auto
+
 
 
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
@@ -87,6 +90,7 @@ function serve () {
     .apply(function(hash, func) {
       fr.use(hash, func(config));
     });
+    fr.use('**/*', require('./upstream/split-fields.js')(config));
     fr.use('**/*', require('./upstream/set-userfields.js')(config));
     if (config.get('turnoffSync') === false) {
       fr.sync(function(err) {
