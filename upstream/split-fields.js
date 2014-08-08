@@ -4,7 +4,6 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:upstream:' + basename)
   , path = require('path')
-  , extend = require('extend')
   , jsel = require('jsel')
   , CSV = require('csv-string')
   ;
@@ -14,7 +13,6 @@ module.exports = function(config) {
     , separator = config.get('multivaluedSeparator');
 
   return function (input, output, next) {
-    extend(output, input);
     var values = {}
       , dom = jsel(input);
     debug('fields', fields);

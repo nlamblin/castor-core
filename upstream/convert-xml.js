@@ -6,7 +6,6 @@ var path = require('path')
 , path = require('path')
 , fs = require('fs')
 , xm = require('xml-mapping')
-, extend = require('extend')
 ;
 
 
@@ -25,7 +24,6 @@ module.exports = function(config) {
         if (err) {
           return next(err);
         }
-        extend(output, input);
         output['content']['json'] = xm.load(xml.toString(), options);
         next();
       }
