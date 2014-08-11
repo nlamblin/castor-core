@@ -65,7 +65,7 @@ module.exports = function(config) {
   })
   .declare('parameters', function(req, fill) {
       fill({
-          fields : req.params.fields.split(',').map(function(x) {return x.replace(/[^\w\._$]/g, '')}) || ['wid']
+          fields : req.params.fields.split(',').map(function(x) {return x.replace(/[^\w\._$]/g, '');}) || ['wid']
         , format: req.params.format
         , startPage: Number(req.query.page || 1)
         , nPerPage: Number(req.query.count || config.get('itemsPerPage'))
