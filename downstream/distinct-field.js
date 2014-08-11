@@ -20,6 +20,9 @@ var map = function () {
     // See https://github.com/castorjs/castor-theme-dashboard/commit/7e9768af720b179437a0ff9b7c147869a51c43de
     if (field instanceof Array) {
       field.forEach(function (e) {
+        if (typeof e === 'string') {
+          e = e.trim();
+        }
         emit(e, 1);
       });
     }
