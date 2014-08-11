@@ -16,8 +16,6 @@ var map = function () {
   var f = new Function('d', 'return d.' + fieldname);
   var field = f(doc);
   if (field) {
-    // FIXME: results are not the same as the one computed browser-side (with /dashboard.html)
-    // See https://github.com/castorjs/castor-theme-dashboard/commit/7e9768af720b179437a0ff9b7c147869a51c43de
     if (field instanceof Array) {
       field.forEach(function (e) {
         if (typeof e === 'string') {
