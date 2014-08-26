@@ -1,3 +1,4 @@
+/*jshint node:true,laxcomma:true*/
 'use strict';
 
 var path = require('path')
@@ -16,7 +17,7 @@ var map = function () {
       var f = new Function('d', 'return d.' + x);
       emit(x + '=' + f(doc), 1);
     }
-  )
+  );
 };
 
 var reduce = function (key, values) {
@@ -26,7 +27,7 @@ var reduce = function (key, values) {
     }
   );
   return c;
-}
+};
 
 
 module.exports = function(config) {
@@ -90,7 +91,7 @@ module.exports = function(config) {
 
       coll.mapReduce(map, reduce, opts).then(function(newcoll) {
           newcoll.find().toArray(function (err, res) {
-              fill(err ? err : res)
+              fill(err ? err : res);
             }
           );
       }).catch(fill);
@@ -115,4 +116,4 @@ module.exports = function(config) {
     }
   )
   .takeout();
-}
+};
