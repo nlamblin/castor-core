@@ -18,6 +18,7 @@ var path = require('path')
   , browserify = require('browserify-middleware')
   , Primus = require('primus')
   , hook = require('./helpers/hook.js')
+  , bodyParser = require('body-parser')
   ;
 
 function serve () {
@@ -50,7 +51,9 @@ function serve () {
   config.fix('connexionURI',         'mongodb://localhost:27017/castor/');
   config.fix('port',                 '3000');
   config.fix('logFormat',            'combined');
-  config.fix('middlewareModules',    {});
+  config.fix('middlewares',          {});
+  config.fix('filters',              {});
+  config.fix('asynchronousFilters',  {});
   config.fix('upstreamModules',      {});
   config.fix('downstreamModules',    {});
   config.fix('browserifyModules',    []);
@@ -64,7 +67,7 @@ function serve () {
   config.fix('multivaluedFields',    []);
   config.fix('multivaluedSeparator', undefined); // auto
   config.fix('csvSeparator',         undefined); // auto
-  config.fix('csvEncoding',         'utf8'); 
+  config.fix('csvEncoding',         'utf8');
 
 
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
@@ -109,10 +112,25 @@ function serve () {
   var app = express();
 
 
-  nunjucks.configure(viewPath, {
+  var env = nunjucks.configure(viewPath, {
     autoescape: true,
     express: app
   });
+
+  hook()
+  .from(path.join(__dirname, 'filters'))
+  .over(config.get('filters'))
+  .apply(function(hash, func) {
+    env.addFilter(hash, func(config));
+  });
+
+  hook()
+  .from(path.join(__dirname, 'filters'))
+  .over(config.get('asynchronousFilters'))
+  .apply(function(hash, func) {
+    env.addFilter(hash, func(config), true);
+  });
+
 
   app.use(morgan(config.get('logFormat'), {
     stream : process.stderr
@@ -120,7 +138,7 @@ function serve () {
 
   hook()
   .from(path.join(__dirname, 'middlewares'))
-  .over(config.get('middlewareModules'))
+  .over(config.get('middlewares'))
   .apply(function(hash, func) {
     app.use(hash, func(config));
   });
@@ -140,9 +158,16 @@ function serve () {
   app.route('/robots.txt').get(require('./downstream/inform-robots.js')(config));
   app.route('/sitemap.xml').get(require('./downstream/inform-searchengines.js')(config));
   app.route('/browse-docs.:format').all(require('./downstream/browse-docs.js')(config));
+  app.route('/browse.:format').all(require('./downstream/browse-docs.js')(config));
   app.route('/distinct-:field.:format').all(require('./downstream/distinct-field.js')(config));
+  app.route('/distinct/:field.:format').all(require('./downstream/distinct-field.js')(config));
   app.route('/ventilate-:fields.:format').all(require('./downstream/ventilate-fields.js')(config));
+  app.route('/ventilate/:fields.:format').all(require('./downstream/ventilate-fields.js')(config));
   app.route('/display-:doc.:format').all(require('./downstream/display-doc.js')(config));
+  app.route('/display/:doc.:format').all(require('./downstream/display-doc.js')(config));
+  app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./downstream/save-doc.js')(config));
+  // app.route('/export.:format').all(require('./downstream/export-docs.js')(config));
+  // app.route('/export/:doc.:format').all(require('./downstream/export-doc.js')(config));
   app.route('/dashboard.:format').all(require('./downstream/dashboard-docs.js')(config));
   app.route('/index.:format').all(require('./downstream/overview-docs.js')(config));
 
