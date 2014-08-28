@@ -43,7 +43,10 @@
     "morgan": "^1.2.0",
     "primus-emitter": "^3.0.3",
     "csv-string": "^2.2.1",
-    "clone": "^0.1.17"
+    "clone": "^0.1.17",
+    "formatik": "^1.2.0",
+    "body-parser": "^1.6.6",
+    "object-path": "^0.6.0"
   },
   "devDependencies": {},
   "engines": {

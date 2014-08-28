@@ -18,6 +18,7 @@ var path = require('path')
   , browserify = require('browserify-middleware')
   , Primus = require('primus')
   , hook = require('./helpers/hook.js')
+  , bodyParser = require('body-parser')
   ;
 
 function serve () {
@@ -157,9 +158,16 @@ function serve () {
   app.route('/robots.txt').get(require('./downstream/inform-robots.js')(config));
   app.route('/sitemap.xml').get(require('./downstream/inform-searchengines.js')(config));
   app.route('/browse-docs.:format').all(require('./downstream/browse-docs.js')(config));
+  app.route('/browse.:format').all(require('./downstream/browse-docs.js')(config));
   app.route('/distinct-:field.:format').all(require('./downstream/distinct-field.js')(config));
+  app.route('/distinct/:field.:format').all(require('./downstream/distinct-field.js')(config));
   app.route('/ventilate-:fields.:format').all(require('./downstream/ventilate-fields.js')(config));
+  app.route('/ventilate/:fields.:format').all(require('./downstream/ventilate-fields.js')(config));
   app.route('/display-:doc.:format').all(require('./downstream/display-doc.js')(config));
+  app.route('/display/:doc.:format').all(require('./downstream/display-doc.js')(config));
+  app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./downstream/save-doc.js')(config));
+  // app.route('/export.:format').all(require('./downstream/export-docs.js')(config));
+  // app.route('/export/:doc.:format').all(require('./downstream/export-doc.js')(config));
   app.route('/dashboard.:format').all(require('./downstream/dashboard-docs.js')(config));
   app.route('/index.:format').all(require('./downstream/overview-docs.js')(config));
 
