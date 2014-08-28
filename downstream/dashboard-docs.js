@@ -21,7 +21,6 @@ var reduce = function (key, values) {
 module.exports = function(config) {
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
   ;
-
   return datamodel()
   .declare('template', function(req, fill) {
     fill(basename + '.html');
@@ -73,9 +72,8 @@ module.exports = function(config) {
               }
             );
         }).catch(fill);
-
     })
-    .append('years', function(req, fill) {
+    .append('years', function(req, fill) {  // TODO remove or rewrite (map/reduce)
       coll
       .aggregate(                                 // WARNING mongo 2.6+ only!
         { $project: { Py: 1, _id: 0} },
