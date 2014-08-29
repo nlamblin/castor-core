@@ -14,9 +14,10 @@ module.exports = function(config) {
   var options = config.get('upstream:'+basename) || {};
   options.specialChar = '#';
   options.throwErrors = false;
-  options.longTag = true;
+  options.longTag = options.longTag ? options.longTag : true;
   options.nested = options.nested ? options.nested : true;
   options.comments = options.comments ? options.comments : false;
+  options.parserInfos = options.parserInfos ? options.parserInfos : false;
 
   return function (input, output, next) {
 
