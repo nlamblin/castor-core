@@ -31,7 +31,7 @@
     "archiver": "^0.10.0",
     "xml-writer": "^1.4.1",
     "atom-writer": "^1.1.2",
-    "xml-mapping": "^1.6.1",
+    "xml-mapping": "^1.7.0",
     "nunjucks": "^1.0.5",
     "ecstatic": "^0.5.3",
     "browserify-middleware": "^3.0.0",
