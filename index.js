@@ -54,7 +54,7 @@ function serve () {
   config.fix('middlewares',          {});
   config.fix('filters',              {});
   config.fix('asynchronousFilters',  {});
-  config.fix('upstreamModules',      {});
+  config.fix('loaders',              {});
   config.fix('routes',               {});
   config.fix('browserifyModules',    []);
   config.fix('userfields',           {});
@@ -73,7 +73,6 @@ function serve () {
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
 
   //
-  // Upstream :
   // add some statements when loading files to MongoDB
   //
   if (fs.existsSync(dataPath)) {
@@ -84,18 +83,18 @@ function serve () {
       "ignore" : config.get('filesToIgnore')
     };
     var fr = new Filerake(dataPath, FilerakeOptions);
-    fr.use('**/*', require('./upstream/initialize-tags.js')(config));
-    fr.use('**/*.csv', require('./upstream/convert-csv.js')(config));
-    fr.use('**/*.xml', require('./upstream/convert-xml.js')(config));
-    // fr.use('**/*.pdf', require('./upstream/append-yaml.js')());
+    fr.use('**/*', require('./loaders/initialize-tags.js')(config));
+    fr.use('**/*.csv', require('./loaders/convert-csv.js')(config));
+    fr.use('**/*.xml', require('./loaders/convert-xml.js')(config));
+    // fr.use('**/*.pdf', require('./loaders/append-yaml.js')());
     hook()
-    .from(path.join(__dirname, 'upstream'))
-    .over(config.get('upstreamModules'))
+    .from(path.join(__dirname, 'loaders'))
+    .over(config.get('loaders'))
     .apply(function(hash, func) {
       fr.use(hash, func(config));
     });
-    fr.use('**/*', require('./upstream/split-fields.js')(config));
-    fr.use('**/*', require('./upstream/set-userfields.js')(config));
+    fr.use('**/*', require('./loaders/split-fields.js')(config));
+    fr.use('**/*', require('./loaders/set-userfields.js')(config));
     if (config.get('turnoffSync') === false) {
       fr.sync(function(err) {
         console.log(kuler('Files and Database are synchronised.', 'green'));
