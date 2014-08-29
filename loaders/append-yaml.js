@@ -2,7 +2,7 @@
 
 var path = require('path')
 , basename = path.basename(__filename, '.js')
-, debug = require('debug')('filerake:middleware:' + basename)
+, debug = require('debug')('castor:loaders:' + basename)
 , path = require('path')
 , fs = require('fs')
 , yaml = require('js-yaml')

@@ -2,7 +2,7 @@
 
 var path = require('path')
 , basename = path.basename(__filename, '.js')
-, debug = require('debug')('castor:upstream:' + basename)
+, debug = require('debug')('castor:loaders:' + basename)
 , path = require('path')
 , fs = require('fs')
 , xm = require('xml-mapping')
@@ -11,7 +11,7 @@ var path = require('path')
 
 module.exports = function(config) {
 
-  var options = config.get('upstream:'+basename) || {};
+  var options = config.get('loaders:'+basename) || {};
   options.specialChar = '#';
   options.throwErrors = false;
   options.longTag = options.longTag ? options.longTag : true;

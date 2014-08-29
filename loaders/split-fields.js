@@ -2,7 +2,7 @@
 
 var path = require('path')
   , basename = path.basename(__filename, '.js')
-  , debug = require('debug')('castor:upstream:' + basename)
+  , debug = require('debug')('castor:loaders:' + basename)
   , path = require('path')
   , jsel = require('jsel')
   , CSV = require('csv-string')
