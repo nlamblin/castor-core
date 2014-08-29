@@ -7,6 +7,7 @@ var path = require('path')
 
 var data = {
   "html" : "text/html",
+  "csv" : "text/csv",
   "rss" : "application/rss+xml",
   "atom" : "application/atom+xml",
   "json" : "application/json",

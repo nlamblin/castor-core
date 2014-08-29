@@ -166,7 +166,7 @@ function serve () {
   app.route('/display-:doc.:format').all(require('./downstream/display-doc.js')(config));
   app.route('/display/:doc.:format').all(require('./downstream/display-doc.js')(config));
   app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./downstream/save-doc.js')(config));
-  // app.route('/export.:format').all(require('./downstream/export-docs.js')(config));
+  app.route('/export.:format').all(require('./downstream/export-docs.js')(config));
   // app.route('/export/:doc.:format').all(require('./downstream/export-doc.js')(config));
   app.route('/dashboard.:format').all(require('./downstream/dashboard-docs.js')(config));
   app.route('/index.:format').all(require('./downstream/overview-docs.js')(config));
@@ -196,7 +196,7 @@ function serve () {
   app.route('/').all(function(req, res) { res.redirect('index.html'); });
 
   app.use(function(req, res, next) {
-    res.status(404).end();
+    res.status(404).send('Not Found').end();
   });
 
   //
