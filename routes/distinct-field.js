@@ -8,13 +8,20 @@ var path = require('path')
   , datamodel = require('datamodel')
   , render = require('../helpers/render.js')
   , pmongo = require('promised-mongo')
+  , struct = require('object-path')
   ;
 
 var map = function () {
-  /* global fieldname, emit */
+  /* global exp, emit */
   var doc = this;
-  var f = new Function('d', 'return d.' + fieldname);
-  var field = f(doc);
+  function access(obj, prop) {
+    var segs = prop.split('.');
+    while (segs.length) {
+      obj = obj[segs.shift()];
+    }
+    return obj;
+  }
+  var field = access(doc, exp);
   if (field) {
     if (field instanceof Array) {
       field.forEach(function (e) {
@@ -75,8 +82,11 @@ module.exports = function(config) {
       fill({ state: { $nin: [ "deleted", "hidden" ] } });
   })
   .declare('parameters', function(req, fill) {
-      fill({
-          field: req.params.field.replace(/[^\w\._$]/g, '') || ['wid']
+    if ( ! Array.isArray(req.query.field)) {
+      req.query.field = typeof req.query.field  === 'string' ? [req.query.field] : [];
+    }
+    fill({
+      fields : req.query.field.map(function(x) {return x.replace(/[^\w\._$]/g, '');}) || ['wid']
         , format: req.params.format
         , startPage: Number(req.query.page || 1)
         , nPerPage: Number(req.query.count || config.get('itemsPerPage'))
@@ -103,11 +113,11 @@ module.exports = function(config) {
 
       var opts = {
         out : {
-          replace: basename + '_' + self.parameters.field
+          replace: basename + '_' + self.parameters.fields[0]
         },
         // query: self.selector, // FIXME: bug in filerake synchronisation
         scope: {
-          fieldname: self.parameters.field
+          exp : self.parameters.fields[0]
         }
       };
       coll.mapReduce(map, reduce, opts).then(function(newcoll) {

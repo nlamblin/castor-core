@@ -8,14 +8,21 @@ var path = require('path')
   , datamodel = require('datamodel')
   , render = require('../helpers/render.js')
   , pmongo = require('promised-mongo')
+  , struct = require('object-path')
   ;
 
 var map = function () {
   /* global fields, emit */
   var doc = this;
-  fields.forEach(function (x) {
-      var f = new Function('d', 'return d.' + x);
-      emit(x + '=' + f(doc), 1);
+  function access(obj, prop) {
+    var segs = prop.split('.');
+    while (segs.length) {
+      obj = obj[segs.shift()];
+    }
+    return obj;
+  }
+  fields.forEach(function (exp) {
+      emit(exp + '=' + access(doc, exp), 1);
     }
   );
 };
@@ -64,8 +71,11 @@ module.exports = function(config) {
       fill({ state: { $nin: [ "deleted", "hidden" ] } });
   })
   .declare('parameters', function(req, fill) {
-      fill({
-          fields : req.params.fields.split(',').map(function(x) {return x.replace(/[^\w\._$]/g, '');}) || ['wid']
+    if ( ! Array.isArray(req.query.field)) {
+      req.query.field = typeof req.query.field  === 'string' ? [req.query.field] : [];
+    }
+    fill({
+        fields : req.query.field.map(function(x) {return x.replace(/[^\w\._$]/g, '');}) || ['wid']
         , format: req.params.format
         , startPage: Number(req.query.page || 1)
         , nPerPage: Number(req.query.count || config.get('itemsPerPage'))
