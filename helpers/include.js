@@ -8,27 +8,35 @@ var path = require('path')
   , assert = require('assert')
   ;
 
-module.exports = function(basedir, modname) {
+module.exports = function(basedirs, modname) {
   if (modname === undefined) {
-    modname = basedir;
-    basedir = '';
+    modname = basedirs;
+    basedirs = [];
   }
-  assert(typeof basedir, 'string');
   assert(typeof modname, 'string');
-  var module = path.join(basedir, modname);
-  try {
-    module = require.resolve(module);
-    return require(module);
-  }
-  catch (e) {
+  basedirs = basedirs
+  .map(function(basedir) {
+    return path.join(basedir, modname);
+  });
+  basedirs.push(modname);
+  var module = basedirs.reduce(function(prev, modir) {
+    if (prev !== undefined) {
+      return prev;
+    }
     try {
-      module = require.resolve(modname);
-      return require(module);
+      var m = require.resolve(modir);
+      return m;
     }
-    catch(e) {
-      throw new Error(util.format('Unknown (or Missing or Error in) Module `%s`\n  %s',
-                      modname, e));
+    catch (e) {
+      return undefined;
     }
+  }, undefined);
+
+  if (module === undefined) {
+    throw new Error(util.format('Unknown (or Missing or Error in) Module `%s` (%s)', modname, basedirs.join(', ')));
+  }
+  else {
+    return require(module);
   }
 };
 

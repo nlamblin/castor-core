@@ -7,18 +7,18 @@ var path = require('path')
   , include = require('./include.js')
   ;
 
-function Hook() {
+function Hook(nd) {
 
   var self = this;
-  self.basedir = '';
+  self.basedirs = [];
   self.object = {};
+  self.namedir = nd || 'hooks';
 }
 
-Hook.prototype.from = function (basedir)
+Hook.prototype.from = function ()
 {
   var self = this;
-  assert.equal(typeof basedir, 'string');
-  self.basedir = basedir;
+  self.basedirs = Array.prototype.slice.call(arguments, 0).map(function(x) {return path.join(x, self.namedir);});
   return self;
 }
 
@@ -37,13 +37,13 @@ Hook.prototype.apply = function (callback)
   Object.keys(self.object).sort().forEach(function (key) {
       var name = key.split('-').pop(),
           value = self.object[key],
-          func = include(self.basedir, value);
+          func = include(self.basedirs, value);
       callback(name, func);
     }
   );
 }
 
-module.exports = function () {
-  return new Hook();
+module.exports = function (nd) {
+  return new Hook(nd);
 }
 

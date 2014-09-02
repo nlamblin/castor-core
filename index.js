@@ -22,6 +22,7 @@ var path = require('path')
   ;
 
 function serve () {
+
   console.log(kuler('castor@' + pck.version, 'orange'));
 
   //
@@ -87,8 +88,8 @@ function serve () {
     fr.use('**/*.csv', require('./loaders/convert-csv.js')(config));
     fr.use('**/*.xml', require('./loaders/convert-xml.js')(config));
     // fr.use('**/*.pdf', require('./loaders/append-yaml.js')());
-    hook()
-    .from(path.join(__dirname, 'loaders'))
+    hook('loaders')
+    .from(viewPath, __dirname)
     .over(config.get('loaders'))
     .apply(function(hash, func) {
       fr.use(hash, func(config));
@@ -116,15 +117,15 @@ function serve () {
     express: app
   });
 
-  hook()
-  .from(path.join(__dirname, 'filters'))
+  hook('filters')
+  .from(viewPath, __dirname)
   .over(config.get('filters'))
   .apply(function(hash, func) {
     env.addFilter(hash, func(config));
   });
 
-  hook()
-  .from(path.join(__dirname, 'filters'))
+  hook('filters')
+  .from(viewPath, __dirname)
   .over(config.get('asynchronousFilters'))
   .apply(function(hash, func) {
     env.addFilter(hash, func(config), true);
@@ -135,8 +136,8 @@ function serve () {
     stream : process.stderr
   }));
 
-  hook()
-  .from(path.join(__dirname, 'middlewares'))
+  hook('middlewares')
+  .from(viewPath, __dirname)
   .over(config.get('middlewares'))
   .apply(function(hash, func) {
     app.use(hash, func(config));
@@ -146,8 +147,8 @@ function serve () {
   //
   // add routes to send data on the Web
   //
-  hook()
-  .from(path.join(__dirname, 'routes'))
+  hook('routes')
+  .from(viewPath, __dirname)
   .over(config.get('routes'))
   .apply(function(hash, func) {
     app.route(hash).all(func(config));
