@@ -15,7 +15,6 @@ module.exports = function(config) {
   return function (input, output, next) {
     var values = {}
       , dom = jsel(input);
-    debug('fields', fields);
     if (typeof fields === 'object') {
       Object.keys(fields).forEach(function (key) {
         var xpr = fields[key];
