@@ -12,7 +12,7 @@ module.exports = function(config) {
   var fields = config.get('multivaluedFields')
     , separator = config.get('multivaluedSeparator');
 
-  return function (input, output, next) {
+  return function (input, submit) {
     var values = {}
       , dom = jsel(input);
     if (typeof fields === 'object') {
@@ -31,9 +31,9 @@ module.exports = function(config) {
           values[key] =  CSV.parse(val, separator).shift();
         }
       });
-      output['multivaluedFields'] = values;
-      debug('multivaluedFields', output['multivaluedFields']);
+      input['multivaluedFields'] = values;
+      debug('multivaluedFields', Object.keys(input['multivaluedFields']).map(function(x) { var r = {}; r[x] = input['multivaluedFields'][x].length; return r; }));
     }
-    next();
+    submit(null, input);
   }
 }

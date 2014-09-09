@@ -10,7 +10,7 @@ var path = require('path')
 module.exports = function(config) {
   var fields = config.get('userfields');
 
-  return function (input, output, next) {
+  return function (input, submit) {
     var values = {}, dom = jsel(input);
     if (typeof fields === 'object') {
       Object.keys(fields).forEach(function (key) {
@@ -35,8 +35,8 @@ module.exports = function(config) {
           }
         }
       );
-      output['userfields'] = values;
+      input['userfields'] = values;
     }
-    next();
+    submit(null, input);
   }
 }

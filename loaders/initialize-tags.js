@@ -47,26 +47,12 @@ module.exports = function(config) {
           changefreq : "monthly"
       });
   })
-
   .append('language', function(file, fill) {
       fill('none');
   })
   .append('content', function(file, fill) {
       var self = this;
       fill({});
-      /*
-       fs.readFile(file.location, function (err, data) {
-           if (err) {
-             return fill(err);
-           }
-           var c = {};
-           if (self.mimetype) {
-             c[self.mimetype] = data.toString();
-           }
-           fill(c);
-         }
-       );
-       */
   })
   .transform(function(file, fill) {
       var doc = this;

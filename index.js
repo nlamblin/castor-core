@@ -8,7 +8,7 @@ var path = require('path')
   , fs = require('fs')
   , pck = require('./package.json')
   , config = require('./config.js')
-  , Filerake = require('filerake')
+  , Loader = require('castor-load')
   , portfinder = require('portfinder')
   , sugar = require('sugar')
   , kuler = require('kuler')
@@ -50,6 +50,7 @@ function serve () {
   // Check & Fix required config parameters
   //
   config.fix('connexionURI',         'mongodb://localhost:27017/castor/');
+  config.fix('collectionName',       undefined); // auto
   config.fix('port',                 '3000');
   config.fix('logFormat',            'combined');
   config.fix('middlewares',          {});
@@ -78,21 +79,22 @@ function serve () {
   //
   if (fs.existsSync(dataPath)) {
     console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
-    var FilerakeOptions = {
+    var opts = {
       "connexionURI" : config.get('connexionURI'),
+      "collectionName": config.get('collectionName'),
       "concurrency" : config.get('concurrency'),
       "ignore" : config.get('filesToIgnore')
     };
-    var fr = new Filerake(dataPath, FilerakeOptions);
+    var fr = new Loader(dataPath, opts);
     fr.use('**/*', require('./loaders/initialize-tags.js')(config));
-    fr.use('**/*.csv', require('./loaders/convert-csv.js')(config));
-    fr.use('**/*.xml', require('./loaders/convert-xml.js')(config));
+    fr.use('**/*.csv', require('castor-load-csv')(config.get('loaders:csv')));
+    fr.use('**/*.xml', require('castor-load-xml')(config.get('loaders:xml')));
     // fr.use('**/*.pdf', require('./loaders/append-yaml.js')());
     hook('loaders')
     .from(viewPath, __dirname)
     .over(config.get('loaders'))
     .apply(function(hash, func) {
-      fr.use(hash, func(config));
+      fr.use(hash, func(config.get('loaders:' + hash)));
     });
     fr.use('**/*', require('./loaders/split-fields.js')(config));
     fr.use('**/*', require('./loaders/set-userfields.js')(config));
