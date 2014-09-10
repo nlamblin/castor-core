@@ -8,7 +8,8 @@ var path = require('path')
   , assert = require('assert')
   ;
 
-module.exports = function(basedirs, modname) {
+module.exports = function(basedirs, modname, req) {
+  req = req === false ? false : true;
   if (modname === undefined) {
     modname = basedirs;
     basedirs = [];
@@ -36,7 +37,12 @@ module.exports = function(basedirs, modname) {
     throw new Error(util.format('Unknown (or Missing or Error in) Module `%s` (%s)', modname, basedirs.join(', ')));
   }
   else {
-    return require(module);
+    if (req) {
+      return require(module);
+    }
+    else {
+      return module;
+    }
   }
 };
 

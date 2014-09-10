@@ -5,23 +5,27 @@ var path = require('path')
   , debug = require('debug')('castor:' + basename)
   , util = require('util')
   , fs = require('fs')
+  , include = require('../helpers/include.js')
   ;
 
 
 module.exports = function(config) {
-  var themename, themepath, themefile, themeconf;
-  try {
-    themename = config.get('theme') || path.join(__dirname, '..', 'themes', 'default');
-    themefile = require.resolve(themename);
-    themepath = path.dirname(themefile);
-    themeconf = require(themefile);
-  }
-  catch (e) {
-    throw new Error(util.format('Unknown (or Missing) Theme `%s`', themename));
-  }
-  if (typeof themeconf !== 'object') {
-    themeconf = {};
-  }
+  var themename = config.get('theme') || 'default'
+    , themedirs = [
+        path.resolve(__dirname, '..', 'themes'),
+        process.cwd(),
+        process.env.HOME
+      ]
+    , themefile = include(themedirs, themename, false)
+    , themepath = path.dirname(themefile)
+    , themeconf = require(themefile) || {}
+    ;
+
+  console.log('themename', themename);
+  console.log('themedirs', themedirs);
+  console.log('themefile', themefile);
+  console.log('themepath', themepath);
+  console.log('themeconf', themeconf);
 
   if (Array.isArray(themeconf.browserifyModules)) {
     themeconf.browserifyModules = themeconf.browserifyModules.map(function(modulename) {
