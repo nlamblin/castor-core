@@ -118,6 +118,9 @@ function serve () {
     autoescape: true,
     express: app
   });
+  env.addFilter('nl2br', require('./filters/nl2br.js')(config));
+  env.addFilter('hash', require('./filters/hash.js')(config));
+  env.addFilter('stack', require('./filters/stack.js')(config));
 
   hook('filters')
   .from(viewPath, __dirname)
