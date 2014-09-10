@@ -12,20 +12,14 @@ var path = require('path')
 module.exports = function(config) {
   var themename = config.get('theme') || 'default'
     , themedirs = [
-        path.resolve(__dirname, '..', 'themes'),
         process.cwd(),
-        process.env.HOME
+        process.env.HOME,
+        path.resolve(__dirname, '..', 'themes')
       ]
     , themefile = include(themedirs, themename, false)
     , themepath = path.dirname(themefile)
     , themeconf = require(themefile) || {}
     ;
-
-  console.log('themename', themename);
-  console.log('themedirs', themedirs);
-  console.log('themefile', themefile);
-  console.log('themepath', themepath);
-  console.log('themeconf', themeconf);
 
   if (Array.isArray(themeconf.browserifyModules)) {
     themeconf.browserifyModules = themeconf.browserifyModules.map(function(modulename) {
