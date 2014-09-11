@@ -10,69 +10,68 @@ var path = require('path')
   ;
 
 module.exports = function(config) {
-  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
-    ;
+  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName')) ;
 
   return datamodel()
   .declare('template', function(req, fill) {
-      fill(basename + '.html');
+    fill(basename + '.html');
   })
   .declare('site', function(req, fill) {
-      fill({
-          title : 'Castor',
-          description : null
-      });
+    fill({
+      title : config.get('title'),
+      description : config.get('description')
+    });
   })
   .declare('page', function(req, fill) {
-      fill({
-          title : 'Browse by documents',
-          description : null,
-          types : ['text/html', 'application/atom+xml', 'application/rss+xml', 'application/json', 'application/zip']
-      });
+    fill({
+      title : 'Browse by documents',
+      description : null,
+      types : ['text/html', 'application/atom+xml', 'application/rss+xml', 'application/json', 'application/zip']
+    });
   })
   .declare('user', function(req, fill) {
-      fill(req.user ? req.user : {});
+    fill(req.user ? req.user : {});
   })
   .declare('config', function(req, fill) {
-      fill(config.get());
+    fill(config.get());
   })
   .declare('url', function(req, fill) {
-      fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
+    fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
   })
   .declare('selector', function(req, fill) {
-      fill({ state: { $nin: [ "deleted", "hidden" ] } });
+    fill({ state: { $nin: [ "deleted", "hidden" ] } });
   })
   .declare('parameters', function(req, fill) {
-      fill({
-          startPage: Number(req.query.page || 1)
-        , nPerPage: Number(req.query.count || config.get('itemsPerPage'))
-      });
+    fill({
+      startPage: Number(req.query.page || 1)
+    , nPerPage: Number(req.query.count || config.get('itemsPerPage'))
+    });
   })
   .append('headers', function(req, fill) {
-      var headers = {};
-      headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
-      if (req.params.format === 'zip') {
-        headers['Content-Disposition'] = 'attachment; filename="export.zip"';
-      }
-      fill(headers);
+    var headers = {};
+    headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
+    if (req.params.format === 'zip') {
+      headers['Content-Disposition'] = 'attachment; filename="export.zip"';
+    }
+    fill(headers);
   })
   .append('response', function(req, fill) {
-      var r = {
-        totalResults: 0
-      , startIndex: ((this.parameters.startPage - 1) * this.parameters.nPerPage) + 1
-      , itemsPerPage: this.parameters.itemsPerPage
-      , startPage: this.parameters.startPage
-        //,  searchTerms:
-      }
-      coll.find().count().then(function(c) { r.totalResults = c; fill(r); }).catch(function() { fill(r); });
+    var r = {
+      totalResults: 0
+    , startIndex: ((this.parameters.startPage - 1) * this.parameters.nPerPage) + 1
+    , itemsPerPage: this.parameters.itemsPerPage
+    , startPage: this.parameters.startPage
+      //,  searchTerms:
+    }
+    coll.find().count().then(function(c) { r.totalResults = c; fill(r); }).catch(function() { fill(r); });
   })
   .append('items', function(req, fill) {
-      coll.find().skip((this.parameters.startPage - 1) * this.parameters.nPerPage).limit(this.parameters.nPerPage).toArray().then(fill).catch(fill);
+    coll.find().skip((this.parameters.startPage - 1) * this.parameters.nPerPage).limit(this.parameters.nPerPage).toArray().then(fill).catch(fill);
   })
   .send(function(res, next) {
-      res.set(this.headers);
-      render(res, this, next);
-    }
-  )
-  .takeout();
+    res.set(this.headers);
+    render(res, this, next);
+  }
+)
+.takeout();
 }

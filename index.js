@@ -53,6 +53,8 @@ function serve () {
   config.fix('collectionName',       undefined); // auto
   config.fix('port',                 '3000');
   config.fix('logFormat',            'combined');
+  config.fix('title',                'Castor');
+  config.fix('description',          '');
   config.fix('theme',                'default');
   config.fix('middlewares',          {});
   config.fix('filters',              {});

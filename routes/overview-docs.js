@@ -27,61 +27,61 @@ module.exports = function(config) {
   })
   .declare('site', function(req, fill) {
     fill({
-      title : 'Castor',
-      description : null,
+      title : config.get('title'),
+      description : config.get('description')
     });
-    })
-    .declare('page', function(req, fill) {
-      fill({
-        title : 'Overview documents',
-        description : null,
-        types : ['text/html', 'application/json']
-      });
-    })
-    .declare('user', function(req, fill) {
-      fill(req.user ? req.user : {});
-    })
-    .declare('config', function(req, fill) {
-      fill(config.get());
-    })
-    .declare('url', function(req, fill) {
-      fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
-    })
-    .declare('selector', function(req, fill) {
-      fill({ state: { $nin: [ "deleted", "hidden" ] } });
-    })
-    .append('headers', function(req, fill) {
-      var headers = {};
-      headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
-      fill(headers);
-    })
-    .append('totalItems', function(req, fill) {
-      coll.find().count().then(fill).catch(fill);
-    })
-    .append('fields', function(req, fill) {
-      var self = this;
-      var opts = {
-        out : {
-          replace: basename + '_fields'
-        },
-        query: self.selector
-      };
-      coll.mapReduce(map, reduce, opts).then(function(newcoll) {
-        newcoll.find().toArray(function (err, res) {
-          fill(err ? err : res);
-        }
-      );
-    }).catch(fill);
+  })
+  .declare('page', function(req, fill) {
+    fill({
+      title : 'Overview documents',
+      description : null,
+      types : ['text/html', 'application/json']
+    });
+  })
+  .declare('user', function(req, fill) {
+    fill(req.user ? req.user : {});
+  })
+  .declare('config', function(req, fill) {
+    fill(config.get());
+  })
+  .declare('url', function(req, fill) {
+    fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
+  })
+  .declare('selector', function(req, fill) {
+    fill({ state: { $nin: [ "deleted", "hidden" ] } });
+  })
+  .append('headers', function(req, fill) {
+    var headers = {};
+    headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
+    fill(headers);
+  })
+  .append('totalItems', function(req, fill) {
+    coll.find().count().then(fill).catch(fill);
+  })
+  .append('fields', function(req, fill) {
+    var self = this;
+    var opts = {
+      out : {
+        replace: basename + '_fields'
+      },
+      query: self.selector
+    };
+    coll.mapReduce(map, reduce, opts).then(function(newcoll) {
+      newcoll.find().toArray(function (err, res) {
+        fill(err ? err : res);
+      }
+    );
+  }).catch(fill);
 
-  })
-  .transform(function(req, fill) {
-    var n = this;
-    n.fields = this.fields.map(function(e) { return e._id; });
-    fill(n);
-  })
-  .send(function(res, next) {
-    render(res, this, next);
-  }
+})
+.transform(function(req, fill) {
+  var n = this;
+  n.fields = this.fields.map(function(e) { return e._id; });
+  fill(n);
+})
+.send(function(res, next) {
+  render(res, this, next);
+}
 )
 .takeout();
 };

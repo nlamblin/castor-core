@@ -14,6 +14,12 @@ module.exports = function(config) {
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'));
 
   return datamodel()
+  .declare('site', function(req, fill) {
+    fill({
+      title : config.get('title'),
+      description : config.get('description')
+    });
+  })
   .declare('headers', function(req, fill) {
     var headers = {};
     headers['Content-Type'] = require('../helpers/format.js')(req.params.format);

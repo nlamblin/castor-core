@@ -26,8 +26,8 @@ module.exports = function(config) {
   })
   .declare('site', function(req, fill) {
     fill({
-      title : 'Castor',
-      description : null
+      title : config.get('title'),
+      description : config.get('description')
     });
   })
   .declare('page', function(req, fill) {
