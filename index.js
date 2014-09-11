@@ -53,6 +53,7 @@ function serve () {
   config.fix('collectionName',       undefined); // auto
   config.fix('port',                 '3000');
   config.fix('logFormat',            'combined');
+  config.fix('theme',                'default');
   config.fix('middlewares',          {});
   config.fix('filters',              {});
   config.fix('asynchronousFilters',  {});
@@ -62,15 +63,23 @@ function serve () {
   config.fix('userfields',           {});
   config.fix('itemsPerPage',         30);
   config.fix('concurrency',          require('os').cpus().length);
+  config.fix('turnoffAll',           false);
   config.fix('turnoffSync',          false);
   config.fix('turnoffPrimus',        false);
+  config.fix('turnoffRoutes',        false);
   config.fix('turnoffWebdav',        false);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules" ]);
   config.fix('multivaluedFields',    []);
   config.fix('multivaluedSeparator', undefined); // auto
-  config.fix('csvSeparator',         undefined); // auto
-  config.fix('csvEncoding',         'utf8');
+  config.fix('loader:csv:separator',undefined); // auto
+  config.fix('loader:csv:encoding', 'utf8');
 
+  if (config.get('turnoffAll') === true) {
+    config.set('turnoffSync', true);
+    config.set('turnoffPrimus', true);
+    config.set('turnoffRoutes', true);
+    config.set('turnoffWebdav', true);
+  }
 
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
 
@@ -87,8 +96,8 @@ function serve () {
     };
     var fr = new Loader(dataPath, opts);
     fr.use('**/*', require('./loaders/initialize-tags.js')(config));
-    fr.use('**/*.csv', require('castor-load-csv')(config.get('loaders:csv')));
-    fr.use('**/*.xml', require('castor-load-xml')(config.get('loaders:xml')));
+    fr.use('**/*.csv', require('castor-load-csv')(config.get('loader:csv')));
+    fr.use('**/*.xml', require('castor-load-xml')(config.get('loader:xml')));
     // fr.use('**/*.pdf', require('./loaders/append-yaml.js')());
     hook('loaders')
     .from(viewPath, __dirname)
@@ -148,56 +157,75 @@ function serve () {
     app.use(hash, func(config));
   });
 
+  if (config.get('turnoffRoutes') === false) {
 
-  //
-  // add routes to send data on the Web
-  //
-  hook('routes')
-  .from(viewPath, __dirname)
-  .over(config.get('routes'))
-  .apply(function(hash, func) {
-    app.route(hash).all(func(config));
-  });
+    //
+    // add routes to send data on the Web
+    //
+    hook('routes')
+    .from(viewPath, __dirname)
+    .over(config.get('routes'))
+    .apply(function(hash, func) {
+      app.route(hash).all(func(config));
+    });
 
-  app.route('/robots.txt').get(require('./routes/inform-robots.js')(config));
-  app.route('/sitemap.xml').get(require('./routes/inform-searchengines.js')(config));
-  app.route('/browse.:format').all(require('./routes/browse-docs.js')(config));
-  app.route('/distinct.:format').all(require('./routes/distinct-field.js')(config));
-  app.route('/ventilate.:format').all(require('./routes/ventilate-fields.js')(config));
-  app.route('/display/:doc.:format').all(require('./routes/display-doc.js')(config));
-  app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save-doc.js')(config));
-  app.route('/export.:format').all(require('./routes/export-docs.js')(config));
-  // app.route('/export/:doc.:format').all(require('./routes/export-doc.js')(config));
-  app.route('/dashboard.:format').all(require('./routes/dashboard-docs.js')(config));
-  app.route('/index.:format').all(require('./routes/overview-docs.js')(config));
+    app.route('/robots.txt').get(require('./routes/inform-robots.js')(config));
+    app.route('/sitemap.xml').get(require('./routes/inform-searchengines.js')(config));
+    app.route('/browse.:format').all(require('./routes/browse-docs.js')(config));
+    app.route('/distinct.:format').all(require('./routes/distinct-field.js')(config));
+    app.route('/ventilate.:format').all(require('./routes/ventilate-fields.js')(config));
+    app.route('/display/:doc.:format').all(require('./routes/display-doc.js')(config));
+    app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save-doc.js')(config));
+    app.route('/export.:format').all(require('./routes/export-docs.js')(config));
+    // app.route('/export/:doc.:format').all(require('./routes/export-doc.js')(config));
+    app.route('/dashboard.:format').all(require('./routes/dashboard-docs.js')(config));
+    app.route('/index.:format').all(require('./routes/overview-docs.js')(config));
 
-  var modules = config.get('browserifyModules');
+    var modules = config.get('browserifyModules');
 
-  if (Array.isArray(modules) && modules.length > 0) {
-    app.get('/bundle.js', browserify(modules));
-  }
-  if (config.get('turnoffWebdav') === false) {
-    app.route('/webdav/*').all(require('./helpers/webdav.js')({
-      debug: false
+    if (Array.isArray(modules) && modules.length > 0) {
+      app.get('/bundle.js', browserify(modules));
+    }
+    if (config.get('turnoffWebdav') === false) {
+      app.route('/webdav/*').all(require('./helpers/webdav.js')({
+        debug: false
+      }));
+    }
+    app.route('/assets/*').all(require('ecstatic')({
+      root : path.join(viewPath, 'assets'),
+      baseDir : '/assets',
+      cache         : 3600,
+      showDir       : true,
+      autoIndex     : true,
+      humanReadable : true,
+      si            : false,
+      defaultExt    : 'html',
+      gzip          : false
     }));
+
+    app.route('/*.html').all(require('ecstatic')({
+      root : viewPath,
+      baseDir : '/',
+      cache         : 3600,
+      showDir       : false,
+      autoIndex     : false,
+      humanReadable : true,
+      defaultExt    : 'html',
+      gzip          : false
+    }));
+
+
+    app.route('/').all(function(req, res) { res.redirect('index.html'); });
+
+    app.use(function(req, res, next) {
+      res.status(404).send('Not Found').end();
+    });
   }
-  app.route('/assets/*').all(require('ecstatic')({
-        root : path.join(viewPath, 'assets'),
-        baseDir : '/assets',
-        cache         : 3600,
-        showDir       : true,
-        autoIndex     : true,
-        humanReadable : true,
-        si            : false,
-        defaultExt    : 'html',
-        gzip          : false
-  }));
-
-  app.route('/').all(function(req, res) { res.redirect('index.html'); });
-
-  app.use(function(req, res, next) {
-    res.status(404).send('Not Found').end();
-  });
+  else {
+    app.use(function(req, res, next) {
+      res.status(503).send('Service Unavailable').end();
+    });
+  }
 
   //
   // HTTP Server :
