@@ -197,6 +197,7 @@ function serve () {
     // app.route('/export/:doc.:format').all(require('./routes/export-doc.js')(config));
     app.route('/dashboard.:format').all(require('./routes/dashboard-docs.js')(config));
     app.route('/index.:format').all(require('./routes/overview-docs.js')(config));
+    app.route('/:name.:format').all(require('./routes/serve.js')(config));
 
     var modules = config.get('browserifyModules');
 
@@ -219,18 +220,6 @@ function serve () {
       defaultExt    : 'html',
       gzip          : false
     }));
-
-    app.route('/*.html').all(require('ecstatic')({
-      root : viewPath,
-      baseDir : '/',
-      cache         : 3600,
-      showDir       : false,
-      autoIndex     : false,
-      humanReadable : true,
-      defaultExt    : 'html',
-      gzip          : false
-    }));
-
 
     app.route('/').all(function(req, res) { res.redirect('index.html'); });
 
