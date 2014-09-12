@@ -70,6 +70,18 @@ Configuration.prototype.set = function set() {
 };
 
 
+/**
+ * unSet a value to the configuration.
+ *
+ * @param
+ * @api public
+ */
+Configuration.prototype.unset = function unset() {
+  return nconf.set.apply(nconf, undefined);
+};
+
+
+
 Configuration.prototype.load = function load(filename) {
   if (fs.existsSync(filename)) {
     nconf.file({ file: filename});
