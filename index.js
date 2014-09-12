@@ -59,6 +59,7 @@ function serve () {
   config.fix('middlewares',          {});
   config.fix('filters',              {});
   config.fix('asynchronousFilters',  {});
+  config.fix('operators',            {});
   config.fix('loaders',              {});
   config.fix('routes',               {});
   config.fix('browserifyModules',    []);
@@ -118,6 +119,19 @@ function serve () {
   }
 
 
+  var ops = require('./helpers/operators.js');
+  ops.use('distinct', require('./operators/distinct.js'));
+  ops.use('ventilate', require('./operators/ventilate.js'));
+  hook('operators')
+  .from(viewPath, __dirname)
+  .over(config.get('operators'))
+  .apply(function(hash, func) {
+    ops.use(hash, func);
+  });
+
+
+
+
   //
   // Middlewares :
   // add middlewares to Express
@@ -175,6 +189,7 @@ function serve () {
     app.route('/sitemap.xml').get(require('./routes/inform-searchengines.js')(config));
     app.route('/browse.:format').all(require('./routes/browse-docs.js')(config));
     app.route('/distinct.:format').all(require('./routes/distinct-field.js')(config));
+    app.route('/compute.:format').all(require('./routes/compute.js')(config));
     app.route('/ventilate.:format').all(require('./routes/ventilate-fields.js')(config));
     app.route('/display/:doc.:format').all(require('./routes/display-doc.js')(config));
     app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save-doc.js')(config));
