@@ -1,3 +1,4 @@
+/*jshint node:true, laxcomma:true */
 'use strict';
 
 var path = require('path')
@@ -5,7 +6,6 @@ var path = require('path')
   , debug = require('debug')('castor:routes:' + basename)
   , util = require('util')
   , pmongo = require('promised-mongo')
-  , struct = require('object-path')
   ;
 
 module.exports = function(config) {
@@ -30,7 +30,7 @@ module.exports = function(config) {
         , fields = form.mget('value')
         , selector = { wid : req.params.doc };
 
-      struct.set(data, fields.key, fields.val);
+      data[fields.key] = fields.val;
 
       debug('save', selector, data);
 
@@ -46,6 +46,6 @@ module.exports = function(config) {
     else {
       res.status(400).send('Bad Request').end();
     }
-  }
-}
+  };
+};
 
