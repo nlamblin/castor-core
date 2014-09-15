@@ -1,3 +1,4 @@
+/*jshint node:true, laxcomma:true*/
 "use strict";
 
 var path = require('path')
@@ -26,13 +27,13 @@ module.exports = function(config) {
         var modulefile, moduledesc = {};
         try {
           modulefile = require.resolve(modulename);
-          moduledesc[modulename] = {expose : modulename};
+          moduledesc[modulefile] = {expose : modulename};
         }
         catch (e) {
           var modulename2 = path.join(themepath, 'node_modules', modulename);
           try {
             modulefile = require.resolve(modulename2);
-            moduledesc[modulename2] = {expose : modulename};
+            moduledesc[modulefile] = {expose : modulename};
           }
           catch (e) {
             // ignore module
@@ -47,5 +48,4 @@ module.exports = function(config) {
   }
   config.merge(themeconf);
   return themepath;
-}
-
+};
