@@ -50,7 +50,7 @@ module.exports = function(config) {
         "alias": "f",
         "type" : "text",
         "required" : true,
-        "pattern" : "[a-z][a-z0-9. _-]+"
+        "pattern" : "[a-z*-][a-z0-9*. _-]*"
       },
       "operator" : {
         "alias": "o",
@@ -108,6 +108,7 @@ module.exports = function(config) {
     if (this.parameters === false) {
       return res.status(400).send('Bad Request').end();
     }
+    console.log('self', this);
     res.set(this.headers);
     render(res, this, next);
   }
