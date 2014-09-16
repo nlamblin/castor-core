@@ -206,7 +206,7 @@ function serve () {
       app.get('/bundle.js', browserify(modules));
     }
     if (config.get('turnoffWebdav') === false) {
-      app.route('/webdav/*').all(require('./helpers/webdav.js')({
+      app.route('/webdav*').all(require('./helpers/webdav.js')({
         debug: false
       }));
     }
