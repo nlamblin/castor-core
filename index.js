@@ -120,6 +120,8 @@ function serve () {
 
 
   var ops = require('./helpers/operators.js');
+  ops.use('count', require('./operators/count.js'));
+  ops.use('catalog', require('./operators/catalog.js'));
   ops.use('distinct', require('./operators/distinct.js'));
   ops.use('ventilate', require('./operators/ventilate.js'));
   hook('operators')
@@ -196,7 +198,6 @@ function serve () {
     app.route('/export.:format').all(require('./routes/export-docs.js')(config));
     // app.route('/export/:doc.:format').all(require('./routes/export-doc.js')(config));
     app.route('/dashboard.:format').all(require('./routes/dashboard-docs.js')(config));
-    app.route('/index.:format').all(require('./routes/overview-docs.js')(config));
     app.route('/:name.:format').all(require('./routes/serve.js')(config));
 
     var modules = config.get('browserifyModules');
@@ -205,7 +206,7 @@ function serve () {
       app.get('/bundle.js', browserify(modules));
     }
     if (config.get('turnoffWebdav') === false) {
-      app.route('/webdav/*').all(require('./helpers/webdav.js')({
+      app.route('/webdav*').all(require('./helpers/webdav.js')({
         debug: false
       }));
     }
