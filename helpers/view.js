@@ -33,7 +33,7 @@ module.exports = function(config) {
           var modulename2 = path.join(themepath, 'node_modules', modulename);
           try {
             modulefile = require.resolve(modulename2);
-            moduledesc[modulefile] = {expose : modulename};
+            moduledesc[modulename2] = {expose : modulename};
           }
           catch (e) {
             // ignore module
