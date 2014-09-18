@@ -63,10 +63,10 @@ module.exports = function(config) {
     , startPage: this.parameters.startPage
       //,  searchTerms:
     }
-    coll.find().count().then(function(c) { r.totalResults = c; fill(r); }).catch(function() { fill(r); });
+    coll.find(this.selector).count().then(function(c) { r.totalResults = c; fill(r); }).catch(function() { fill(r); });
   })
   .append('items', function(req, fill) {
-    coll.find().skip((this.parameters.startPage - 1) * this.parameters.nPerPage).limit(this.parameters.nPerPage).toArray().then(fill).catch(fill);
+    coll.find(this.selector).skip((this.parameters.startPage - 1) * this.parameters.nPerPage).limit(this.parameters.nPerPage).toArray().then(fill).catch(fill);
   })
   .send(function(res, next) {
     res.set(this.headers);
