@@ -37,7 +37,7 @@ module.exports = function(config) {
   .declare('url', function(req, fill) {
     fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
   })
-  .declare('query', function(req, fill) {
+  .declare('parameters', function(req, fill) {
     fill(req.query);
   })
   .append('headers', function(req, fill) {
