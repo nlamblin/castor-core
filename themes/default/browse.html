@@ -14,7 +14,7 @@
 		</tr>
 	</thead>
 	<tbody>
-	{% for item in items %}
+	{% for item in data %}
 	<tr>
 		<td><a href="./display/{{ item.wid }}.html">{{ item.object|d('n/a') }}</a></td>
 		<td>{{ item.dateModified.format('short') }}</td>

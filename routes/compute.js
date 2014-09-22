@@ -27,9 +27,10 @@ module.exports = function(config) {
   })
   .declare('page', function(req, fill) {
     fill({
-      title : 'Compute',
-      description : null,
-      types : ['text/html', 'application/json']
+      title : config.get('pages:' + req.params.name + ':title'),
+      description : config.get('pages:' + req.params.name + ':description'),
+      types : ['text/html', 'application/json'],
+      query: req.query
     });
   })
   .declare('user', function(req, fill) {
@@ -60,7 +61,6 @@ module.exports = function(config) {
         "values" : Operators.keys()
       }
     }
-
     var form = require('formatik').parse(req.query, schema);
     if (form.isValid()) {
       fill(form.mget('value'));
@@ -91,6 +91,7 @@ module.exports = function(config) {
         exp : self.parameters.field
       }
     };
+    console.log('operator(append)', self.parameters.operator, self.page.query.o);
     coll.mapReduce(map, reduce, opts).then(function(newcoll) {
       newcoll.find().toArray(function (err, res) {
         fill(err ? err : res);
@@ -99,6 +100,7 @@ module.exports = function(config) {
   })
   .transform(function(req, fill) {
     var self = this;
+    console.log('operator(transform)', self.parameters.operator, self.page.query.o, req.query.o);
     if (self.parameters !== false) {
       self.data = Operators.finalize(self.parameters.operator)(self.data);
     }
@@ -108,7 +110,6 @@ module.exports = function(config) {
     if (this.parameters === false) {
       return res.status(400).send('Bad Request').end();
     }
-    console.log('self', this);
     res.set(this.headers);
     render(res, this, next);
   }

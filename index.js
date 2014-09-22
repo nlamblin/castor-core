@@ -124,6 +124,7 @@ function serve () {
   ops.use('catalog', require('./operators/catalog.js'));
   ops.use('distinct', require('./operators/distinct.js'));
   ops.use('ventilate', require('./operators/ventilate.js'));
+  ops.use('total', require('./operators/total.js'));
   hook('operators')
   .from(viewPath, __dirname)
   .over(config.get('operators'))
@@ -189,15 +190,11 @@ function serve () {
 
     app.route('/robots.txt').get(require('./routes/inform-robots.js')(config));
     app.route('/sitemap.xml').get(require('./routes/inform-searchengines.js')(config));
-    app.route('/browse.:format').all(require('./routes/browse-docs.js')(config));
-    app.route('/distinct.:format').all(require('./routes/distinct-field.js')(config));
+    app.route('/browse.:format').all(require('./routes/browse.js')(config));
     app.route('/compute.:format').all(require('./routes/compute.js')(config));
-    app.route('/ventilate.:format').all(require('./routes/ventilate-fields.js')(config));
     app.route('/display/:doc.:format').all(require('./routes/display-doc.js')(config));
-    app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save-doc.js')(config));
+    app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save.js')(config));
     app.route('/export.:format').all(require('./routes/export-docs.js')(config));
-    // app.route('/export/:doc.:format').all(require('./routes/export-doc.js')(config));
-    app.route('/dashboard.:format').all(require('./routes/dashboard-docs.js')(config));
     app.route('/:name.:format').all(require('./routes/serve.js')(config));
 
     var modules = config.get('browserifyModules');
@@ -206,8 +203,8 @@ function serve () {
       app.get('/bundle.js', browserify(modules));
     }
     if (config.get('turnoffWebdav') === false) {
-      app.route('/webdav/*').all(require('./helpers/webdav.js')({
-        debug: false
+      app.route('/webdav*').all(require('./helpers/webdav.js')({
+        debug: true
       }));
     }
     app.route('/assets/*').all(require('ecstatic')({

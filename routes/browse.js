@@ -24,8 +24,8 @@ module.exports = function(config) {
   })
   .declare('page', function(req, fill) {
     fill({
-      title : 'Browse by documents',
-      description : null,
+      title : config.get('pages:' + req.params.name + ':title'),
+      description : config.get('pages:' + req.params.name + ':description'),
       types : ['text/html', 'application/atom+xml', 'application/rss+xml', 'application/json', 'application/zip']
     });
   })
@@ -42,10 +42,45 @@ module.exports = function(config) {
     fill({ state: { $nin: [ "deleted", "hidden" ] } });
   })
   .declare('parameters', function(req, fill) {
-    fill({
-      startPage: Number(req.query.page || 1)
-    , nPerPage: Number(req.query.count || config.get('itemsPerPage'))
-    });
+    var schema = {
+      "searchTerms" : {
+        "alias": ["query", "search", "q"],
+        "type" : "text",
+        "pattern" : "[a-z*-][a-z0-9*. _-]*",
+        "required" : false
+      },
+      "itemsPerPage" : {
+        "alias": ["count", "length", "l"],
+        "type" : "text",
+        "pattern" : "[0-9]+",
+        "required" : true,
+        "default" : config.get('itemsPerPage')
+      },
+      "startIndex" : {
+        "alias": ["start", "i"],
+        "type" : "text",
+        "pattern" : "[0-9]+",
+        "required" : true,
+        "default" :  1
+      },
+      "startPage" : {
+        "alias": ["page", "p"],
+        "type" : "text",
+        "pattern" : "[0-9]+",
+        "required" : false,
+      }
+    }
+    var form = require('formatik').parse(req.query, schema);
+    if (form.isValid()) {
+      var v = form.mget('value');
+      if (v.startPage) {
+        v.startIndex = (v.startPage - 1) * v.itemsPerPage;
+      }
+      fill(v);
+    }
+    else {
+      fill(false);
+    }
   })
   .append('headers', function(req, fill) {
     var headers = {};
@@ -55,18 +90,17 @@ module.exports = function(config) {
     }
     fill(headers);
   })
-  .append('response', function(req, fill) {
-    var r = {
-      totalResults: 0
-    , startIndex: ((this.parameters.startPage - 1) * this.parameters.nPerPage) + 1
-    , itemsPerPage: this.parameters.itemsPerPage
-    , startPage: this.parameters.startPage
-      //,  searchTerms:
-    }
-    coll.find(this.selector).count().then(function(c) { r.totalResults = c; fill(r); }).catch(function() { fill(r); });
+  .append('recordsTotal', function(req, fill) {
+    coll.find(this.selector).count().then(fill).catch(fill);
   })
-  .append('items', function(req, fill) {
-    coll.find(this.selector).skip((this.parameters.startPage - 1) * this.parameters.nPerPage).limit(this.parameters.nPerPage).toArray().then(fill).catch(fill);
+  .append('data', function(req, fill) {
+    coll.find(this.selector).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
+  })
+  .complete('recordsFiltered', function(req, fill) {
+    fill(this.response.totalResults);
+  })
+  .complete('draw', function(req, fill) {
+    fill(parseInt(req.query.draw, 10));
   })
   .send(function(res, next) {
     res.set(this.headers);
