@@ -78,7 +78,7 @@ module.exports = function(config) {
         v.startIndex = (v.startPage - 1) * v.itemsPerPage;
       }
       if (!v.startIndex) {
-        v.startIndex = 1;
+        v.startIndex = 0;
       }
       fill(v);
     }
@@ -96,13 +96,13 @@ module.exports = function(config) {
   })
   .append('recordsTotal', function(req, fill) {
     if (this.parameters === false) {
-      return fill({});
+      return fill(0);
     }
     coll.find(this.selector).count().then(fill).catch(fill);
   })
   .append('recordsFiltered', function(req, fill) {
     if (this.parameters === false) {
-      return fill({});
+      return fill(0);
     }
     coll.find(this.selector).count().then(fill).catch(fill);
   })

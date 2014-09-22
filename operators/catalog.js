@@ -5,7 +5,8 @@ module.exports.map = function () {
   /* global exp, emit */
   var doc = this
     , sel = exp
-    , invert = (sel[0] === '-' ? true :  false);
+    , invert = (sel[0] === '-' ? true :  false)
+    , res = {};
   if (invert) {
     sel = sel.slice(1);
   }
@@ -25,25 +26,24 @@ module.exports.map = function () {
         browse(value, key);
       } else {
         if (sel === '*') {
-          emit(key, null);
+          res[key] = true;
         }
         if (key.indexOf(sel) === 0 && invert === false) {
-          emit(key, null);
+          res[key] = true;
         }
         else if (key.indexOf(sel) !== 0 && invert === true ) {
-          emit(key, null);
+          res[key] = true;
         }
       }
     }
   }
   browse(doc);
+  Object.keys(res).forEach(function(i) {
+    emit(i, 1);
+  })
 }
 
 module.exports.reduce = function (key, values) {
-  return null;
+  return Array.sum(values);
 }
 
-
-module.exports.finalize = function(items) {
-  return items.map(function(e) { return e._id; });
-}

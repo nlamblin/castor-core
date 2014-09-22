@@ -23,7 +23,6 @@ module.exports.reduce = function (key, values) {
 
 module.exports.finalize = function(items) {
   var results = {};
-  console.log('items', require('util').inspect(items, { showHidden: false, colors: true, depth: null }));
   items.forEach(function(e) { results[e._id] = e.value; });
   return results;
 }

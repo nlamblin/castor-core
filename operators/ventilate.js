@@ -18,11 +18,7 @@ module.exports.map = function () {
 };
 
 module.exports.reduce = function (key, values) {
-  var c = 0;
-  values.forEach(function (cur) {
-    c += cur;
-  });
-  return c;
+  return Array.sum(values);
 };
 
 

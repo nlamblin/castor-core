@@ -13,7 +13,7 @@ var path = require('path')
   ;
 
 module.exports = function(config) {
-  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'));
+  var coll2, coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'));
 
   return datamodel()
   .declare('template', function(req, fill) {
@@ -29,8 +29,7 @@ module.exports = function(config) {
     fill({
       title : config.get('pages:' + req.params.name + ':title'),
       description : config.get('pages:' + req.params.name + ':description'),
-      types : ['text/html', 'application/json'],
-      query: req.query
+      types : ['text/html', 'application/json']
     });
   })
   .declare('user', function(req, fill) {
@@ -59,11 +58,42 @@ module.exports = function(config) {
         "pattern" : "[a-z][a-z0-9. _-]+",
         "required" : true,
         "values" : Operators.keys()
+      },
+      "searchTerms" : {
+        "alias": ["query", "search", "q"],
+        "type" : "text",
+        "pattern" : "[a-z*-][a-z0-9*. _-]*",
+        "required" : false
+      },
+      "itemsPerPage" : {
+        "alias": ["count", "length", "l"],
+        "type" : "number",
+        "required" : false
+      },
+      "startIndex" : {
+        "alias": ["start", "i"],
+        "type" : "number",
+        "required" : false
+      },
+      "startPage" : {
+        "alias": ["page", "p"],
+        "type" : "number",
+        "required" : false
       }
     }
     var form = require('formatik').parse(req.query, schema);
     if (form.isValid()) {
-      fill(form.mget('value'));
+      var v = form.mget('value');
+      if (!v.itemsPerPage) {
+        v.itemsPerPage = config.get('itemsPerPage');
+      }
+      if (v.startPage) {
+        v.startIndex = (v.startPage - 1) * v.itemsPerPage;
+      }
+      if (!v.startIndex) {
+        v.startIndex = 0;
+      }
+      fill(v);
     }
     else {
       fill(false);
@@ -74,13 +104,11 @@ module.exports = function(config) {
     headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
     fill(headers);
   })
-  .append('data', function(req, fill) {
-    var self = this;
-
-    if (self.parameters === false) {
+ .append('data', function(req, fill) {
+    if (this.parameters === false) {
       return fill({});
     }
-    var map = Operators.map(self.parameters.operator)
+    var self = this, map = Operators.map(self.parameters.operator)
       , reduce = Operators.reduce(self.parameters.operator)
       , opts = {
       out : {
@@ -91,16 +119,35 @@ module.exports = function(config) {
         exp : self.parameters.field
       }
     };
-    console.log('operator(append)', self.parameters.operator, self.page.query.o);
     coll.mapReduce(map, reduce, opts).then(function(newcoll) {
-      newcoll.find().toArray(function (err, res) {
+      coll2 = newcoll;
+      coll2.find(self.selector, {
+        skip: self.parameters.startIndex,
+        limit: self.parameters.itemsPerPage
+      }).toArray(function (err, res) {
+        console.log('res', res);
         fill(err ? err : res);
       });
     }).catch(fill);
   })
+  .complete('recordsTotal', function(req, fill) {
+    if (this.parameters === false) {
+      return fill(0);
+    }
+    coll2.count(this.selector, function(err, res) {
+      fill(err ? err : res);
+    });
+  })
+  .complete('recordsFiltered', function(req, fill) {
+    if (this.parameters === false) {
+      return fill(0);
+    }
+    coll2.count(this.selector, function(err, res) {
+      fill(err ? err : res);
+    });
+  })
   .transform(function(req, fill) {
     var self = this;
-    console.log('operator(transform)', self.parameters.operator, self.page.query.o, req.query.o);
     if (self.parameters !== false) {
       self.data = Operators.finalize(self.parameters.operator)(self.data);
     }
