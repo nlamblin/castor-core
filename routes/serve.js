@@ -23,8 +23,8 @@ module.exports = function(config) {
   })
   .declare('page', function(req, fill) {
     fill({
-      title : null,
-      description : null,
+      title : config.get('pages:' + req.params.name + ':title'),
+      description : config.get('pages:' + req.params.name + ':description'),
       types : ['text/html', 'application/json']
     });
   })
@@ -36,6 +36,9 @@ module.exports = function(config) {
   })
   .declare('url', function(req, fill) {
     fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
+  })
+  .declare('query', function(req, fill) {
+    fill(req.query);
   })
   .append('headers', function(req, fill) {
     var headers = {};
