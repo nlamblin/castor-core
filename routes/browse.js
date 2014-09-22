@@ -29,6 +29,9 @@ module.exports = function(config) {
       types : ['text/html', 'application/atom+xml', 'application/rss+xml', 'application/json', 'application/zip']
     });
   })
+  .declare('draw', function(req, fill) {
+    fill(parseInt(req.query.draw, 10));
+  })
   .declare('user', function(req, fill) {
     fill(req.user ? req.user : {});
   })
@@ -51,30 +54,31 @@ module.exports = function(config) {
       },
       "itemsPerPage" : {
         "alias": ["count", "length", "l"],
-        "type" : "text",
-        "pattern" : "[0-9]+",
-        "required" : true,
-        "default" : config.get('itemsPerPage')
+        "type" : "number",
+        "required" : false
       },
       "startIndex" : {
         "alias": ["start", "i"],
-        "type" : "text",
-        "pattern" : "[0-9]+",
-        "required" : true,
-        "default" :  1
+        "type" : "number",
+        "required" : false
       },
       "startPage" : {
         "alias": ["page", "p"],
-        "type" : "text",
-        "pattern" : "[0-9]+",
-        "required" : false,
+        "type" : "number",
+        "required" : false
       }
-    }
+    };
     var form = require('formatik').parse(req.query, schema);
     if (form.isValid()) {
       var v = form.mget('value');
+      if (!v.itemsPerPage) {
+        v.itemsPerPage = config.get('itemsPerPage');
+      }
       if (v.startPage) {
         v.startIndex = (v.startPage - 1) * v.itemsPerPage;
+      }
+      if (!v.startIndex) {
+        v.startIndex = 1;
       }
       fill(v);
     }
@@ -91,16 +95,22 @@ module.exports = function(config) {
     fill(headers);
   })
   .append('recordsTotal', function(req, fill) {
+    if (this.parameters === false) {
+      return fill({});
+    }
+    coll.find(this.selector).count().then(fill).catch(fill);
+  })
+  .append('recordsFiltered', function(req, fill) {
+    if (this.parameters === false) {
+      return fill({});
+    }
     coll.find(this.selector).count().then(fill).catch(fill);
   })
   .append('data', function(req, fill) {
+    if (this.parameters === false) {
+      return fill({});
+    }
     coll.find(this.selector).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
-  })
-  .complete('recordsFiltered', function(req, fill) {
-    fill(this.response.totalResults);
-  })
-  .complete('draw', function(req, fill) {
-    fill(parseInt(req.query.draw, 10));
   })
   .send(function(res, next) {
     res.set(this.headers);
