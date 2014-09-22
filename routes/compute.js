@@ -125,7 +125,6 @@ module.exports = function(config) {
         skip: self.parameters.startIndex,
         limit: self.parameters.itemsPerPage
       }).toArray(function (err, res) {
-        console.log('res', res);
         fill(err ? err : res);
       });
     }).catch(fill);
