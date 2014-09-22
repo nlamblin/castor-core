@@ -51,6 +51,7 @@ function serve () {
   //
   config.fix('connexionURI',         'mongodb://localhost:27017/castor/');
   config.fix('collectionName',       undefined); // auto
+  config.fix('debug',                false);
   config.fix('port',                 '3000');
   config.fix('logFormat',            'combined');
   config.fix('title',                'Castor');
@@ -204,7 +205,7 @@ function serve () {
     }
     if (config.get('turnoffWebdav') === false) {
       app.route('/webdav*').all(require('./helpers/webdav.js')({
-        debug: true
+        debug: config.get('debug')
       }));
     }
     app.route('/assets/*').all(require('ecstatic')({
