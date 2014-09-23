@@ -9,6 +9,13 @@ var path     = require('path')
   , CSV      = require('csv-string')
   ;
 
+var trimString = function trimString(str) {
+  if (typeof str !== 'string') {
+    return str;
+  }
+  return str.trim();
+};
+
 module.exports = function(config) {
   var fields    = config.get('multivaluedFields')
     , separator = config.get('multivaluedSeparator');
@@ -23,7 +30,7 @@ module.exports = function(config) {
         }
         var vals = objectPath.get(input, xpr);
         if (vals) {
-          values[key] = CSV.parse(vals, separator).shift();
+          values[key] = CSV.parse(vals, separator).shift().map(trimString);
         }
         else {
           values[key] = [];
