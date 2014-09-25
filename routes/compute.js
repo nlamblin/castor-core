@@ -44,6 +44,17 @@ module.exports = function(config) {
   .declare('selector', function(req, fill) {
     fill({ state: { $nin: [ "deleted", "hidden" ] } });
   })
+  .declare('sort', function(req, fill) {
+    var s = {};
+    if (Array.isArray(req.query.order)) {
+      req.query.order.forEach(function(itm) {
+        if (req.query.columns && req.query.columns[itm.column] && req.query.columns[itm.column].data) {
+          s[req.query.columns[itm.column].data] = itm.dir === 'asc' ? 1 : -1;
+        }
+      });
+    }
+    fill(s);
+  })
   .declare('parameters', function(req, fill) {
     var schema = {
       "field" : {
@@ -79,6 +90,18 @@ module.exports = function(config) {
         "alias": ["page", "p"],
         "type" : "number",
         "required" : false
+      },
+      "order" : {
+        "alias": ["sort"],
+        "type" : "object",
+        "required" : false,
+        "array": true
+      },
+      "columns" : {
+        "alias": ["cols"],
+        "type" : "object",
+        "required" : false,
+        "array": true
       }
     }
     var form = require('formatik').parse(req.query, schema);
@@ -93,6 +116,7 @@ module.exports = function(config) {
       if (!v.startIndex) {
         v.startIndex = 0;
       }
+      console.log('errors', form.mget('errors'));
       fill(v);
     }
     else {
@@ -123,7 +147,8 @@ module.exports = function(config) {
       coll2 = newcoll;
       coll2.find(self.selector, {
         skip: self.parameters.startIndex,
-        limit: self.parameters.itemsPerPage
+        limit: self.parameters.itemsPerPage,
+        sort : self.sort
       }).toArray(function (err, res) {
         fill(err ? err : res);
       });

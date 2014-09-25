@@ -66,6 +66,18 @@ module.exports = function(config) {
         "alias": ["page", "p"],
         "type" : "number",
         "required" : false
+      },
+      "order" : {
+        "alias": ["sort"],
+        "type" : "object",
+        "required" : false,
+        "array": true
+      },
+      "columns" : {
+        "alias": ["cols"],
+        "type" : "object",
+        "required" : false,
+        "array": true
       }
     };
     var form = require('formatik').parse(req.query, schema);
@@ -99,8 +111,15 @@ module.exports = function(config) {
     fill(filters);
   })
   .declare('sort', function(req, fill) {
-    // TODO
-    fill({})
+    var s = {};
+    if (Array.isArray(req.query.order)) {
+      req.query.order.forEach(function(itm) {
+        if (req.query.columns && req.query.columns[itm.column] && req.query.columns[itm.column].data) {
+          s[req.query.columns[itm.column].data] = itm.dir === 'asc' ? 1 : -1;
+        }
+      });
+    }
+    fill(s);
   })
   .append('headers', function(req, fill) {
     var headers = {};
