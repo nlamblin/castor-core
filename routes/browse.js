@@ -90,6 +90,10 @@ module.exports = function(config) {
     // TODO
     fill({})
   })
+  .declare('sort', function(req, fill) {
+    // TODO
+    fill({})
+  })
   .append('headers', function(req, fill) {
     var headers = {};
     headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
@@ -119,7 +123,7 @@ module.exports = function(config) {
     if (this.parameters === false) {
       return fill({});
     }
-    coll.find(this.mongoquery).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
+    coll.find(this.mongoquery).sort(this.sort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
   })
   .send(function(res, next) {
     res.set(this.headers);
