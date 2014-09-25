@@ -86,6 +86,10 @@ module.exports = function(config) {
       fill(false);
     }
   })
+  .declare('filters', function(req, fill) {
+    // TODO
+    fill({})
+  })
   .append('headers', function(req, fill) {
     var headers = {};
     headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
@@ -100,17 +104,22 @@ module.exports = function(config) {
     }
     coll.find(this.selector).count().then(fill).catch(fill);
   })
-  .append('recordsFiltered', function(req, fill) {
+  .append('mongoquery', function(req, fill) {
+    var sel = {};
+    require('extend')(true, sel, this.selector, this.filters);
+    fill(sel);
+  })
+  .complete('recordsFiltered', function(req, fill) {
     if (this.parameters === false) {
       return fill(0);
     }
-    coll.find(this.selector).count().then(fill).catch(fill);
+    coll.find(this.mongoquery).count().then(fill).catch(fill);
   })
-  .append('data', function(req, fill) {
+  .complete('data', function(req, fill) {
     if (this.parameters === false) {
       return fill({});
     }
-    coll.find(this.selector).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
+    coll.find(this.mongoquery).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
   })
   .send(function(res, next) {
     res.set(this.headers);
