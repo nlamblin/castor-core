@@ -87,8 +87,16 @@ module.exports = function(config) {
     }
   })
   .declare('filters', function(req, fill) {
-    // TODO
-    fill({})
+    // Filter by field/column
+    // URL syntax: /browse.json?columns[i][data]=content.json.Field&column[i][search][value]=value
+    var filters = {};
+    //  for each column
+    req.query.columns.forEach(function (c) {
+      if (c.search && c.search.value) {
+        filters[c.data] = c.search.value;
+      }
+    });
+    fill(filters);
   })
   .declare('sort', function(req, fill) {
     // TODO
