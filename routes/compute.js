@@ -116,7 +116,6 @@ module.exports = function(config) {
       if (!v.startIndex) {
         v.startIndex = 0;
       }
-      console.log('errors', form.mget('errors'));
       fill(v);
     }
     else {
