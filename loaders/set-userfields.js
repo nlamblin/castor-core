@@ -15,7 +15,7 @@ module.exports = function(config) {
     var values = {};
     if (typeof fields === 'object') {
       Object.keys(fields).forEach(function (key) {
-          var xpr = fields[key];
+          var xpr = fields[key].path || fields[key];
           if (typeof xpr !== 'string' || xpr === '') {
             return;
           }
