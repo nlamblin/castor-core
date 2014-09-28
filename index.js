@@ -73,9 +73,8 @@ function serve () {
   config.fix('turnoffRoutes',        false);
   config.fix('turnoffWebdav',        false);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules" ]);
-  config.fix('multivaluedFields',    []);
-  config.fix('multivaluedSeparator', undefined); // auto
-  config.fix('loader:csv:separator',undefined); // auto
+  config.fix('userFields',           {});
+  config.fix('loader:csv:separator', undefined); // auto
   config.fix('loader:csv:encoding', 'utf8');
 
   if (config.get('turnoffAll') === true) {
@@ -109,8 +108,7 @@ function serve () {
     .apply(function(hash, func) {
       fr.use(hash, func(config.get('loaders:' + hash)));
     });
-    fr.use('**/*', require('./loaders/split-fields.js')(config));
-    fr.use('**/*', require('./loaders/set-userfields.js')(config));
+    fr.use('**/*', require('castor-load-custom')({ schema: config.get('userFields')}));
     if (config.get('turnoffSync') === false) {
       fr.sync(function(err) {
         console.log(kuler('Files and Database are synchronised.', 'green'));

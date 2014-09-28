@@ -47,7 +47,8 @@
     "csv-string": "^2.2.2",
     "castor-load": "^1.0.0",
     "castor-load-csv": "^1.0.0",
-    "castor-load-xml": "^1.0.0"
+    "castor-load-xml": "^1.0.0",
+    "castor-load-custom": "^1.0.0"
   },
   "devDependencies": {},
   "engines": {
