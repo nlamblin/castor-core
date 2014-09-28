@@ -19,6 +19,7 @@ var path = require('path')
   , Primus = require('primus')
   , hook = require('./helpers/hook.js')
   , bodyParser = require('body-parser')
+  , pmongo = require('promised-mongo')
   ;
 
 function serve () {
@@ -116,6 +117,21 @@ function serve () {
     }
     config.set('collectionName', fr.options.collectionName);
   }
+
+  //
+  // add some indexes
+  //
+  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
+    , usfs = config.get('userFields')
+    , idx = Object.keys(usfs).map(function(i) {var j = {}; j['userfields.' + i] = 1; return j});
+  idx.push({ 'text': 'text' });
+  idx.forEach(function(i) {
+    coll.ensureIndex(i, { w: 1 }, function(err, indexName) {
+      console.log(kuler('Index field :', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
+    });
+  });
+
+
 
 
   var ops = require('./helpers/operators.js');

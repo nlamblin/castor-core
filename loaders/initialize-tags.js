@@ -47,6 +47,9 @@ module.exports = function(config) {
           changefreq : "monthly"
       });
   })
+  .append('text', function(file, fill) {
+      fill(this.object);
+  })
   .append('language', function(file, fill) {
       fill('none');
   })
