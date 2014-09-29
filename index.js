@@ -65,7 +65,6 @@ function serve () {
   config.fix('loaders',              {});
   config.fix('routes',               {});
   config.fix('browserifyModules',    []);
-  config.fix('userfields',           {});
   config.fix('itemsPerPage',         30);
   config.fix('concurrency',          require('os').cpus().length);
   config.fix('turnoffAll',           false);
@@ -74,7 +73,7 @@ function serve () {
   config.fix('turnoffRoutes',        false);
   config.fix('turnoffWebdav',        false);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules" ]);
-  config.fix('userFields',           {});
+  config.fix('customFields',           {});
   config.fix('loader:csv:separator', undefined); // auto
   config.fix('loader:csv:encoding', 'utf8');
 
@@ -109,7 +108,10 @@ function serve () {
     .apply(function(hash, func) {
       fr.use(hash, func(config.get('loaders:' + hash)));
     });
-    fr.use('**/*', require('castor-load-custom')({ schema: config.get('userFields')}));
+    fr.use('**/*', require('castor-load-custom')({ 
+      fieldname : 'fields',
+      schema: config.get('customFields')
+    }));
     if (config.get('turnoffSync') === false) {
       fr.sync(function(err) {
         console.log(kuler('Files and Database are synchronised.', 'green'));
@@ -122,8 +124,8 @@ function serve () {
   // add some indexes
   //
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
-    , usfs = config.get('userFields')
-    , idx = Object.keys(usfs).map(function(i) {var j = {}; j['userfields.' + i] = 1; return j});
+    , usfs = config.get('customFields')
+    , idx = Object.keys(usfs).map(function(i) {var j = {}; j['fields.' + i] = 1; return j});
   idx.push({ 'text': 'text' });
   idx.forEach(function(i) {
     coll.ensureIndex(i, { w: 1 }, function(err, indexName) {
