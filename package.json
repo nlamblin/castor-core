@@ -45,7 +45,7 @@
     "body-parser": "^1.6.6",
     "object-path": "^0.6.0",
     "csv-string": "^2.2.2",
-    "castor-load": "^1.0.0",
+    "castor-load": "^1.1.1",
     "castor-load-csv": "^1.0.0",
     "castor-load-xml": "^1.0.0",
     "castor-load-custom": "^1.0.0"
