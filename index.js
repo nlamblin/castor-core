@@ -31,6 +31,7 @@ function serve () {
   // Check and fix a data source directory
   //
   var dataPath = config.get('dataPath') ;
+  var dateConfig;
 
   debug('dataPath', dataPath);
 
@@ -38,6 +39,7 @@ function serve () {
   if (fs.existsSync(confile)) {
     console.log(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
     config.load(confile);
+    dateConfig = fs.statSync(confile).mtime;
   }
   config.set('dataPath', dataPath);
 
@@ -95,7 +97,8 @@ function serve () {
       "connexionURI" : config.get('connexionURI'),
       "collectionName": config.get('collectionName'),
       "concurrency" : config.get('concurrency'),
-      "ignore" : config.get('filesToIgnore')
+      "ignore" : config.get('filesToIgnore'),
+      "dateConfig" : dateConfig
     };
     var fr = new Loader(dataPath, opts);
     fr.use('**/*', require('./loaders/initialize-tags.js')(config));
@@ -108,7 +111,7 @@ function serve () {
     .apply(function(hash, func) {
       fr.use(hash, func(config.get('loaders:' + hash)));
     });
-    fr.use('**/*', require('castor-load-custom')({ 
+    fr.use('**/*', require('castor-load-custom')({
       fieldname : 'fields',
       schema: config.get('customFields')
     }));
