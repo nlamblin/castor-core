@@ -18,7 +18,10 @@ function Hook(nd) {
 Hook.prototype.from = function ()
 {
   var self = this;
-  self.basedirs = Array.prototype.slice.call(arguments, 0).map(function(x) {return path.join(x, self.namedir);});
+  Array.prototype.slice.call(arguments, 0).forEach(function(x) {
+    self.basedirs.push(path.join(x, self.namedir));
+    self.basedirs.push(path.join(x, 'node_modules'));
+  });
   return self;
 }
 
