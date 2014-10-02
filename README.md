@@ -49,6 +49,6 @@ List & how to use castor's filters :
 
 * add2Array(*itemToAdd* , position)
 	Add an item to an array and return it,
-	If no position , push will be the method use
+	If no position , push will be the method used
 
 
