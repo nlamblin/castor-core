@@ -19,6 +19,7 @@ var path = require('path')
   , Primus = require('primus')
   , hook = require('./helpers/hook.js')
   , bodyParser = require('body-parser')
+  , pmongo = require('promised-mongo')
   ;
 
 function serve () {
@@ -30,6 +31,7 @@ function serve () {
   // Check and fix a data source directory
   //
   var dataPath = config.get('dataPath') ;
+  var dateConfig;
 
   debug('dataPath', dataPath);
 
@@ -37,6 +39,7 @@ function serve () {
   if (fs.existsSync(confile)) {
     console.log(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
     config.load(confile);
+    dateConfig = fs.statSync(confile).mtime;
   }
   config.set('dataPath', dataPath);
 
@@ -64,7 +67,6 @@ function serve () {
   config.fix('loaders',              {});
   config.fix('routes',               {});
   config.fix('browserifyModules',    []);
-  config.fix('userfields',           {});
   config.fix('itemsPerPage',         30);
   config.fix('concurrency',          require('os').cpus().length);
   config.fix('turnoffAll',           false);
@@ -73,9 +75,8 @@ function serve () {
   config.fix('turnoffRoutes',        false);
   config.fix('turnoffWebdav',        false);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules" ]);
-  config.fix('multivaluedFields',    []);
-  config.fix('multivaluedSeparator', undefined); // auto
-  config.fix('loader:csv:separator',undefined); // auto
+  config.fix('customFields',           {});
+  config.fix('loader:csv:separator', undefined); // auto
   config.fix('loader:csv:encoding', 'utf8');
 
   if (config.get('turnoffAll') === true) {
@@ -96,7 +97,8 @@ function serve () {
       "connexionURI" : config.get('connexionURI'),
       "collectionName": config.get('collectionName'),
       "concurrency" : config.get('concurrency'),
-      "ignore" : config.get('filesToIgnore')
+      "ignore" : config.get('filesToIgnore'),
+      "dateConfig" : dateConfig
     };
     var fr = new Loader(dataPath, opts);
     fr.use('**/*', require('./loaders/initialize-tags.js')(config));
@@ -109,8 +111,10 @@ function serve () {
     .apply(function(hash, func) {
       fr.use(hash, func(config.get('loaders:' + hash)));
     });
-    fr.use('**/*', require('./loaders/split-fields.js')(config));
-    fr.use('**/*', require('./loaders/set-userfields.js')(config));
+    fr.use('**/*', require('castor-load-custom')({
+      fieldname : 'fields',
+      schema: config.get('customFields')
+    }));
     if (config.get('turnoffSync') === false) {
       fr.sync(function(err) {
         console.log(kuler('Files and Database are synchronised.', 'green'));
@@ -118,6 +122,21 @@ function serve () {
     }
     config.set('collectionName', fr.options.collectionName);
   }
+
+  //
+  // add some indexes
+  //
+  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
+    , usfs = config.get('customFields')
+    , idx = Object.keys(usfs).map(function(i) {var j = {}; j['fields.' + i] = 1; return j});
+  idx.push({ 'text': 'text' });
+  idx.forEach(function(i) {
+    coll.ensureIndex(i, { w: 1 }, function(err, indexName) {
+      console.log(kuler('Index field :', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
+    });
+  });
+
+
 
 
   var ops = require('./helpers/operators.js');
