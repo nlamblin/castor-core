@@ -44,7 +44,6 @@ module.exports = function(config) {
         res.end();
       })
       .catch(function(e) {
-        console.log('e', e);
         res.status(500).send('Internal Server Error').end();
       });
     }
