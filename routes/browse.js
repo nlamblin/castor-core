@@ -140,8 +140,11 @@ module.exports = function(config) {
   .append('mongoQuery', function(req, fill) {
     var sel = {};
     require('extend')(true, sel, this.selector, this.filters);
-    if (this.parameters.search.value) {
-      sel.search = this.parameters.search.value;
+    if (this.parameters.search.regex) {
+      sel.text = {
+        $regex : this.parameters.search.value,
+        $options : 'i'
+      }
     }
     fill(sel);
   })
