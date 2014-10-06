@@ -137,22 +137,29 @@ module.exports = function(config) {
     }
     coll.find(this.selector).count().then(fill).catch(fill);
   })
-  .append('mongoquery', function(req, fill) {
+  .append('mongoQuery', function(req, fill) {
     var sel = {};
     require('extend')(true, sel, this.selector, this.filters);
     fill(sel);
+  })
+  .append('mongoOptions', function(req, fill) {
+    fill({
+      // fields : {
+        // content: 0
+      // }
+    });
   })
   .complete('recordsFiltered', function(req, fill) {
     if (this.parameters === false) {
       return fill(0);
     }
-    coll.find(this.mongoquery).count().then(fill).catch(fill);
+    coll.find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
   })
   .complete('data', function(req, fill) {
     if (this.parameters === false) {
       return fill({});
     }
-    coll.find(this.mongoquery).sort(this.sort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
+    coll.find(this.mongoQuery, this.mongoOptions).sort(this.sort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
   })
   .send(function(res, next) {
     res.set(this.headers);
