@@ -46,12 +46,6 @@ module.exports = function(config) {
   })
   .declare('parameters', function(req, fill) {
     var schema = {
-      "searchTerms" : {
-        "alias": ["query", "search", "q"],
-        "type" : "text",
-        "pattern" : "[a-z*-][a-z0-9*. _-]*",
-        "required" : false
-      },
       "itemsPerPage" : {
         "alias": ["count", "length", "l"],
         "type" : "number",
@@ -65,6 +59,12 @@ module.exports = function(config) {
       "startPage" : {
         "alias": ["page", "p"],
         "type" : "number",
+        "required" : false
+      },
+      // see http://datatables.net/manual/server-side
+      "search" : {
+        "alias": [ "s"],
+        "type" : "object",
         "required" : false
       },
       "order" : {
@@ -137,22 +137,32 @@ module.exports = function(config) {
     }
     coll.find(this.selector).count().then(fill).catch(fill);
   })
-  .append('mongoquery', function(req, fill) {
+  .append('mongoQuery', function(req, fill) {
     var sel = {};
     require('extend')(true, sel, this.selector, this.filters);
+    if (this.parameters.search.value) {
+      sel.search = this.parameters.search.value;
+    }
     fill(sel);
+  })
+  .append('mongoOptions', function(req, fill) {
+    fill({
+      // fields : {
+        // content: 0
+      // }
+    });
   })
   .complete('recordsFiltered', function(req, fill) {
     if (this.parameters === false) {
       return fill(0);
     }
-    coll.find(this.mongoquery).count().then(fill).catch(fill);
+    coll.find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
   })
   .complete('data', function(req, fill) {
     if (this.parameters === false) {
       return fill({});
     }
-    coll.find(this.mongoquery).sort(this.sort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
+    coll.find(this.mongoQuery, this.mongoOptions).sort(this.sort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
   })
   .send(function(res, next) {
     res.set(this.headers);
