@@ -46,12 +46,6 @@ module.exports = function(config) {
   })
   .declare('parameters', function(req, fill) {
     var schema = {
-      "searchTerms" : {
-        "alias": ["query", "search", "q"],
-        "type" : "text",
-        "pattern" : "[a-z*-][a-z0-9*. _-]*",
-        "required" : false
-      },
       "itemsPerPage" : {
         "alias": ["count", "length", "l"],
         "type" : "number",
@@ -65,6 +59,12 @@ module.exports = function(config) {
       "startPage" : {
         "alias": ["page", "p"],
         "type" : "number",
+        "required" : false
+      },
+      // see http://datatables.net/manual/server-side
+      "search" : {
+        "alias": [ "s"],
+        "type" : "object",
         "required" : false
       },
       "order" : {
@@ -140,6 +140,9 @@ module.exports = function(config) {
   .append('mongoQuery', function(req, fill) {
     var sel = {};
     require('extend')(true, sel, this.selector, this.filters);
+    if (this.parameters.search.value) {
+      sel.search = this.parameters.search.value;
+    }
     fill(sel);
   })
   .append('mongoOptions', function(req, fill) {
