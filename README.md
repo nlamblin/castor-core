@@ -131,21 +131,23 @@ See [castor-load-custom](https://github.com/castorjs/castor-load-custom).
 Theme-specific route example:
 
 1. modify `index.js` in the theme:
-```javascript
-module.exports = { 
-  "routes": {
-    "/fake" : "fake.js"
-  }
-};
-```
-2. create a file `./routes/fake.js` in the theme:
-```javascript
-module.exports = function(config) {
-  return function (req, res, next) {
-    res.status(200).send('Fake').end();
+
+  ```javascript
+  module.exports = {
+    "routes": {
+      "/fake" : "fake.js"
+    }
   };
-};
-```
+  ```
+2. create a file `./routes/fake.js` in the theme:
+
+  ```javascript
+  module.exports = function(config) {
+    return function (req, res, next) {
+      res.status(200).send('Fake').end();
+    };
+  };
+  ```
 
 #### Add & use Nunjucks filters
 
