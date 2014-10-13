@@ -32,7 +32,7 @@ module.exports = function(config) {
   })
   .declare('page', function(req, fill) {
     fill({
-      title : 'Display doc',
+      title : config.get('pages:display:title') || 'Display document',
       description : null,
       types : ['text/html', 'application/json', 'application/zip']
     });
