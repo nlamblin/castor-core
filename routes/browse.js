@@ -26,7 +26,7 @@ module.exports = function(config) {
     fill({
       title : config.get('pages:' + req.params.name + ':title'),
       description : config.get('pages:' + req.params.name + ':description'),
-      types : ['text/html', 'application/atom+xml', 'application/rss+xml', 'application/json', 'application/zip']
+      types : ['text/html', 'application/atom+xml', 'application/rss+xml', 'application/json', 'application/zip', 'text/csv']
     });
   })
   .declare('draw', function(req, fill) {
@@ -140,7 +140,7 @@ module.exports = function(config) {
   .append('mongoQuery', function(req, fill) {
     var sel = {};
     require('extend')(true, sel, this.selector, this.filters);
-    if (this.parameters.search.regex) {
+    if (this.parameters.search && this.parameters.search.regex) {
       sel.text = {
         $regex : this.parameters.search.value,
         $options : 'i'

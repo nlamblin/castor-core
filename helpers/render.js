@@ -28,6 +28,9 @@ module.exports = function(res, locals, next) {
   else if (render === 'application/zip') {
     require('./zip.js')(locals).pipe(res);
   }
+  else if (render === 'text/csv') {
+    require('./csv.js')(locals).pipe(res);
+  }
   else {
     next();
   }
