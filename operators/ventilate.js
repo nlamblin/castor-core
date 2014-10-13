@@ -2,7 +2,7 @@
 
 
 module.exports.map = function () {
-  /* global fields, emit */
+  /* global exp, emit */
   var doc = this;
   function access(obj, prop) {
     var segs = prop.split('.');
@@ -10,6 +10,13 @@ module.exports.map = function () {
       obj = obj[segs.shift()];
     }
     return obj;
+  }
+  var fields;
+  if (Array.isArray(exp)) {
+    fields = exp;
+  }
+  else {
+    fields = [exp];
   }
   fields.forEach(function (exp) {
     emit(exp + '=' + access(doc, exp), 1);

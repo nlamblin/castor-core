@@ -60,6 +60,7 @@ module.exports = function(config) {
       "field" : {
         "alias": "f",
         "type" : "text",
+        "array": true,
         "required" : true,
         "pattern" : "[a-z*-][a-z0-9*. _-]*"
       },
@@ -69,12 +70,6 @@ module.exports = function(config) {
         "pattern" : "[a-z][a-z0-9. _-]+",
         "required" : true,
         "values" : Operators.keys()
-      },
-      "searchTerms" : {
-        "alias": ["query", "search", "q"],
-        "type" : "text",
-        "pattern" : "[a-z*-][a-z0-9*. _-]*",
-        "required" : false
       },
       "itemsPerPage" : {
         "alias": ["count", "length", "l"],
@@ -89,6 +84,12 @@ module.exports = function(config) {
       "startPage" : {
         "alias": ["page", "p"],
         "type" : "number",
+        "required" : false
+      },
+      // see http://datatables.net/manual/server-side
+      "search" : {
+        "alias": [ "s"],
+        "type" : "object",
         "required" : false
       },
       "order" : {
@@ -131,13 +132,34 @@ module.exports = function(config) {
     if (this.parameters === false) {
       return fill({});
     }
+    //
+    // mongoQuery
+    //
+    var sel = {};
+    require('extend')(true, sel, this.selector);
+    // cf.  http://datatables.net/manual/server-side#Sent-parameters
+    // Example : /browse.json?columns[i][data]=content.json.Field&columns[i][search][value]=value
+    if (this.parameters.columns) {
+      this.parameters.columns.forEach(function (c) {
+        if (c && c.search && c.search.value) {
+          sel[c.data] = c.search.value;
+        }
+      });
+    }
+    if (this.parameters.search && this.parameters.search.regex) {
+      sel.text = {
+        $regex : this.parameters.search.value,
+        $options : 'i'
+      }
+    }
+
     var self = this, map = Operators.map(self.parameters.operator)
       , reduce = Operators.reduce(self.parameters.operator)
       , opts = {
       out : {
-        replace: basename + '_' + self.parameters.field
+        replace: basename + '_' + self.parameters.field.join('_')
       },
-      query: self.selector,
+      query: sel,
       scope: {
         exp : self.parameters.field
       }
@@ -152,6 +174,24 @@ module.exports = function(config) {
         fill(err ? err : res);
       });
     }).catch(fill);
+  })
+  .append('mongoQuery', function(req, fill) {
+    var sel = {};
+    require('extend')(true, sel, this.selector, this.filters);
+    if (this.parameters.search && this.parameters.search.regex) {
+      sel.text = {
+        $regex : this.parameters.search.value,
+        $options : 'i'
+      }
+    }
+    fill(sel);
+  })
+  .append('mongoOptions', function(req, fill) {
+    fill({
+      // fields : {
+        // content: 0
+      // }
+    });
   })
   .complete('recordsTotal', function(req, fill) {
     if (this.parameters === false) {

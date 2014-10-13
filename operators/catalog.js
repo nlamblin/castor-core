@@ -4,7 +4,7 @@
 module.exports.map = function () {
   /* global exp, emit */
   var doc = this
-    , sel = exp
+    , sel = exp[0]
     , invert = (sel[0] === '-' ? true :  false)
     , res = {};
   if (invert) {

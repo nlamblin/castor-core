@@ -10,7 +10,7 @@ module.exports.map = function () {
     }
     return obj;
   }
-  var field = access(doc, exp);
+  var field = access(doc, exp[0]);
   if (field) {
     emit(exp, 1);
   }
