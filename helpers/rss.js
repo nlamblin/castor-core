@@ -45,14 +45,14 @@ module.exports = function (input) {
   xw.writeElement('description', description);
   xw.writeElement('lastBuildDate', date2string(new Date()));
   xw.writeElement('link', input.url.href);
-  input.items.forEach(function (item, index) {
+  input.data.forEach(function (item, index) {
       xw.startElement('item');
       xw.writeElement('title', item.object.toString());
       if (item.description) {
         xw.writeElement('description', item.description.toString());
       }
       xw.writeElement('lastBuildDate', date2string(item.dateModified));
-      xw.writeElement('link', input.url.protocol + '//' + input.url.host + item.url);
+      xw.writeElement('link', input.url.protocol + '//' + input.url.host  + '/display/' + item.wid + '.html');
       xw.endElement();
     }
   );

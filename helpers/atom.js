@@ -27,21 +27,23 @@ module.exports = function (input) {
 
 
   aw
-  .startFeed('urn:castor:items')
-  .writeTotalResults(input.items.length)
+  .startFeed('urn:castor:data')
+  .writeTotalResults(input.data.length)
   .writeTitle(title)
   .writeLink(input.url.href.toString(), 'application/atom+xml', 'self')
 
-  input.items.forEach(function (item, index) {
+  input.data.forEach(function (item, index) {
       aw
       .startEntry('urn:dotecase:file-' + item.uid, item.dateModified, item.dateCreated)
       .writeTitle(item.object.toString())
-      .writeLink(input.url.protocol + '//' + input.url.host + item.url);
+      .writeLink(input.url.protocol + '//' + input.url.host + '/display/' + item.wid + '.html');
       if (item.description) {
         aw.writeContent(item.description.toString(), 'text')
       }
       // .writeAuthor('Tata Toto', 'toto@exemple.com')
-      aw.writeCategory(item.subject.toString(), 'subject')
+      if (item.subject) {
+        aw.writeCategory(item.subject.toString(), 'subject')
+      }
       if (item.category) {
         aw.writeCategory(item.category.toString(), 'category')
       }
