@@ -12,7 +12,7 @@ module.exports.map = function () {
   }
   var field = access(doc, exp[0]);
   if (field) {
-    emit(exp, field);
+    emit(exp[0], field);
   }
 };
 
@@ -23,6 +23,8 @@ module.exports.reduce = function (key, values) {
 
 module.exports.finalize = function(items) {
   var results = {};
-  items.forEach(function(e) { results[e._id] = e.value; });
+  if (Array.isArray(items)) {
+    items.forEach(function(e) { results[e._id] = e.value; });
+  }
   return results;
 }
