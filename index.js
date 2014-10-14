@@ -145,6 +145,7 @@ function serve () {
   ops.use('distinct', require('./operators/distinct.js'));
   ops.use('ventilate', require('./operators/ventilate.js'));
   ops.use('total', require('./operators/total.js'));
+  ops.use('graph', require('./operators/graph.js'));
   hook('operators')
   .from(viewPath, __dirname)
   .over(config.get('operators'))
