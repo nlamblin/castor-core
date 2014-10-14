@@ -42,7 +42,7 @@ module.exports.finalize = function(items) {
   items.each(function(e) {
     var x = JSON.parse(e._id);
     r.push({
-      source: x[0], 
+      source: x[0],
       target: x[1],
       weight: e.value
     });
