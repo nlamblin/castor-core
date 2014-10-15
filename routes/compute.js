@@ -157,7 +157,7 @@ module.exports = function(config) {
       , reduce = Operators.reduce(self.parameters.operator)
       , opts = {
       out : {
-        replace: basename + '_' + self.parameters.field.join('_')
+        replace: config.get('collectionName') + '_' + basename + '_' + self.parameters.field.join('_')
       },
       query: sel,
       scope: {
