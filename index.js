@@ -217,13 +217,14 @@ function serve () {
     app.route('/dump/:doc.:format').all(require('./routes/dump.js')(config));
     app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save.js')(config));
     app.route('/export.:format').all(require('./routes/export-docs.js')(config));
-    app.route('/:name.:format').all(require('./routes/serve.js')(config));
     app.route('/config.js(on|)').all(function (req, res) { res.jsonp(config.expose()); });
 
     var modules = config.get('browserifyModules');
 
     if (Array.isArray(modules) && modules.length > 0) {
-      app.get('/bundle.js', browserify(modules));
+      app.get('/bundle.js', browserify(modules, {
+        debug: false 
+      }));
     }
     if (config.get('turnoffWebdav') === false) {
       app.route('/webdav*').all(require('./helpers/webdav.js')({
@@ -243,6 +244,7 @@ function serve () {
     }));
 
     app.route('/').all(function(req, res) { res.redirect('index.html'); });
+    app.route('/:name.:format').all(require('./routes/serve.js')(config));
 
     app.use(function(req, res, next) {
       res.status(404).send('Not Found').end();

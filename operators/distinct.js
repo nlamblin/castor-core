@@ -5,6 +5,7 @@ module.exports.map = function () {
   var doc = this;
   function access(obj, prop) {
     var segs = prop.split('.');
+    print(segs, obj);
     while (segs.length) {
       obj = obj[segs.shift()];
     }
