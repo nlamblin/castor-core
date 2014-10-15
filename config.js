@@ -88,9 +88,24 @@ Configuration.prototype.load = function load(filename) {
   }
 };
 
-Configuration.prototype.merge = function load(obj) {
+Configuration.prototype.merge = function merge(obj) {
   nconf.overrides(obj);
 };
+
+Configuration.prototype.expose = function expose(obj) {
+  var conf = this.get();
+  delete conf.dataPath;
+  delete conf.collectionName;
+  delete conf.connexionURI
+  delete conf._;
+  delete conf.c;
+  delete conf.config;
+  delete conf.$0;
+  conf.theme = path.basename(conf.theme);
+  return conf;
+};
+
+
 
 
 //

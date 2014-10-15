@@ -218,7 +218,7 @@ function serve () {
     app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save.js')(config));
     app.route('/export.:format').all(require('./routes/export-docs.js')(config));
     app.route('/:name.:format').all(require('./routes/serve.js')(config));
-    app.route('/config.json').all(require('./routes/config.js')(config));
+    app.route('/config.js(on|)').all(function (req, res) { res.jsonp(config.expose()); });
 
     var modules = config.get('browserifyModules');
 
