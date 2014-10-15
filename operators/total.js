@@ -5,11 +5,15 @@ module.exports.map = function () {
   var doc = this;
   function access(obj, prop) {
     var segs = prop.split('.');
+    print(segs, obj);
     while (segs.length) {
-      obj = obj[segs.shift()];
+      var k = segs.shift();
+      if (obj[k]) {
+        obj = obj[k];
+      }
     }
     return obj;
-  }
+  } 
   var field = access(doc, exp[0]);
   if (field) {
     emit(exp[0], field);

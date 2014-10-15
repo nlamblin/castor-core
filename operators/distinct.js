@@ -7,7 +7,10 @@ module.exports.map = function () {
     var segs = prop.split('.');
     print(segs, obj);
     while (segs.length) {
-      obj = obj[segs.shift()];
+      var k = segs.shift();
+      if (obj[k]) {
+        obj = obj[k];
+      }
     }
     return obj;
   }
