@@ -26,7 +26,7 @@ module.exports = function(config) {
     fill({
       title : config.get('pages:' + req.params.name + ':title'),
       description : config.get('pages:' + req.params.name + ':description'),
-      types : ['text/html', 'application/atom+xml', 'application/rss+xml', 'application/json', 'application/zip']
+      types : ['text/html', 'application/atom+xml', 'application/rss+xml', 'application/json', 'application/zip', 'text/csv']
     });
   })
   .declare('draw', function(req, fill) {
@@ -98,21 +98,7 @@ module.exports = function(config) {
       fill(false);
     }
   })
-  .declare('filters', function(req, fill) {
-    // Filter by field/column
-    // URL syntax: /browse.json?columns[i][data]=content.json.Field&columns[i][search][value]=value
-    var filters = {};
-    //  for each column
-    if (req.query.columns) {
-      req.query.columns.forEach(function (c) {
-        if (c.search && c.search.value) {
-          filters[c.data] = c.search.value;
-        }
-      });
-    }
-    fill(filters);
-  })
-  .declare('sort', function(req, fill) {
+  .declare('mongoSort', function(req, fill) {
     var s = {};
     if (Array.isArray(req.query.order)) {
       req.query.order.forEach(function(itm) {
@@ -139,9 +125,21 @@ module.exports = function(config) {
   })
   .append('mongoQuery', function(req, fill) {
     var sel = {};
-    require('extend')(true, sel, this.selector, this.filters);
-    if (this.parameters.search.value) {
-      sel.search = this.parameters.search.value;
+    require('extend')(true, sel, this.selector);
+    // cf.  http://datatables.net/manual/server-side#Sent-parameters
+    // Example : /browse.json?columns[i][data]=content.json.Field&columns[i][search][value]=value
+    if (this.parameters.columns) {
+      this.parameters.columns.forEach(function (c) {
+        if (c.search && c.search.value) {
+          sel[c.data] = c.search.value;
+        }
+      });
+    }
+    if (this.parameters.search && this.parameters.search.regex) {
+      sel.text = {
+        $regex : this.parameters.search.value,
+        $options : 'i'
+      }
     }
     fill(sel);
   })
@@ -162,7 +160,7 @@ module.exports = function(config) {
     if (this.parameters === false) {
       return fill({});
     }
-    coll.find(this.mongoQuery, this.mongoOptions).sort(this.sort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
+    coll.find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
   })
   .send(function(res, next) {
     res.set(this.headers);

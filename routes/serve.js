@@ -25,7 +25,7 @@ module.exports = function(config) {
     fill({
       title : config.get('pages:' + req.params.name + ':title'),
       description : config.get('pages:' + req.params.name + ':description'),
-      types : ['text/html', 'application/json']
+      types : ['text/html']
     });
   })
   .declare('user', function(req, fill) {

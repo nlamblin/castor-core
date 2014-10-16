@@ -17,7 +17,7 @@ module.exports = function(res, locals, next) {
     res.render(locals.template || 'no template !', locals);
   }
   else if (render === 'application/json') {
-    res.json(locals);
+    require('./json.js')(locals).pipe(res);
   }
   else if (render === 'application/atom+xml') {
     require('./atom.js')(locals).pipe(res);
@@ -27,6 +27,9 @@ module.exports = function(res, locals, next) {
   }
   else if (render === 'application/zip') {
     require('./zip.js')(locals).pipe(res);
+  }
+  else if (render === 'text/csv') {
+    require('./csv.js')(locals).pipe(res);
   }
   else {
     next();
