@@ -173,4 +173,6 @@ List & how to use castor's filters :
 	Add an item to an array and return it,
 	If no position , push will be the method used
 
-
+* objectPath(*path*)
+  get a deep property of the object, using dot notation.
+  see [objectPath.get](https://github.com/mariocasciaro/object-path/blob/master/README.md#usage) in [object-path](https://www.npmjs.org/package/object-path).
