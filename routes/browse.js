@@ -130,7 +130,7 @@ module.exports = function(config) {
     // Example : /browse.json?columns[i][data]=content.json.Field&columns[i][search][value]=value
     if (this.parameters.columns) {
       this.parameters.columns.forEach(function (c) {
-        if (c.search && c.search.value) {
+        if ( c && c.search && c.search.value) {
           sel[c.data] = c.search.value;
         }
       });
