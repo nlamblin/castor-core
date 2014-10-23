@@ -74,8 +74,8 @@ function serve () {
   config.fix('turnoffPrimus',        false);
   config.fix('turnoffRoutes',        false);
   config.fix('turnoffWebdav',        false);
-  config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules" ]);
-  config.fix('customFields',           {});
+  config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);
+  config.fix('documentFields',           {});
   config.fix('loader:csv:separator', undefined); // auto
   config.fix('loader:csv:encoding', 'utf8');
 
@@ -101,10 +101,9 @@ function serve () {
       "dateConfig" : dateConfig
     };
     var fr = new Loader(dataPath, opts);
-    fr.use('**/*', require('./loaders/initialize-tags.js')(config));
     fr.use('**/*.csv', require('castor-load-csv')(config.get('loader:csv')));
     fr.use('**/*.xml', require('castor-load-xml')(config.get('loader:xml')));
-    // fr.use('**/*.pdf', require('./loaders/append-yaml.js')());
+    fr.use('**/*', require('./loaders/file.js')(config.get('loader:file')));
     hook('loaders')
     .from(viewPath, __dirname)
     .over(config.get('loaders'))
@@ -113,7 +112,7 @@ function serve () {
     });
     fr.use('**/*', require('castor-load-custom')({
       fieldname : 'fields',
-      schema: config.get('customFields')
+      schema: config.get('documentFields')
     }));
     if (config.get('turnoffSync') === false) {
       fr.sync(function(err) {
@@ -127,8 +126,9 @@ function serve () {
   // add some indexes
   //
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
-    , usfs = config.get('customFields')
-    , idx = Object.keys(usfs).map(function(i) {var j = {}; j['fields.' + i] = 1; return j});
+    , usfs = config.get('documentFields')
+    , idx = Object.keys(usfs).filter(function(i) { return (usfs[i].noindex !== true); }).map(function(i) {var j = {}; j['fields.' + i] = 1; return j});
+  idx.push({ 'wid': 1 });
   idx.push({ 'text': 'text' });
   idx.forEach(function(i) {
     coll.ensureIndex(i, { w: 1 }, function(err, indexName) {
@@ -223,7 +223,7 @@ function serve () {
 
     if (Array.isArray(modules) && modules.length > 0) {
       app.get('/bundle.js', browserify(modules, {
-        debug: false 
+        debug: false
       }));
     }
     if (config.get('turnoffWebdav') === false) {
