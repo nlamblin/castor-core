@@ -170,6 +170,7 @@ function serve () {
   env.addFilter('nl2br', require('./filters/nl2br.js')(config));
   env.addFilter('hash', require('./filters/hash.js')(config));
   env.addFilter('stack', require('./filters/stack.js')(config));
+  env.addFilter('flatten', require('./filters/flatten.js')(config));
   env.addFilter('add2Array', require('./filters/add2Array.js')(config));
   env.addFilter('objectPath', require('./filters/objectPath.js')(config));
 
