@@ -135,7 +135,7 @@ module.exports = function(config) {
         }
       });
     }
-    if (this.parameters.search && this.parameters.search.regex) {
+    if (this.parameters.search && this.parameters.search.regex  && this.parameters.search.value !== '') {
       sel.text = {
         $regex : this.parameters.search.value,
         $options : 'i'
