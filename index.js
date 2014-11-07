@@ -167,6 +167,7 @@ function serve () {
 
 
 
+
   //
   // Middlewares :
   // add middlewares to Express
@@ -240,12 +241,14 @@ function serve () {
         debug: false
       }));
     }
+      /*
     if (config.get('turnoffUpload') === false) {
       var options = config.get('upload');
       options.tmpDir = config.get('tempPath');
       options.uploadDir = dataPath;
       // options.uploadUrl = '/uploaded/files/';
       options.storage = options.storage ? options.storage : {};
+      options.imageVersions = {};
       options.storage.type = options.storage.type ? options.storage.type : 'local';
       var uploader = require('blueimp-file-upload-expressjs')(options);
       app.route('/upload').get(function (req, res) {
@@ -254,6 +257,7 @@ function serve () {
         uploader.post(req, res, function (obj) { res.json(obj); });
       });
     }
+      */
     if (config.get('turnoffWebdav') === false) {
       app.route('/webdav*').all(require('./helpers/webdav.js')({
         debug: config.get('debug')
