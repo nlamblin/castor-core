@@ -138,7 +138,7 @@ module.exports = function(config) {
     var sel = {};
     require('extend')(true, sel, this.selector);
     // cf.  http://datatables.net/manual/server-side#Sent-parameters
-    // Example : /browse.json?columns[i][data]=content.json.Field&columns[i][search][value]=value
+    // Example : /compute.json?columns[i][data]=content.json.Field&columns[i][search][value]=value
     if (this.parameters.columns) {
       this.parameters.columns.forEach(function (c) {
         if (c && c.search && c.search.value) {
