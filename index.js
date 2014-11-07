@@ -6,6 +6,7 @@ var path = require('path')
   , debug = require('debug')('castor:' + basename)
   , util = require('util')
   , fs = require('fs')
+  , os = require('os')
   , pck = require('./package.json')
   , config = require('./config.js')
   , Loader = require('castor-load')
@@ -24,24 +25,27 @@ var path = require('path')
 
 function serve () {
 
-  console.log(kuler('castor@' + pck.version, 'orange'));
+  console.log(kuler('Core version :', 'olive'), kuler(pck.version, 'limegreen'));
 
   //
   // Data path :
   // Check and fix a data source directory
   //
+  config.fix('dataPath', path.normalize(path.resolve(process.cwd(), path.normalize(process.argv.slice(2).shift() || '.'))));
   var dataPath = config.get('dataPath') ;
-  var dateConfig;
-
   debug('dataPath', dataPath);
 
+  //
+  // Conf file :
+  // Load conf file attached to dataPath
+  //
+  var dateConfig;
   var confile = path.normalize(dataPath) + '.json';
   if (fs.existsSync(confile)) {
     console.log(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
     config.load(confile);
     dateConfig = fs.statSync(confile).mtime;
   }
-  config.set('dataPath', dataPath);
 
   //
   // View path :
@@ -68,14 +72,17 @@ function serve () {
   config.fix('routes',               {});
   config.fix('browserifyModules',    []);
   config.fix('itemsPerPage',         30);
-  config.fix('concurrency',          require('os').cpus().length);
+  config.fix('concurrency',          os.cpus().length);
   config.fix('turnoffAll',           false);
   config.fix('turnoffSync',          false);
   config.fix('turnoffPrimus',        false);
   config.fix('turnoffRoutes',        false);
   config.fix('turnoffWebdav',        false);
+  config.fix('turnoffUpload',        false);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);
-  config.fix('documentFields',           {});
+  config.fix('tempPath',             os.tmpdir())
+  config.fix('documentFields',       {});
+  config.fix('upload',               {});
   config.fix('loader:csv:separator', undefined); // auto
   config.fix('loader:csv:encoding', 'utf8');
 
@@ -104,22 +111,26 @@ function serve () {
     fr.use('**/*.csv', require('castor-load-csv')(config.get('loader:csv')));
     fr.use('**/*.xml', require('castor-load-xml')(config.get('loader:xml')));
     fr.use('**/*', require('./loaders/file.js')(config.get('loader:file')));
+    fr.use('**/*', require('castor-load-custom')({
+      fieldname : 'fields',
+      schema: config.get('documentFields')
+    }));
     hook('loaders')
     .from(viewPath, __dirname)
     .over(config.get('loaders'))
     .apply(function(hash, func) {
       fr.use(hash, func(config.get('loaders:' + hash)));
     });
-    fr.use('**/*', require('castor-load-custom')({
-      fieldname : 'fields',
-      schema: config.get('documentFields')
-    }));
     if (config.get('turnoffSync') === false) {
       fr.sync(function(err) {
         console.log(kuler('Files and Database are synchronised.', 'green'));
       });
     }
     config.set('collectionName', fr.options.collectionName);
+  }
+  else {
+    config.set('turnoffUpload', true);
+    config.set('turnoffWebdav', true);
   }
 
   //
@@ -229,6 +240,20 @@ function serve () {
         debug: false
       }));
     }
+    if (config.get('turnoffUpload') === false) {
+      var options = config.get('upload');
+      options.tmpDir = config.get('tempPath');
+      options.uploadDir = dataPath;
+      // options.uploadUrl = '/uploaded/files/';
+      options.storage = options.storage ? options.storage : {};
+      options.storage.type = options.storage.type ? options.storage.type : 'local';
+      var uploader = require('blueimp-file-upload-expressjs')(options);
+      app.route('/upload').get(function (req, res) {
+        uploader.get(req, res, function (obj) { res.json(obj); });
+      }).post(function (req, res) {
+        uploader.post(req, res, function (obj) { res.json(obj); });
+      });
+    }
     if (config.get('turnoffWebdav') === false) {
       app.route('/webdav*').all(require('./helpers/webdav.js')({
         debug: config.get('debug')
@@ -322,7 +347,6 @@ module.exports = function(callback) {
 
 if (!module.parent) {
   module.exports(function(cfg, srv) {
-    cfg.set('dataPath', path.normalize(path.resolve(__dirname, cfg.get('dataPath') || '')));
     srv();
   });
 }
