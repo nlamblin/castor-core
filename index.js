@@ -31,7 +31,7 @@ function serve () {
   // Data path :
   // Check and fix a data source directory
   //
-  config.fix('dataPath', path.normalize(path.resolve(process.cwd(), path.normalize(process.argv.slice(2).shift() || '.'))));
+  config.fix('dataPath', path.normalize(path.resolve(process.cwd(), path.normalize(process.argv.slice(2).shift() || 'data'))));
   var dataPath = config.get('dataPath') ;
   debug('dataPath', dataPath);
 
