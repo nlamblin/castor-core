@@ -131,6 +131,7 @@ function serve () {
   else {
     config.set('turnoffUpload', true);
     config.set('turnoffWebdav', true);
+    config.set('turnoffPrimus', true);
   }
 
   //
