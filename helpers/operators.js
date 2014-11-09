@@ -22,6 +22,11 @@ Operators.prototype.use = function (hash, obj)
   }
   return self;
 }
+Operators.prototype.get = function ()
+{
+  var self = this;
+  return self.bank;
+}
 Operators.prototype.keys = function ()
 {
   var self = this;
