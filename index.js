@@ -1,4 +1,5 @@
-/*jshint node:true, laxcomma:true*/
+
+*jshint node:true, laxcomma:true*/
 "use strict";
 
 var path = require('path')
@@ -100,14 +101,14 @@ function serve () {
   //
   if (fs.existsSync(dataPath)) {
     console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
-    var opts = {
+    var fropts = {
       "connexionURI" : config.get('connexionURI'),
       "collectionName": config.get('collectionName'),
       "concurrency" : config.get('concurrency'),
       "ignore" : config.get('filesToIgnore'),
       "dateConfig" : dateConfig
     };
-    var fr = new Loader(dataPath, opts);
+    var fr = new Loader(dataPath, fropts);
     fr.use('**/*.csv', require('castor-load-csv')(config.get('loader:csv')));
     fr.use('**/*.xml', require('castor-load-xml')(config.get('loader:xml')));
     fr.use('**/*', require('./loaders/file.js')(config.get('loader:file')));
@@ -151,6 +152,9 @@ function serve () {
 
 
 
+  //
+  // Operators Bank
+  //
   var ops = require('./helpers/operators.js');
   ops.use('count', require('./operators/count.js'));
   ops.use('catalog', require('./operators/catalog.js'));
@@ -164,8 +168,6 @@ function serve () {
   .apply(function(hash, func) {
     ops.use(hash, func);
   });
-
-
 
 
 
