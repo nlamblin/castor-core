@@ -1,5 +1,4 @@
-
-*jshint node:true, laxcomma:true*/
+/*jshint node:true, laxcomma:true*/
 "use strict";
 
 var path = require('path')
@@ -18,7 +17,6 @@ var path = require('path')
   , nunjucks = require('nunjucks')
   , morgan  = require('morgan')
   , browserify = require('browserify-middleware')
-  , Primus = require('primus')
   , hook = require('./helpers/hook.js')
   , bodyParser = require('body-parser')
   , pmongo = require('promised-mongo')
@@ -298,6 +296,7 @@ function serve () {
   var server = require('http').createServer(app);
 
   if (config.get('turnoffPrimus') === false) {
+    var Primus = require('primus');
     var primus = new Primus(server, {});
 
     primus.use('emitter', require('primus-emitter'));
