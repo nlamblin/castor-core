@@ -11,11 +11,14 @@ module.exports.map = function () {
       if (obj[k]) {
         obj = obj[k];
       }
+      else {
+        obj = undefined;
+      }
     }
     return obj;
   } 
   var field = access(doc, exp[0]);
-  if (field) {
+  if (field !== undefined) {
     emit(exp[0], field);
   }
 };

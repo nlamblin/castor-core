@@ -12,13 +12,16 @@ module.exports.map = function () {
       if (obj[k]) {
         obj = obj[k];
       }
+      else {
+        obj = undefined;
+      }
     }
     return obj;
-  } 
+  }
   var values, fields  = exp;
   if (fields.length === 1) {
     values = access(doc, fields[0]);
-    if (!Array.isArray(values)) {
+    if (values !== undefined && !Array.isArray(values)) {
       values = [values];
     }
   }

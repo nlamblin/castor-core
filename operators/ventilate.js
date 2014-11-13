@@ -12,10 +12,13 @@ module.exports.map = function () {
       if (obj[k]) {
         obj = obj[k];
       }
+      else {
+        obj = undefined;
+      }
     }
     return obj;
   } 
-  var fields;
+  var fields, field;
   if (Array.isArray(exp)) {
     fields = exp;
   }
@@ -23,7 +26,10 @@ module.exports.map = function () {
     fields = [exp];
   }
   fields.forEach(function (exp) {
-    emit(exp + '=' + access(doc, exp), 1);
+    field = access(doc, exp);
+    if (field !== undefined) {
+      emit(exp + '=' + access(doc, exp), 1);
+    }
   }
 );
 };

@@ -5,17 +5,19 @@ module.exports.map = function () {
   var doc = this;
   function access(obj, prop) {
     var segs = prop.split('.');
-    print(segs, obj);
     while (segs.length) {
       var k = segs.shift();
       if (obj[k]) {
         obj = obj[k];
       }
+      else {
+        obj = undefined;
+      }
     }
     return obj;
   }
   var field = access(doc, exp[0]);
-  if (field) {
+  if (field !== undefined) {
     if (field instanceof Array) {
       field.forEach(function (e) {
         if (typeof e === 'string') {
@@ -27,9 +29,6 @@ module.exports.map = function () {
     else {
       emit(field, 1);
     }
-  }
-  else {
-    emit('?', 1);
   }
 };
 
