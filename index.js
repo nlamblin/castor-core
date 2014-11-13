@@ -236,6 +236,7 @@ function serve () {
     app.route('/robots.txt').get(require('./routes/inform-robots.js')(config));
     app.route('/sitemap.xml').get(require('./routes/inform-searchengines.js')(config));
     app.route('/browse.:format').all(require('./routes/browse.js')(config));
+    app.route('/corpus.:format').all(require('./routes/corpus.js')(config));
     app.route('/compute.:format').all(require('./routes/compute.js')(config, cpt));
     app.route('/display/:doc.:format').all(require('./routes/display.js')(config));
     app.route('/dump/:doc.:format').all(require('./routes/dump.js')(config));
