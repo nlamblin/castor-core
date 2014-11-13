@@ -168,6 +168,35 @@ function serve () {
   });
 
 
+  //
+  // Computer
+  //
+  var Computer = require('castor-compute');
+  var cptopts = {
+    "connexionURI" : config.get('connexionURI'),
+    "collectionName": config.get('collectionName'),
+    "concurrency" : config.get('concurrency')
+  };
+  var cpt = new Computer(config.get('corpusFields'), cptopts);
+  cpt.use('count', require('./operators/count.js'));
+  cpt.use('catalog', require('./operators/catalog.js'));
+  cpt.use('distinct', require('./operators/distinct.js'));
+  cpt.use('ventilate', require('./operators/ventilate.js'));
+  cpt.use('total', require('./operators/total.js'));
+  cpt.use('graph', require('./operators/graph.js'));
+  hook('operators')
+  .from(viewPath, __dirname)
+  .over(config.get('operators'))
+  .apply(function(hash, func) {
+    ops.use(hash, func);
+  });
+
+  cpt.compute(function(err) {
+    console.log(kuler('Corpus fields computed.', 'green'));
+  });
+
+
+
 
   //
   // Middlewares :
