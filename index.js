@@ -148,26 +148,6 @@ function serve () {
   });
 
 
-
-
-  //
-  // Operators Bank
-  //
-  var ops = require('./helpers/operators.js');
-  ops.use('count', require('./operators/count.js'));
-  ops.use('catalog', require('./operators/catalog.js'));
-  ops.use('distinct', require('./operators/distinct.js'));
-  ops.use('ventilate', require('./operators/ventilate.js'));
-  ops.use('total', require('./operators/total.js'));
-  ops.use('graph', require('./operators/graph.js'));
-  hook('operators')
-  .from(viewPath, __dirname)
-  .over(config.get('operators'))
-  .apply(function(hash, func) {
-    ops.use(hash, func);
-  });
-
-
   //
   // Computer
   //
@@ -188,13 +168,12 @@ function serve () {
   .from(viewPath, __dirname)
   .over(config.get('operators'))
   .apply(function(hash, func) {
-    ops.use(hash, func);
+    cpt.use(hash, func);
   });
 
   cpt.compute(function(err) {
     console.log(kuler('Corpus fields computed.', 'green'));
   });
-
 
 
 
@@ -257,7 +236,7 @@ function serve () {
     app.route('/robots.txt').get(require('./routes/inform-robots.js')(config));
     app.route('/sitemap.xml').get(require('./routes/inform-searchengines.js')(config));
     app.route('/browse.:format').all(require('./routes/browse.js')(config));
-    app.route('/compute.:format').all(require('./routes/compute.js')(config));
+    app.route('/compute.:format').all(require('./routes/compute.js')(config, cpt));
     app.route('/display/:doc.:format').all(require('./routes/display.js')(config));
     app.route('/dump/:doc.:format').all(require('./routes/dump.js')(config));
     app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save.js')(config));

@@ -9,10 +9,9 @@ var path = require('path')
   , render = require('../helpers/render.js')
   , pmongo = require('promised-mongo')
   , struct = require('object-path')
-  , Operators = require('../helpers/operators.js')
   ;
 
-module.exports = function(config) {
+module.exports = function(config, computer) {
   var coll2, coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'));
 
   return datamodel()
@@ -69,7 +68,7 @@ module.exports = function(config) {
         "type" : "text",
         "pattern" : "[a-z][a-z0-9. _-]+",
         "required" : true,
-        "values" : Operators.keys()
+        "values" : computer.operators()
       },
       "itemsPerPage" : {
         "alias": ["count", "length", "l"],
@@ -153,8 +152,8 @@ module.exports = function(config) {
       }
     }
 
-    var self = this, map = Operators.map(self.parameters.operator)
-      , reduce = Operators.reduce(self.parameters.operator)
+    var self = this, map = computer.operator(self.parameters.operator).map
+      , reduce = computer.operator(self.parameters.operator).reduce
       , opts = {
       out : {
         replace: config.get('collectionName') + '_' + basename + '_' + self.parameters.field.join('_')
@@ -212,7 +211,7 @@ module.exports = function(config) {
   .transform(function(req, fill) {
     var self = this;
     if (self.parameters !== false) {
-      self.data = Operators.finalize(self.parameters.operator)(self.data);
+      self.data = computer.operator(self.parameters.operator).finalize(self.data);
     }
     fill(self);
   })
