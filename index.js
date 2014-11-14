@@ -81,6 +81,7 @@ function serve () {
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);
   config.fix('tempPath',             os.tmpdir())
   config.fix('documentFields',       {});
+  config.fix('corpusFields',         {});
   config.fix('upload',               {});
   config.fix('loader:csv:separator', undefined); // auto
   config.fix('loader:csv:encoding', 'utf8');
