@@ -29,7 +29,7 @@
     "archiver": "^0.10.0",
     "xml-writer": "^1.4.1",
     "atom-writer": "^1.1.2",
-    "nunjucks": "^1.0.5",
+    "nunjucks": "^1.1.0",
     "ecstatic": "^0.5.3",
     "browserify-middleware": "^3.0.0",
     "primus": "^2.2.4",

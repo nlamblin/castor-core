@@ -76,7 +76,9 @@ function serve () {
   config.fix('turnoffSync',          false);
   config.fix('turnoffPrimus',        false);
   config.fix('turnoffRoutes',        false);
+  config.fix('turnoffIndexes',       false);
   config.fix('turnoffWebdav',        false);
+  config.fix('turnoffComputer',      false);
   config.fix('turnoffUpload',        false);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);
   config.fix('tempPath',             os.tmpdir());
@@ -91,6 +93,7 @@ function serve () {
     config.set('turnoffPrimus', true);
     config.set('turnoffRoutes', true);
     config.set('turnoffWebdav', true);
+    config.set('turnoffIndexes', true);
   }
 
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
@@ -137,83 +140,57 @@ function serve () {
   //
   // add some indexes
   //
-  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
-    , usfs = config.get('documentFields')
-    , idx = Object.keys(usfs).filter(function(i) { return (usfs[i].noindex !== true); }).map(function(i) {var j = {}; j['fields.' + i] = 1; return j;});
-  idx.push({ 'wid': 1 });
-  idx.push({ 'text': 'text' });
-  idx.forEach(function(i) {
-    coll.ensureIndex(i, { w: 1 }, function(err, indexName) {
-      console.log(kuler('Index field :', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
+  if (config.get('turnoffIndexes') === false) {
+    var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
+      , usfs = config.get('documentFields')
+      , idx = Object.keys(usfs).filter(function(i) { return (usfs[i].noindex !== true); }).map(function(i) {var j = {}; j['fields.' + i] = 1; return j;});
+    idx.push({ 'wid': 1 });
+    idx.push({ 'text': 'text' });
+    idx.forEach(function(i) {
+      coll.ensureIndex(i, { w: 1 }, function(err, indexName) {
+        console.log(kuler('Index field :', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
+      });
     });
-  });
-
+  }
 
   //
   // Computer
   //
-  var Computer = require('castor-compute');
-  var cptopts = {
-    "connexionURI" : config.get('connexionURI'),
-    "collectionName": config.get('collectionName'),
-    "concurrency" : config.get('concurrency')
-  };
-  var cpt = new Computer(config.get('corpusFields'), cptopts);
-  cpt.use('count', require('./operators/count.js'));
-  cpt.use('catalog', require('./operators/catalog.js'));
-  cpt.use('distinct', require('./operators/distinct.js'));
-  cpt.use('ventilate', require('./operators/ventilate.js'));
-  cpt.use('total', require('./operators/total.js'));
-  cpt.use('graph', require('./operators/graph.js'));
-  hook('operators')
-  .from(viewPath, __dirname)
-  .over(config.get('operators'))
-  .apply(function(hash, func) {
-    cpt.use(hash, func);
-  });
+  var cpt;
+  if (config.get('turnoffComputer') === false) {
+    var Computer = require('castor-compute');
+    var cptopts = {
+      "connexionURI" : config.get('connexionURI'),
+      "collectionName": config.get('collectionName'),
+      "concurrency" : config.get('concurrency')
+    };
+    cpt = new Computer(config.get('corpusFields'), cptopts);
+    cpt.use('count', require('./operators/count.js'));
+    cpt.use('catalog', require('./operators/catalog.js'));
+    cpt.use('distinct', require('./operators/distinct.js'));
+    cpt.use('ventilate', require('./operators/ventilate.js'));
+    cpt.use('total', require('./operators/total.js'));
+    cpt.use('graph', require('./operators/graph.js'));
+    hook('operators')
+    .from(viewPath, __dirname)
+    .over(config.get('operators'))
+    .apply(function(hash, func) {
+      cpt.use(hash, func);
+    });
 
-  cpt.compute(function(err) {
-    console.log(kuler('Corpus fields computed.', 'green'));
-  });
+    cpt.compute(function(err) {
+      console.log(kuler('Corpus fields computed.', 'green'));
+    });
+  }
 
 
+  var app = express();
 
   //
   // Middlewares :
   // add middlewares to Express
   //
-  var app = express();
-
-
-  var env = nunjucks.configure(viewPath, {
-    autoescape: true,
-    express: app
-  });
-  env.addFilter('nl2br', require('./filters/nl2br.js')(config));
-  env.addFilter('hash', require('./filters/hash.js')(config));
-  env.addFilter('stack', require('./filters/stack.js')(config));
-  env.addFilter('flatten', require('./filters/flatten.js')(config));
-  env.addFilter('add2Array', require('./filters/add2Array.js')(config));
-  env.addFilter('objectPath', require('./filters/objectPath.js')(config));
-
-  hook('filters')
-  .from(viewPath, __dirname)
-  .over(config.get('filters'))
-  .apply(function(hash, func) {
-    env.addFilter(hash, func(config));
-  });
-
-  hook('filters')
-  .from(viewPath, __dirname)
-  .over(config.get('asynchronousFilters'))
-  .apply(function(hash, func) {
-    env.addFilter(hash, func(config), true);
-  });
-
-
-  app.use(morgan(config.get('logFormat'), {
-    stream : process.stderr
-  }));
+  app.use(morgan(config.get('logFormat'), { stream : process.stderr }));
 
   hook('middlewares')
   .from(viewPath, __dirname)
@@ -225,6 +202,36 @@ function serve () {
   if (config.get('turnoffRoutes') === false) {
 
     //
+    // view template engine
+    //
+    var env = nunjucks.configure(viewPath, {
+      autoescape: true,
+      watch: false,
+      express: app
+    });
+
+    env.addFilter('nl2br', require('./filters/nl2br.js')(config));
+    env.addFilter('hash', require('./filters/hash.js')(config));
+    env.addFilter('stack', require('./filters/stack.js')(config));
+    env.addFilter('flatten', require('./filters/flatten.js')(config));
+    env.addFilter('add2Array', require('./filters/add2Array.js')(config));
+    env.addFilter('objectPath', require('./filters/objectPath.js')(config));
+    hook('filters')
+    .from(viewPath, __dirname)
+    .over(config.get('filters'))
+    .apply(function(hash, func) {
+      env.addFilter(hash, func(config));
+    });
+
+    hook('filters')
+    .from(viewPath, __dirname)
+    .over(config.get('asynchronousFilters'))
+    .apply(function(hash, func) {
+      env.addFilter(hash, func(config), true);
+    });
+
+
+    //
     // add routes to send data on the Web
     //
     hook('routes')
@@ -233,18 +240,18 @@ function serve () {
     .apply(function(hash, func) {
       app.route(hash).all(func(config));
     });
-
     app.route('/robots.txt').get(require('./routes/inform-robots.js')(config));
     app.route('/sitemap.xml').get(require('./routes/inform-searchengines.js')(config));
     app.route('/browse.:format').all(require('./routes/browse.js')(config));
     app.route('/corpus.:format').all(require('./routes/corpus.js')(config));
-    app.route('/compute.:format').all(require('./routes/compute.js')(config, cpt));
+    if (config.get('turnoffComputer') === false) {
+      app.route('/compute.:format').all(require('./routes/compute.js')(config, cpt));
+    }
     app.route('/display/:doc.:format').all(require('./routes/display.js')(config));
     app.route('/dump/:doc.:format').all(require('./routes/dump.js')(config));
     app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save.js')(config));
     app.route('/export.:format').all(require('./routes/export-docs.js')(config));
     app.route('/config.js(on|)').all(function (req, res) { res.jsonp(config.expose()); });
-
     var modules = config.get('browserifyModules');
 
     if (Array.isArray(modules) && modules.length > 0) {
@@ -252,23 +259,23 @@ function serve () {
         debug: false
       }));
     }
-      /*
-    if (config.get('turnoffUpload') === false) {
-      var options = config.get('upload');
-      options.tmpDir = config.get('tempPath');
-      options.uploadDir = dataPath;
-      // options.uploadUrl = '/uploaded/files/';
-      options.storage = options.storage ? options.storage : {};
-      options.imageVersions = {};
-      options.storage.type = options.storage.type ? options.storage.type : 'local';
-      var uploader = require('blueimp-file-upload-expressjs')(options);
-      app.route('/upload').get(function (req, res) {
-        uploader.get(req, res, function (obj) { res.json(obj); });
-      }).post(function (req, res) {
-        uploader.post(req, res, function (obj) { res.json(obj); });
-      });
-    }
-      */
+    /*
+     if (config.get('turnoffUpload') === false) {
+       var options = config.get('upload');
+       options.tmpDir = config.get('tempPath');
+       options.uploadDir = dataPath;
+       // options.uploadUrl = '/uploaded/files/';
+       options.storage = options.storage ? options.storage : {};
+       options.imageVersions = {};
+       options.storage.type = options.storage.type ? options.storage.type : 'local';
+       var uploader = require('blueimp-file-upload-expressjs')(options);
+       app.route('/upload').get(function (req, res) {
+         uploader.get(req, res, function (obj) { res.json(obj); });
+       }).post(function (req, res) {
+         uploader.post(req, res, function (obj) { res.json(obj); });
+       });
+     }
+     */
     if (config.get('turnoffWebdav') === false) {
       app.route('/webdav*').all(require('./helpers/webdav.js')({
         debug: config.get('debug')
