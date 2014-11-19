@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:' + basename)
@@ -11,7 +11,7 @@ function Hook(nd) {
 
   var self = this;
   self.basedirs = [];
-  self.object = {};
+  self.hooks = [];
   self.namedir = nd || 'hooks';
 }
 
@@ -29,7 +29,17 @@ Hook.prototype.over = function (object)
 {
   var self = this;
   assert.equal(typeof object, 'object');
-  self.object = object;
+  if (Array.isArray(object)) {
+    self.hooks = object;
+  }
+  else {
+    Object.keys(object).sort().forEach(function (key) {
+      self.hooks.push({
+        _id: key.hash.split('-').pop(),
+        value: object[key]
+      });
+    });
+  }
   return self;
 }
 
@@ -37,12 +47,11 @@ Hook.prototype.apply = function (callback)
 {
   var self = this;
   assert.equal(typeof callback, 'function');
-  Object.keys(self.object).sort().forEach(function (key) {
-      var name = key.split('-').pop(),
-          value = self.object[key],
-          func = include(self.basedirs, value);
-      callback(name, func);
-    }
+  self.hooks.forEach(function (item) {
+    var name = item._id || undefined,
+        func = include(self.basedirs, item.value);
+    callback(name, func, item);
+  }
   );
 }
 

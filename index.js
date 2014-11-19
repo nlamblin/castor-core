@@ -118,8 +118,8 @@ function serve () {
     hook('loaders')
     .from(viewPath, __dirname)
     .over(config.get('loaders'))
-    .apply(function(hash, func) {
-      fr.use(hash, func(config.get('loaders:' + hash)));
+    .apply(function(hash, func, item) {
+      fr.use(hash, func(item));
     });
     if (config.get('turnoffSync') === false) {
       fr.sync(function(err) {
