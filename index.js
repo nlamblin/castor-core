@@ -79,12 +79,12 @@ function serve () {
   config.fix('turnoffWebdav',        false);
   config.fix('turnoffUpload',        false);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);
-  config.fix('tempPath',             os.tmpdir())
+  config.fix('tempPath',             os.tmpdir());
   config.fix('documentFields',       {});
   config.fix('corpusFields',         {});
   config.fix('upload',               {});
-  config.fix('loader:csv:separator', undefined); // auto
-  config.fix('loader:csv:encoding', 'utf8');
+  config.fix('files:csv:separator', undefined); // auto
+  config.fix('files:csv:encoding', 'utf8');
 
   if (config.get('turnoffAll') === true) {
     config.set('turnoffSync', true);
@@ -108,9 +108,9 @@ function serve () {
       "dateConfig" : dateConfig
     };
     var fr = new Loader(dataPath, fropts);
-    fr.use('**/*.csv', require('castor-load-csv')(config.get('loader:csv')));
-    fr.use('**/*.xml', require('castor-load-xml')(config.get('loader:xml')));
-    fr.use('**/*', require('./loaders/file.js')(config.get('loader:file')));
+    fr.use('**/*.csv', require('castor-load-csv')(config.get('files:csv')));
+    fr.use('**/*.xml', require('castor-load-xml')(config.get('files:xml')));
+    fr.use('**/*', require('./loaders/file.js')(config.get('files:all')));
     fr.use('**/*', require('castor-load-custom')({
       fieldname : 'fields',
       schema: config.get('documentFields')
@@ -139,7 +139,7 @@ function serve () {
   //
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
     , usfs = config.get('documentFields')
-    , idx = Object.keys(usfs).filter(function(i) { return (usfs[i].noindex !== true); }).map(function(i) {var j = {}; j['fields.' + i] = 1; return j});
+    , idx = Object.keys(usfs).filter(function(i) { return (usfs[i].noindex !== true); }).map(function(i) {var j = {}; j['fields.' + i] = 1; return j;});
   idx.push({ 'wid': 1 });
   idx.push({ 'text': 'text' });
   idx.forEach(function(i) {
