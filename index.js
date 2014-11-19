@@ -119,7 +119,7 @@ function serve () {
     .from(viewPath, __dirname)
     .over(config.get('loaders'))
     .apply(function(hash, func, item) {
-      fr.use(hash, func(item));
+      fr.use(item.pattern || '**/*', func(item.options));
     });
     if (config.get('turnoffSync') === false) {
       fr.sync(function(err) {

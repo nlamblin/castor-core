@@ -35,7 +35,7 @@ Hook.prototype.over = function (object)
   else {
     Object.keys(object).sort().forEach(function (key) {
       self.hooks.push({
-        _id: key.hash.split('-').pop(),
+        _id: key.split('-').pop(),
         value: object[key]
       });
     });
@@ -48,11 +48,18 @@ Hook.prototype.apply = function (callback)
   var self = this;
   assert.equal(typeof callback, 'function');
   self.hooks.forEach(function (item) {
-    var name = item._id || undefined,
-        func = include(self.basedirs, item.value);
-    callback(name, func, item);
-  }
-  );
+    var name, func;
+    if (typeof item === 'string') {
+      func = item;
+    }
+    else if (typeof item === "object") {
+      name = item._id;
+      func = item.script || item.value;
+    }
+    if (func !== undefined) {
+      callback(name, include(self.basedirs, func), item);
+    }
+  });
 }
 
 module.exports = function (nd) {
