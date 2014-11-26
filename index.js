@@ -72,6 +72,7 @@ function serve () {
   config.fix('browserifyModules',    []);
   config.fix('itemsPerPage',         30);
   config.fix('concurrency',          os.cpus().length);
+  config.fix('heartrate',            5000);
   config.fix('turnoffAll',           false);
   config.fix('turnoffSync',          false);
   config.fix('turnoffPrimus',        false);
@@ -95,6 +96,9 @@ function serve () {
     config.set('turnoffWebdav', true);
     config.set('turnoffIndexes', true);
   }
+
+  //  create an heart & set heartrate
+  require('./helpers/heart.js')(config.get('heartrate'));
 
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
 

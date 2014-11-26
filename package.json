@@ -25,7 +25,7 @@
     "sugar": "^1.4.1",
     "kuler": "0.0.0",
     "express": "^4.4.3",
-    "datamodel": "^1.0.0",
+    "datamodel": "^1.1.0",
     "archiver": "^0.10.0",
     "xml-writer": "^1.4.1",
     "atom-writer": "^1.1.2",

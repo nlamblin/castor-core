@@ -5,14 +5,19 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:routes:' + basename)
   , util = require('util')
+  , crypto = require('crypto')
   , datamodel = require('datamodel')
   , render = require('../helpers/render.js')
   , pmongo = require('promised-mongo')
   , struct = require('object-path')
+  , extend = require('extend')
+  , heart = require('../helpers/heart.js')()
+  , pulse = heart.newPulse()
+  , lock
   ;
 
 module.exports = function(config, computer) {
-  var coll2, coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'));
+  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'));
 
   return datamodel()
   .declare('template', function(req, fill) {
@@ -40,10 +45,8 @@ module.exports = function(config, computer) {
   .declare('url', function(req, fill) {
     fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
   })
-  .declare('selector', function(req, fill) {
-    fill({ state: { $nin: [ "deleted", "hidden" ] } });
-  })
-  .declare('sort', function(req, fill) {
+
+  .declare('mongoSort', function(req, fill) {
     var s = {};
     if (Array.isArray(req.query.order)) {
       req.query.order.forEach(function(itm) {
@@ -69,6 +72,10 @@ module.exports = function(config, computer) {
         "pattern" : "[a-z][a-z0-9. _-]+",
         "required" : true,
         "values" : computer.operators()
+      },
+      "selector" : {
+        "alias": ["sel", "select"],
+        "type" : "text"
       },
       "itemsPerPage" : {
         "alias": ["count", "length", "l"],
@@ -122,62 +129,71 @@ module.exports = function(config, computer) {
       fill(false);
     }
   })
+  .prepend('selector', function(req, fill) {
+    var self = this, sel;
+    try {
+      sel = JSON.parse(self.parameters.selector, function(key, value) {
+        return typeof value !== 'function' ? value : undefined;
+      });
+    }
+    catch(e) {
+      sel = {};
+    }
+    if (typeof sel !== 'object' || sel === null || sel === undefined) {
+      sel = {};
+    }
+    extend(sel, { state: { $nin: [ "deleted", "hidden" ] } });
+    fill(sel);
+  })
   .append('headers', function(req, fill) {
     var headers = {};
     headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
     fill(headers);
   })
- .append('data', function(req, fill) {
-    if (this.parameters === false) {
-      return fill({});
+  .append('mongoCollection', function(req, fill) {
+    var self = this
+      , map = computer.operator(self.parameters.operator).map
+      , reduce = computer.operator(self.parameters.operator).reduce
+      , opts = {
+          query: self.selector,
+          scope: {
+            exp : self.parameters.field
+          }
+        }
+      , ret = config.get('collectionName') + '_' + crypto.createHash('sha1').update(self.parameters.operator + JSON.stringify(opts)).digest('hex')
+      , beatoffset = pulse.missedBeats()
+      , first = lock === undefined
+      ;
+    debug('beatoffset', beatoffset);
+    if (first || (beatoffset > 2 && lock !== true) ) {
+      pulse.beat();
+      lock = true;
+      opts.out = { replace : ret };
+      debug('processing Map/Reduce');
+      coll.mapReduce(map, reduce, opts).then(function(newcoll) {
+        lock = false;
+        if (first) {
+          fill(ret)
+        }
+      }).catch(fill);
     }
-    //
-    // mongoQuery
-    //
+    if (!first) {
+      fill(ret);
+    }
+  })
+  .append('mongoQuery', function(req, fill) {
     var sel = {};
     require('extend')(true, sel, this.selector);
     // cf.  http://datatables.net/manual/server-side#Sent-parameters
-    // Example : /compute.json?columns[i][data]=content.json.Field&columns[i][search][value]=value
+    // Example : /browse.json?columns[i][data]=content.json.Field&columns[i][search][value]=value
     if (this.parameters.columns) {
       this.parameters.columns.forEach(function (c) {
-        if (c && c.search && c.search.value) {
+        if ( c && c.search && c.search.value) {
           sel[c.data] = c.search.value;
         }
       });
     }
-    if (this.parameters.search && this.parameters.search.regex && this.parameters.search.value) {
-      sel.text = {
-        $regex : this.parameters.search.value,
-        $options : 'i'
-      }
-    }
-
-    var self = this, map = computer.operator(self.parameters.operator).map
-      , reduce = computer.operator(self.parameters.operator).reduce
-      , opts = {
-      out : {
-        replace: config.get('collectionName') + '_' + basename + '_' + self.parameters.field.join('_')
-      },
-      query: sel,
-      scope: {
-        exp : self.parameters.field
-      }
-    };
-    coll.mapReduce(map, reduce, opts).then(function(newcoll) {
-      coll2 = newcoll;
-      coll2.find(self.selector, {
-        skip: self.parameters.startIndex,
-        limit: self.parameters.itemsPerPage,
-        sort : self.sort
-      }).toArray(function (err, res) {
-        fill(err ? err : res);
-      });
-    }).catch(fill);
-  })
-  .append('mongoQuery', function(req, fill) {
-    var sel = {};
-    require('extend')(true, sel, this.selector, this.filters);
-    if (this.parameters.search && this.parameters.search.regex) {
+    if (this.parameters.search && this.parameters.search.regex  && this.parameters.search.value !== '') {
       sel.text = {
         $regex : this.parameters.search.value,
         $options : 'i'
@@ -188,25 +204,21 @@ module.exports = function(config, computer) {
   .append('mongoOptions', function(req, fill) {
     fill({
       // fields : {
-        // content: 0
+      // content: 0
       // }
-    });
-  })
-  .complete('recordsTotal', function(req, fill) {
-    if (this.parameters === false) {
-      return fill(0);
-    }
-    coll2.count(this.selector, function(err, res) {
-      fill(err ? err : res);
     });
   })
   .complete('recordsFiltered', function(req, fill) {
     if (this.parameters === false) {
       return fill(0);
     }
-    coll2.count(this.selector, function(err, res) {
-      fill(err ? err : res);
-    });
+    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find().count().then(fill).catch(fill);
+  })
+  .complete('data', function(req, fill) {
+    if (this.parameters === false) {
+      return fill({});
+    }
+    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find().sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
   })
   .transform(function(req, fill) {
     var self = this;
@@ -225,3 +237,6 @@ module.exports = function(config, computer) {
 )
 .takeout();
 };
+
+/*
+ */
