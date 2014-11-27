@@ -10,6 +10,7 @@ var path = require('path')
   , pck = require('./package.json')
   , config = require('./config.js')
   , Loader = require('castor-load')
+  , Computer = require('castor-compute')
   , portfinder = require('portfinder')
   , sugar = require('sugar')
   , kuler = require('kuler')
@@ -98,27 +99,31 @@ function serve () {
   }
 
   //  create an heart & set heartrate
-  require('./helpers/heart.js')(config.get('heartrate'));
+  var heart = require('./helpers/heart.js')(config.get('heartrate'))
+    , pulse = heart.newPulse()
+    ;
+
 
   console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
 
   //
   // add some statements when loading files to MongoDB
   //
+
+  var ldropts = {
+    "connexionURI" : config.get('connexionURI'),
+    "collectionName": config.get('collectionName'),
+    "concurrency" : config.get('concurrency'),
+    "ignore" : config.get('filesToIgnore'),
+    "dateConfig" : dateConfig
+  }, ldr = new Loader(dataPath, ldropts);
+
   if (fs.existsSync(dataPath)) {
     console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
-    var fropts = {
-      "connexionURI" : config.get('connexionURI'),
-      "collectionName": config.get('collectionName'),
-      "concurrency" : config.get('concurrency'),
-      "ignore" : config.get('filesToIgnore'),
-      "dateConfig" : dateConfig
-    };
-    var fr = new Loader(dataPath, fropts);
-    fr.use('**/*.csv', require('castor-load-csv')(config.get('files:csv')));
-    fr.use('**/*.xml', require('castor-load-xml')(config.get('files:xml')));
-    fr.use('**/*', require('./loaders/file.js')(config.get('files:all')));
-    fr.use('**/*', require('castor-load-custom')({
+    ldr.use('**/*.csv', require('castor-load-csv')(config.get('files:csv')));
+    ldr.use('**/*.xml', require('castor-load-xml')(config.get('files:xml')));
+    ldr.use('**/*', require('./loaders/file.js')(config.get('files:all')));
+    ldr.use('**/*', require('castor-load-custom')({
       fieldname : 'fields',
       schema: config.get('documentFields')
     }));
@@ -126,14 +131,14 @@ function serve () {
     .from(viewPath, __dirname)
     .over(config.get('loaders'))
     .apply(function(hash, func, item) {
-      fr.use(item.pattern || '**/*', func(item.options));
+      ldr.use(item.pattern || '**/*', func(item.options));
     });
     if (config.get('turnoffSync') === false) {
-      fr.sync(function(err) {
+      ldr.sync(function(err) {
         console.log(kuler('Files and Database are synchronised.', 'green'));
       });
     }
-    config.set('collectionName', fr.options.collectionName);
+    config.set('collectionName', ldr.options.collectionName);
   }
   else {
     config.set('turnoffUpload', true);
@@ -160,15 +165,16 @@ function serve () {
   //
   // Computer
   //
-  var cpt;
+  var cptlock
+    , cptopts = {
+        "connexionURI" : config.get('connexionURI'),
+        "collectionName": config.get('collectionName'),
+        "concurrency" : config.get('concurrency')
+      }
+    , cpt = new Computer(config.get('corpusFields'), cptopts)
+    ;
+
   if (config.get('turnoffComputer') === false) {
-    var Computer = require('castor-compute');
-    var cptopts = {
-      "connexionURI" : config.get('connexionURI'),
-      "collectionName": config.get('collectionName'),
-      "concurrency" : config.get('concurrency')
-    };
-    cpt = new Computer(config.get('corpusFields'), cptopts);
     cpt.use('count', require('./operators/count.js'));
     cpt.use('catalog', require('./operators/catalog.js'));
     cpt.use('distinct', require('./operators/distinct.js'));
@@ -181,10 +187,22 @@ function serve () {
     .apply(function(hash, func) {
       cpt.use(hash, func);
     });
-
-    cpt.compute(function(err) {
-      console.log(kuler('Corpus fields computed.', 'green'));
-    });
+    var cptfunc = function(err, doc) {
+      if (cptlock === undefined || cptlock === false) {
+        cptlock = true;
+        heart.onceOnBeat(2, function() {
+          cptlock = false; // évite d'oublier un evenement pendant le calcul
+          cpt.compute(function(err) {
+            console.log(kuler('Corpus fields computed.', 'green'));
+          });
+        });
+      }
+    }
+    ldr.on('watching', cptfunc);
+    ldr.on('changed', cptfunc);
+    ldr.on('cancelled', cptfunc);
+    ldr.on('dropped', cptfunc);
+    ldr.on('added', cptfunc);
   }
 
 
@@ -323,25 +341,25 @@ function serve () {
     primus.use('emitter', require('primus-emitter'));
 
     primus.on('connection', function (spark) {
-      fr.on('changed', function(err, doc) {
+      ldr.on('changed', function(err, doc) {
         if (!err) {
           debug('changed', err, doc);
           spark.send('changed', doc);
         }
       });
-      fr.on('cancelled', function(err, doc) {
+      ldr.on('cancelled', function(err, doc) {
         if (!err) {
           debug('cancelled', err, doc);
           spark.send('cancelled', doc);
         }
       });
-      fr.on('dropped', function(err, doc) {
+      ldr.on('dropped', function(err, doc) {
         if (!err) {
           debug('dropped', err, doc);
           spark.send('dropped', doc);
         }
       });
-      fr.on('added', function(err, doc) {
+      ldr.on('added', function(err, doc) {
         if (!err) {
           debug('added', err, doc);
           spark.send('added', doc);
