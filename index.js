@@ -110,7 +110,6 @@ function serve () {
   //
   // add some statements when loading files to MongoDB
   //
-
   var ldropts = {
     "connexionURI" : config.get('connexionURI'),
     "collectionName": config.get('collectionName'),
