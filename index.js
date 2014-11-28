@@ -12,7 +12,6 @@ var path = require('path')
   , Loader = require('castor-load')
   , Computer = require('castor-compute')
   , portfinder = require('portfinder')
-  , sugar = require('sugar')
   , kuler = require('kuler')
   , express = require('express')
   , nunjucks = require('nunjucks')
@@ -73,6 +72,8 @@ function serve () {
   config.fix('browserifyModules',    []);
   config.fix('itemsPerPage',         30);
   config.fix('concurrency',          os.cpus().length);
+  config.fix('delay',                250);
+  config.fix('maxFileSize',          undefined);
   config.fix('heartrate',            5000);
   config.fix('turnoffAll',           false);
   config.fix('turnoffSync',          false);
@@ -114,14 +115,16 @@ function serve () {
     "connexionURI" : config.get('connexionURI'),
     "collectionName": config.get('collectionName'),
     "concurrency" : config.get('concurrency'),
+    "delay" : config.get('delay'),
+    "maxFileSize" : config.get('maxFileSize'),
     "ignore" : config.get('filesToIgnore'),
     "dateConfig" : dateConfig
   }, ldr = new Loader(dataPath, ldropts);
 
   if (fs.existsSync(dataPath)) {
     console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
-    ldr.use('**/*.csv', require('castor-load-csv')(config.get('files:csv')));
-    ldr.use('**/*.xml', require('castor-load-xml')(config.get('files:xml')));
+    // ldr.use('**/*.csv', require('castor-load-csv')(config.get('files:csv')));
+    // ldr.use('**/*.xml', require('castor-load-xml')(config.get('files:xml')));
     ldr.use('**/*', require('./loaders/file.js')(config.get('files:all')));
     ldr.use('**/*', require('castor-load-custom')({
       fieldname : 'fields',
