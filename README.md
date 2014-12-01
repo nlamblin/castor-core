@@ -1,6 +1,6 @@
 # CastorJS the Document Management System
 
-Coming soon...
+High configurable web server for documents files
 
 ## Configuration
 
@@ -15,8 +15,7 @@ General configuration has first-level keys.
 
 ### General
 #### title
-The title key is present in the title of each page (although depending
-on themes too).
+Site title. The title key is present for each page (although depending on themes too).
 **Optional**
 
 Ex:
@@ -24,6 +23,18 @@ Ex:
 ```json
 {
   "title": "First study"
+}
+```
+
+#### description
+Site description. The description key is present for of each page (although depending on themes too).
+**Optional**
+
+Ex:
+
+```json
+{
+  "description": "My First study is cool"
 }
 ```
 
@@ -119,25 +130,24 @@ Example for [castor-theme-sbadmin](https://github.com/castorjs/castor-theme-sbad
 }
 ```
 
-### customFields
+### documentFields
 See [castor-load-custom](https://github.com/castorjs/castor-load-custom).
 
-## Contributing
 
-### Writing themes
+### routes
 
-#### Theme-specific routes
+Add specific route.
 
-Theme-specific route example:
+Ex : 
 
 1. modify `index.js` in the theme:
 
-  ```javascript
-  module.exports = {
-    "routes": {
-      "/fake" : "fake.js"
-    }
-  };
+  ```json
+{
+	"routes": {
+		"/fake" : "fake.js"
+	}
+}
   ```
 2. create a file `./routes/fake.js` in the theme:
 
@@ -149,7 +159,294 @@ Theme-specific route example:
   };
   ```
 
-#### Add & use Nunjucks filters
+#### debug
+To swith to debug mode
+
+Default value: `false`
+
+Ex:
+
+```json
+{
+  "debug": true
+}
+```
+
+#### logFormat
+Choose the log format for STDIN. see [Morgan Predefined formats](https://github.com/expressjs/morgan#predefined-formats)
+
+Default value: `combined`
+
+Ex:
+
+```json
+{
+  "logFormat": "dev"
+}
+```
+
+#### theme
+FIXME
+
+Default value: `default`
+
+Ex:
+
+```json
+{
+  "theme": "my-theme"
+}
+```
+
+#### middlewares
+FIXME
+
+
+Ex:
+
+```json
+{
+  "middlewares": {}
+}
+```
+
+#### asynchronousFilters
+FIXME
+
+Ex:
+
+```json
+{
+  "asynchronousFilters": {}
+}
+```
+
+#### operators
+FIXME
+
+Ex:
+
+```json
+{
+  "operators": {}
+}
+```
+
+#### loaders
+FIXME
+
+Ex:
+
+```json
+{
+  "loaders": {}
+}
+```
+
+#### browserifyModules
+FIXME
+
+Ex:
+
+```json
+{
+  "browserifyModules": {}
+}
+```
+
+#### concurrency
+FIXME
+Default value: `CPUs number`
+
+Ex:
+
+```json
+{
+  "concurrency": 8
+}
+```
+
+#### delay
+FIXME
+
+Default value: 250
+
+Ex:
+
+```json
+{
+  "delay": 1000
+}
+```
+
+#### maxFileSize
+FIXME
+
+Default value: `128mb`
+
+Ex:
+
+```json
+{
+  "maxFileSize": "1gb"
+}
+```
+
+#### heartrate
+FIXME
+
+Default value: 5000
+
+Ex:
+
+```json
+{
+  "heartrate": 1800000
+}
+```
+
+#### turnoffAll
+FIXME
+
+Default value: `false`
+
+Ex:
+
+```json
+{
+  "turnoffAll": true
+}
+```
+
+#### turnoffSync
+FIXME
+
+Default value: `false`
+
+Ex:
+
+```json
+{
+  "turnoffSync": true
+}
+```
+
+#### turnoffPrimus
+FIXME
+
+Default value: `false`
+
+Ex:
+
+```json
+{
+  "turnoffPrimus": true
+}
+```
+
+#### turnoffRoutes
+FIXME
+
+Default value: `false`
+
+Ex:
+
+```json
+{
+  "turnoffRoutes": "false"
+}
+```
+
+#### turnoffIndexes
+FIXME
+
+Default value: `false`
+
+Ex:
+
+```json
+{
+  "turnoffIndexes": "false"
+}
+```
+
+#### turnoffWebdav
+FIXME
+
+Default value: `false`
+
+Ex:
+
+```json
+{
+  "turnoffWebdav": true
+}
+```
+
+#### turnoffComputer
+FIXME
+
+Default value: `false`
+
+Ex:
+
+```json
+{
+  "turnoffComputer": true
+}
+```
+
+#### turnoffUpload
+FIXME
+
+Default value: `false`
+
+Ex:
+
+```json
+{
+  "turnoffUpload": true
+}
+```
+
+#### filesToIgnore
+FIXME
+
+Default value: `[ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]`
+
+Ex:
+
+```json
+{
+  "filesToIgnore": [ "**/*.txt"]
+}
+```
+
+#### tempPath
+FIXME
+
+Default value: `OS default temp directory`
+
+Ex:
+
+```json
+{
+  "tempPath": "/tmp"
+}
+```
+
+#### corpusFields
+FIXME
+
+Ex:
+
+```json
+{
+  "corpusFields": {}
+}
+```
+
+### filters 
 
 Add a new filter to your theme :
 
