@@ -18,6 +18,8 @@ module.exports = function(options) {
     input.fileFormat = mimetype.lookup(input.location) || undefined;
     // https://schema.org/name
     input.name = path.basename(input.location, path.extname(input.location)).replace(/[\_\-\.]+/g, ' ');
+    // Pseudo search
+    input.text = input.text || '';
     submit(null, input);
   }
 }

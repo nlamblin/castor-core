@@ -72,6 +72,7 @@ function serve () {
   config.fix('browserifyModules',    []);
   config.fix('itemsPerPage',         30);
   config.fix('concurrency',          os.cpus().length);
+  config.fix('writeConcern',         1);
   config.fix('delay',                250);
   config.fix('maxFileSize',          undefined);
   config.fix('heartrate',            5000);
@@ -87,9 +88,9 @@ function serve () {
   config.fix('tempPath',             os.tmpdir());
   config.fix('documentFields',       {});
   config.fix('corpusFields',         {});
-  config.fix('upload',               {});
-  config.fix('files:csv:separator', undefined); // auto
-  config.fix('files:csv:encoding', 'utf8');
+  // config.fix('upload',               {});
+  // config.fix('files:csv:separator', undefined); // auto
+  // config.fix('files:csv:encoding', 'utf8');
 
   if (config.get('turnoffAll') === true) {
     config.set('turnoffSync', true);
@@ -116,6 +117,7 @@ function serve () {
     "concurrency" : config.get('concurrency'),
     "delay" : config.get('delay'),
     "maxFileSize" : config.get('maxFileSize'),
+    "writeConcern" : config.get('writeConcern'),
     "ignore" : config.get('filesToIgnore'),
     "dateConfig" : dateConfig
   }, ldr = new Loader(dataPath, ldropts);
@@ -158,7 +160,7 @@ function serve () {
     idx.push({ 'wid': 1 });
     idx.push({ 'text': 'text' });
     idx.forEach(function(i) {
-      coll.ensureIndex(i, { w: 1 }, function(err, indexName) {
+      coll.ensureIndex(i, { w: config.get('writeConcern')}, function(err, indexName) {
         console.log(kuler('Index field :', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
       });
     });
