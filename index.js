@@ -124,19 +124,17 @@ function serve () {
 
   if (fs.existsSync(dataPath)) {
     console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
-    // ldr.use('**/*.csv', require('castor-load-csv')(config.get('files:csv')));
-    // ldr.use('**/*.xml', require('castor-load-xml')(config.get('files:xml')));
     ldr.use('**/*', require('./loaders/file.js')(config.get('files:all')));
-    ldr.use('**/*', require('castor-load-custom')({
-      fieldname : 'fields',
-      schema: config.get('documentFields')
-    }));
     hook('loaders')
     .from(viewPath, __dirname)
     .over(config.get('loaders'))
     .apply(function(hash, func, item) {
       ldr.use(item.pattern || '**/*', func(item.options));
     });
+    ldr.use('**/*', require('castor-load-custom')({
+      fieldname : 'fields',
+      schema: config.get('documentFields')
+    }));
     if (config.get('turnoffSync') === false) {
       ldr.sync(function(err) {
         console.log(kuler('Files and Database are synchronised.', 'green'));

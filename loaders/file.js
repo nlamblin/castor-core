@@ -20,6 +20,8 @@ module.exports = function(options) {
     input.name = path.basename(input.location, path.extname(input.location)).replace(/[\_\-\.]+/g, ' ');
     // Pseudo search
     input.text = input.text || '';
+    // For content 
+    input.content = input.content || {};
     submit(null, input);
   }
 }
