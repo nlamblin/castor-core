@@ -174,14 +174,12 @@ module.exports = function(config, computer) {
       coll.mapReduce(map, reduce, opts).then(function(newcoll) {
         lock = false;
         if (first.indexOf(ret) === -1) {
-          debug('first', first);
           first.push(ret);
           fill(ret)
         }
       }).catch(fill);
     }
     if (first.indexOf(ret) > -1) {
-      debug('first x', first);
       fill(ret);
     }
   })
