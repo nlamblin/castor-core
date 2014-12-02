@@ -14,6 +14,7 @@ var path = require('path')
   , heart = require('../helpers/heart.js')()
   , pulse = heart.newPulse()
   , lock
+  , first = []
   ;
 
 module.exports = function(config, computer) {
@@ -162,22 +163,25 @@ module.exports = function(config, computer) {
         }
       , ret = config.get('collectionName') + '_' + crypto.createHash('sha1').update(self.parameters.operator + JSON.stringify(opts)).digest('hex')
       , beatoffset = pulse.missedBeats()
-      , first = lock === undefined
       ;
+
     debug('beatoffset', beatoffset);
-    if (first || (beatoffset > 2 && lock !== true) ) {
+    if (first.indexOf(ret) === -1 || (beatoffset > 2 && lock !== true) ) {
       pulse.beat();
       lock = true;
       opts.out = { replace : ret };
       debug('processing Map/Reduce');
       coll.mapReduce(map, reduce, opts).then(function(newcoll) {
         lock = false;
-        if (first) {
+        if (first.indexOf(ret) === -1) {
+          debug('first', first);
+          first.push(ret);
           fill(ret)
         }
       }).catch(fill);
     }
-    if (!first) {
+    if (first.indexOf(ret) > -1) {
+      debug('first x', first);
       fill(ret);
     }
   })
