@@ -210,17 +210,24 @@ module.exports = function(config, computer) {
       // }
     });
   })
+  .complete('recordsTotal', function(req, fill) {
+    if (this.parameters === false) {
+      return fill(0);
+    }
+    coll.find(this.selector).count().then(fill).catch(fill);
+    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find().count().then(fill).catch(fill);
+  })
   .complete('recordsFiltered', function(req, fill) {
     if (this.parameters === false) {
       return fill(0);
     }
-    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find().count().then(fill).catch(fill);
+    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
   })
   .complete('data', function(req, fill) {
     if (this.parameters === false) {
       return fill({});
     }
-    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find().sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
+    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
   })
   .transform(function(req, fill) {
     var self = this;
