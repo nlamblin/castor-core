@@ -165,19 +165,24 @@ module.exports = function(config, computer) {
       , beatoffset = pulse.missedBeats()
       ;
 
-    debug('beatoffset', beatoffset);
+    debug('for ' + ret, 'beatoffset('+beatoffset+')', first.indexOf(ret));
     if (first.indexOf(ret) === -1 || (beatoffset > 2 && lock !== true) ) {
       pulse.beat();
       lock = true;
-      opts.out = { replace : ret };
-      debug('processing Map/Reduce');
+      opts.out = { merge : ret };
+      debug('processing Map/Reduce', opts);
       coll.mapReduce(map, reduce, opts).then(function(newcoll) {
         lock = false;
         if (first.indexOf(ret) === -1) {
           first.push(ret);
           fill(ret)
         }
-      }).catch(fill);
+      }).catch(function(e) {
+        debug('error', e);
+        if (first.indexOf(ret) === -1) {
+          fill(e);
+        }
+      });
     }
     if (first.indexOf(ret) > -1) {
       fill(ret);
@@ -185,7 +190,6 @@ module.exports = function(config, computer) {
   })
   .append('mongoQuery', function(req, fill) {
     var sel = {};
-    require('extend')(true, sel, this.selector);
     // cf.  http://datatables.net/manual/server-side#Sent-parameters
     // Example : /browse.json?columns[i][data]=content.json.Field&columns[i][search][value]=value
     if (this.parameters.columns) {
@@ -214,23 +218,31 @@ module.exports = function(config, computer) {
     if (this.parameters === false) {
       return fill(0);
     }
-    coll.find(this.selector).count().then(fill).catch(fill);
     pmongo(config.get('connexionURI')).collection(this.mongoCollection).find().count().then(fill).catch(fill);
   })
   .complete('recordsFiltered', function(req, fill) {
     if (this.parameters === false) {
       return fill(0);
     }
-    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
+    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).count().then(function(r) {
+      debug('recordsFiltered', r);
+      fill(10)
+    }).catch(fill);
   })
   .complete('data', function(req, fill) {
     if (this.parameters === false) {
       return fill({});
     }
-    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
+    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(function(r) {
+      debug('data 1', r);
+      fill([{ _id: 'Geosciences', value: 1695 }, { _id: 'Environment/Ecology', value: 1009 }]);
+    }).catch(fill);
   })
   .transform(function(req, fill) {
     var self = this;
+    debug('data 2', this.data);
+    debug('recordsFiltered', this.recordsFiltered);
+
     if (self.parameters !== false) {
       self.data = computer.operator(self.parameters.operator).finalize(self.data);
     }
