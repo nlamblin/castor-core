@@ -235,7 +235,7 @@ module.exports = function(config, computer) {
     }
     pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(function(r) {
       debug('data 1', r);
-      fill([{ _id: 'Geosciences', value: 1695 }, { _id: 'Environment/Ecology', value: 1009 }]);
+      fill(r);
     }).catch(fill);
   })
   .transform(function(req, fill) {
