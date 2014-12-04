@@ -224,25 +224,16 @@ module.exports = function(config, computer) {
     if (this.parameters === false) {
       return fill(0);
     }
-    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).count().then(function(r) {
-      debug('recordsFiltered', r);
-      fill(10)
-    }).catch(fill);
+    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
   })
   .complete('data', function(req, fill) {
     if (this.parameters === false) {
       return fill({});
     }
-    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(function(r) {
-      debug('data 1', r);
-      fill(r);
-    }).catch(fill);
+    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
   })
   .transform(function(req, fill) {
     var self = this;
-    debug('data 2', this.data);
-    debug('recordsFiltered', this.recordsFiltered);
-
     if (self.parameters !== false) {
       self.data = computer.operator(self.parameters.operator).finalize(self.data);
     }
