@@ -229,7 +229,7 @@ function serve () {
     // view template engine
     //
     var env = nunjucks.configure(viewPath, {
-      autoescape: true,
+      autoescape: false,
       watch: false,
       express: app
     });
