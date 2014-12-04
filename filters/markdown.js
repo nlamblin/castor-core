@@ -1,8 +1,7 @@
 'use strict';
 var marked = require('marked');
 
-module.exports = function(config) {
-  var opts = config.get('markdown');
+module.exports = function(opts) {
   if (opts) {
     marked.setOptions(opts);
   }

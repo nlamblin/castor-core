@@ -64,6 +64,7 @@ function serve () {
   config.fix('description',          '');
   config.fix('theme',                'default');
   config.fix('middlewares',          {});
+  config.fix('markdown',             undefined);
   config.fix('filters',              {});
   config.fix('asynchronousFilters',  {});
   config.fix('operators',            {});
@@ -234,13 +235,17 @@ function serve () {
       express: app
     });
 
+    // tags
+    require('nunjucks-markdown').register(env, config.get('markdown'));
+
+    // filters
     env.addFilter('nl2br', require('./filters/nl2br.js')(config));
     env.addFilter('hash', require('./filters/hash.js')(config));
     env.addFilter('stack', require('./filters/stack.js')(config));
     env.addFilter('flatten', require('./filters/flatten.js')(config));
     env.addFilter('add2Array', require('./filters/add2Array.js')(config));
     env.addFilter('objectPath', require('./filters/objectPath.js')(config));
-    env.addFilter('markdown', require('./filters/markdown.js')(config));
+    env.addFilter('markdown', require('./filters/markdown.js')(config.get('markdown')));
     hook('filters')
     .from(viewPath, __dirname)
     .over(config.get('filters'))

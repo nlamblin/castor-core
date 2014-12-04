@@ -185,6 +185,28 @@ Ex:
 }
 ```
 
+#### markdown
+Markdown options. see [Marked Options](https://github.com/chjj/marked#options-1)
+
+Default value: `undefined`
+
+Ex:
+
+```json
+{
+  "markdown": {
+		 gfm: true,
+		 tables: true,
+		 breaks: false,
+		 pendantic: false,
+		 sanitize: true,
+		 smartLists: true,
+		 smartypants: false
+  }
+}
+```
+
+
 #### theme
 FIXME
 
