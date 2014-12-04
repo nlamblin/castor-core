@@ -47,7 +47,8 @@
     "castor-load-custom": "^1.6.1",
     "castor-load-xmlcorpus": "^1.0.2",
     "flat": "^1.3.0",
-    "heartbeats": "^1.1.1"
+    "heartbeats": "^1.1.1",
+    "marked": "^0.3.2"
   },
   "optionalDependencies": {
     "jsDAV": "^0.3.2",

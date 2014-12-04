@@ -240,6 +240,7 @@ function serve () {
     env.addFilter('flatten', require('./filters/flatten.js')(config));
     env.addFilter('add2Array', require('./filters/add2Array.js')(config));
     env.addFilter('objectPath', require('./filters/objectPath.js')(config));
+    env.addFilter('markdown', require('./filters/markdown.js')(config));
     hook('filters')
     .from(viewPath, __dirname)
     .over(config.get('filters'))
