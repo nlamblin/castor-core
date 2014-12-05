@@ -18,7 +18,8 @@ var path = require('path')
   ;
 
 module.exports = function(config, computer) {
-  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'));
+  var db   = pmongo(config.get('connexionURI'));
+  var coll = db.collection(config.get('collectionName'));
 
   return datamodel()
   .declare('template', function(req, fill) {
@@ -111,7 +112,7 @@ module.exports = function(config, computer) {
         "required" : false,
         "array": true
       }
-    }
+    };
     var form = require('formatik').parse(req.query, schema);
     if (form.isValid()) {
       var v = form.mget('value');
@@ -161,6 +162,7 @@ module.exports = function(config, computer) {
             exp : self.parameters.field
           }
         }
+      // collection for this query (operator and opts)
       , ret = config.get('collectionName') + '_' + crypto.createHash('sha1').update(self.parameters.operator + JSON.stringify(opts)).digest('hex')
       , beatoffset = pulse.missedBeats()
       ;
@@ -170,12 +172,12 @@ module.exports = function(config, computer) {
       pulse.beat();
       lock = true;
       opts.out = { merge : ret };
-      debug('processing Map/Reduce', opts);
+      debug('processing Map/Reduce, opts:', opts);
       coll.mapReduce(map, reduce, opts).then(function(newcoll) {
         lock = false;
         if (first.indexOf(ret) === -1) {
           first.push(ret);
-          fill(ret)
+          fill(ret);
         }
       }).catch(function(e) {
         debug('error', e);
@@ -203,7 +205,7 @@ module.exports = function(config, computer) {
       sel.text = {
         $regex : this.parameters.search.value,
         $options : 'i'
-      }
+      };
     }
     fill(sel);
   })
@@ -218,19 +220,19 @@ module.exports = function(config, computer) {
     if (this.parameters === false) {
       return fill(0);
     }
-    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find().count().then(fill).catch(fill);
+    db.collection(this.mongoCollection).find().count().then(fill).catch(fill);
   })
   .complete('recordsFiltered', function(req, fill) {
     if (this.parameters === false) {
       return fill(0);
     }
-    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
+    db.collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
   })
   .complete('data', function(req, fill) {
     if (this.parameters === false) {
       return fill({});
     }
-    pmongo(config.get('connexionURI')).collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
+    db.collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
   })
   .transform(function(req, fill) {
     var self = this;
