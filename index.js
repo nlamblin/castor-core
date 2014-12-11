@@ -125,7 +125,7 @@ function serve () {
 
   if (fs.existsSync(dataPath)) {
     console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
-    ldr.use('**/*', require('./loaders/file.js')(config.get('files:all')));
+    ldr.use('**/*', require('./loaders/prepend.js')());
     hook('loaders')
     .from(viewPath, __dirname)
     .over(config.get('loaders'))
@@ -136,6 +136,7 @@ function serve () {
       fieldname : 'fields',
       schema: config.get('documentFields')
     }));
+    ldr.use('**/*', require('./loaders/append.js')());
     if (config.get('turnoffSync') === false) {
       ldr.sync(function(err) {
         console.log(kuler('Files and Database are synchronised.', 'green'));

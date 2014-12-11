@@ -5,13 +5,10 @@ var path = require('path')
   , fs = require('fs')
   , prettysize = require('prettysize')
   , mimetype = require('mimetype')
-  , shorthash = require('shorthash')
   ;
 module.exports = function(options) {
   options = options || {};
   return function (input, submit) {
-    // Short ID
-    input.wid = shorthash.unique(input.fid);
     // https://schema.org/fileSize
     input.fileSize = prettysize(input.filesize);
     // https://schema.org/fileFormat
@@ -20,7 +17,7 @@ module.exports = function(options) {
     input.name = path.basename(input.location, path.extname(input.location)).replace(/[\_\-\.]+/g, ' ');
     // Pseudo search
     input.text = input.text || '';
-    // For content 
+    // For content
     input.content = input.content || {};
     submit(null, input);
   }
