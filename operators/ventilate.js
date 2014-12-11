@@ -24,10 +24,10 @@ module.exports.map = function () {
   else {
     fields = [exp];
   }
-  fields.forEach(function (exp) {
-    field = access(doc, exp);
+  fields.forEach(function (xp) {
+    field = access(doc, xp);
     if (field !== undefined) {
-      emit(exp + '=' + access(doc, exp), 1);
+      emit(xp + '=' + field, 1);
     }
   }
 );
@@ -40,7 +40,7 @@ module.exports.reduce = function (key, values) {
 
 module.exports.finalize = function(items) {
   var r =  {};
-  items.each(function(e) {
+  items.forEach(function(e) {
     var id = e._id.split('=', 1).shift(),
         value = e._id.slice(e._id.indexOf('=') + 1),
         count = e.value;

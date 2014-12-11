@@ -43,9 +43,10 @@ module.exports.reduce = function (key, values) {
   return Array.sum(values);
 };
 
+
 module.exports.finalize = function(items) {
   var r = [];
-  items.each(function(e) {
+  items.forEach(function(e) {
     var x = JSON.parse(e._id);
     r.push({
       source: x[0],
