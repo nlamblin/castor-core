@@ -115,7 +115,7 @@ module.exports = function(config, computer) {
     var form = require('formatik').parse(req.query, schema);
     if (form.isValid()) {
       var v = form.mget('value');
-      if (!v.itemsPerPage) {
+      if (v.itemsPerPage === undefined || v.itemsPerPage === null) {
         v.itemsPerPage = config.get('itemsPerPage');
       }
       if (v.startPage) {
@@ -152,6 +152,9 @@ module.exports = function(config, computer) {
     fill(headers);
   })
   .append('mongoCollection', function(req, fill) {
+    if (this.parameters === false) {
+      return fill();
+    }
     var self = this
       , map = computer.operator(self.parameters.operator).map
       , reduce = computer.operator(self.parameters.operator).reduce
@@ -235,7 +238,7 @@ module.exports = function(config, computer) {
   .transform(function(req, fill) {
     var self = this;
     if (self.parameters !== false) {
-      self.data = computer.operator(self.parameters.operator).finalize(self.data);
+      self.data = computer.operator(self.parameters.operator).finalize(self.data, self.mongoCollection);
     }
     fill(self);
   })
