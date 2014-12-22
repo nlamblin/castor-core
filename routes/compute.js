@@ -7,7 +7,7 @@ var path = require('path')
   , util = require('util')
   , crypto = require('crypto')
   , datamodel = require('datamodel')
-  , render = require('../helpers/render.js')
+  , Render = require('castor-render')
   , pmongo = require('promised-mongo')
   , struct = require('object-path')
   , extend = require('extend')
@@ -19,7 +19,10 @@ var path = require('path')
 
 module.exports = function(config, computer) {
   var db   = pmongo(config.get('connexionURI'));
-  var coll = db.collection(config.get('collectionName'));
+  var coll = db.collection(config.get('collectionName'))
+      , rdr = new Render()
+    ;
+
 
   return datamodel()
   .declare('template', function(req, fill) {
@@ -149,7 +152,7 @@ module.exports = function(config, computer) {
   })
   .append('headers', function(req, fill) {
     var headers = {};
-    headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
+    headers['Content-Type'] = rdr.transpose(req.params.format);
     fill(headers);
   })
   .append('mongoCollection', function(req, fill) {
@@ -249,7 +252,7 @@ module.exports = function(config, computer) {
       return res.status(400).send('Bad Request').end();
     }
     res.set(this.headers);
-    render(res, this, next);
+    rdr.run(res, this, next);
   }
 )
 .takeout();

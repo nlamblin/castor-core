@@ -57,6 +57,8 @@ function serve () {
   //
   config.fix('connexionURI',         'mongodb://localhost:27017/castor/');
   config.fix('collectionName',       undefined); // auto
+  config.fix('hooks',                 []);
+  config.fix('hooksPath',            undefined);
   config.fix('debug',                false);
   config.fix('port',                 '3000');
   config.fix('logFormat',            'combined');
@@ -126,8 +128,8 @@ function serve () {
   if (fs.existsSync(dataPath)) {
     console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
     ldr.use('**/*', require('./loaders/prepend.js')());
-    hook('loaders')
-    .from(viewPath, __dirname)
+    hook('loaders', config.get('hooks'))
+    .from(viewPath, __dirname, config.get('hooksPath'))
     .over(config.get('loaders'))
     .apply(function(hash, func, item) {
       ldr.use(item.pattern || '**/*', func(item.options));
@@ -185,8 +187,8 @@ function serve () {
     cpt.use('ventilate', require('./operators/ventilate.js'));
     cpt.use('total', require('./operators/total.js'));
     cpt.use('graph', require('./operators/graph.js'));
-    hook('operators')
-    .from(viewPath, __dirname)
+    hook('operators', config.get('hooks'))
+    .from(viewPath, __dirname, config.get('hooksPath'))
     .over(config.get('operators'))
     .apply(function(hash, func) {
       cpt.use(hash, func);
@@ -218,8 +220,8 @@ function serve () {
   //
   app.use(morgan(config.get('logFormat'), { stream : process.stderr }));
 
-  hook('middlewares')
-  .from(viewPath, __dirname)
+  hook('middlewares', config.get('hooks'))
+  .from(viewPath, __dirname, config.get('hooksPath'))
   .over(config.get('middlewares'))
   .apply(function(hash, func) {
     app.use(hash, func(config));
@@ -247,15 +249,15 @@ function serve () {
     env.addFilter('add2Array', require('./filters/add2Array.js')(config));
     env.addFilter('objectPath', require('./filters/objectPath.js')(config));
     env.addFilter('markdown', require('./filters/markdown.js')(config.get('markdown')));
-    hook('filters')
-    .from(viewPath, __dirname)
+    hook('filters', config.get('hooks'))
+    .from(viewPath, __dirname, config.get('hooksPath'))
     .over(config.get('filters'))
     .apply(function(hash, func) {
       env.addFilter(hash, func(config));
     });
 
-    hook('filters')
-    .from(viewPath, __dirname)
+    hook('filters', config.get('hooks'))
+    .from(viewPath, __dirname, config.get('hooksPath'))
     .over(config.get('asynchronousFilters'))
     .apply(function(hash, func) {
       env.addFilter(hash, func(config), true);
@@ -265,14 +267,13 @@ function serve () {
     //
     // add routes to send data on the Web
     //
-    hook('routes')
-    .from(viewPath, __dirname)
+    hook('routes', config.get('hooks'))
+    .from(viewPath, __dirname, config.get('hooksPath'))
     .over(config.get('routes'))
-    .apply(function(hash, func) {
-      app.route(hash).all(func(config));
+    .apply(function(hash, func, item) {
+      var method =  item.method || 'all';
+      app.route(item.path || hash)[method](func(item.options || config));
     });
-    app.route('/robots.txt').get(require('./routes/inform-robots.js')(config));
-    app.route('/sitemap.xml').get(require('./routes/inform-searchengines.js')(config));
     app.route('/browse.:format').all(require('./routes/browse.js')(config));
     app.route('/corpus.:format').all(require('./routes/corpus.js')(config));
     if (config.get('turnoffComputer') === false) {
@@ -281,7 +282,6 @@ function serve () {
     app.route('/display/:doc.:format').all(require('./routes/display.js')(config));
     app.route('/dump/:doc.:format').all(require('./routes/dump.js')(config));
     app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save.js')(config));
-    app.route('/export.:format').all(require('./routes/export-docs.js')(config));
     app.route('/config.js(on|)').all(function (req, res) { res.jsonp(config.expose()); });
     var modules = config.get('browserifyModules');
 

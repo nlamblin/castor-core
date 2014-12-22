@@ -5,12 +5,14 @@ var path = require('path')
   , debug = require('debug')('castor:routes:' + basename)
   , util = require('util')
   , datamodel = require('datamodel')
-  , render = require('../helpers/render.js')
+  , Render = require('castor-render')
   , pmongo = require('promised-mongo')
   ;
 
 module.exports = function(config) {
-  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName')) ;
+  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
+    , rdr = new Render()
+    ;
 
   return datamodel()
   .declare('template', function(req, fill) {
@@ -111,7 +113,7 @@ module.exports = function(config) {
   })
   .append('headers', function(req, fill) {
     var headers = {};
-    headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
+    headers['Content-Type'] = rdr.transpose(req.params.format);
     if (req.params.format === 'zip') {
       headers['Content-Disposition'] = 'attachment; filename="export.zip"';
     }
@@ -146,7 +148,7 @@ module.exports = function(config) {
   .append('mongoOptions', function(req, fill) {
     fill({
       // fields : {
-        // content: 0
+      // content: 0
       // }
     });
   })
@@ -164,7 +166,7 @@ module.exports = function(config) {
   })
   .send(function(res, next) {
     res.set(this.headers);
-    render(res, this, next);
+    rdr.run(res, this, next);
   }
 )
 .takeout();
