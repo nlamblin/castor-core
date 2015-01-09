@@ -27,7 +27,7 @@ module.exports.map = function () {
   fields.forEach(function (xp) {
     field = access(doc, xp);
     if (field !== undefined) {
-      emit(xp + '=' + field, 1);
+      emit(JSON.stringify([xp,field]), 1);
     }
   }
 );
@@ -39,15 +39,14 @@ module.exports.reduce = function (key, values) {
 
 
 module.exports.finalize = function(items) {
-  var r =  {};
+  var r = [];
   items.forEach(function(e) {
-    var id = e._id.split('=', 1).shift(),
-        value = e._id.slice(e._id.indexOf('=') + 1),
-        count = e.value;
-    if (r[id] === undefined) {
-      r[id] = [];
-    }
-    r[id].push({value: value, count:count});
+    var x = JSON.parse(e._id);
+    r.push({
+      source: x[0],
+      target: x[1],
+      weight: e.value
+    });
   });
   return r;
 }
