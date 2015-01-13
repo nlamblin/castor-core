@@ -1,3 +1,4 @@
+/*jslint node:true */
 'use strict';
 
 
@@ -55,4 +56,4 @@ module.exports.finalize = function(items) {
     });
   });
   return r;
-}
+};
