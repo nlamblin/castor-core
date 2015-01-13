@@ -7,20 +7,29 @@ var path = require('path')
   , include = require('./include.js')
   ;
 
-function Hook(nd) {
+function Hook(nd, hks) {
 
   var self = this;
   self.basedirs = [];
   self.hooks = [];
   self.namedir = nd || 'hooks';
+  self.namehks = [];
+  if (Array.isArray(hks)) {
+    self.namehks = hks;
+  }
 }
 
 Hook.prototype.from = function ()
 {
   var self = this;
   Array.prototype.slice.call(arguments, 0).forEach(function(x) {
-    self.basedirs.push(path.join(x, self.namedir));
-    self.basedirs.push(path.join(x, 'node_modules'));
+    if (x) {
+      self.basedirs.push(path.join(x, self.namedir));
+      self.basedirs.push(path.join(x, 'node_modules'));
+      self.namehks.forEach(function(hk) {
+        self.basedirs.push(path.join(x, 'node_modules', hk, self.namedir));
+      });
+    }
   });
   return self;
 }
@@ -62,7 +71,7 @@ Hook.prototype.apply = function (callback)
   });
 }
 
-module.exports = function (nd) {
-  return new Hook(nd);
+module.exports = function (nd, hks) {
+  return new Hook(nd, hks);
 }
 

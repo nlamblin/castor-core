@@ -6,15 +6,13 @@ var path = require('path')
   , debug = require('debug')('castor:routes:' + basename)
   , util = require('util')
   , datamodel = require('datamodel')
-  , render = require('../helpers/render.js')
+  , Render = require('castor-render')
   ;
 
 module.exports = function(config) {
+  var rdr = new Render();
 
   return datamodel()
-  .declare('template', function(req, fill) {
-    fill(req.params.name + '.html');
-  })
   .declare('site', function(req, fill) {
     fill({
       title : config.get('title'),
@@ -25,7 +23,7 @@ module.exports = function(config) {
     fill({
       title : config.get('pages:' + req.params.name + ':title'),
       description : config.get('pages:' + req.params.name + ':description'),
-      types : ['text/html']
+      types : ['text/html', 'text/plain']
     });
   })
   .declare('user', function(req, fill) {
@@ -42,11 +40,15 @@ module.exports = function(config) {
   })
   .append('headers', function(req, fill) {
     var headers = {};
-    headers['Content-Type'] = require('../helpers/format.js')(req.params.format);
+    headers['Content-Type'] = rdr.transpose(req.params.format);
     fill(headers);
   })
+  .append('template', function(req, fill) {
+    fill(req.params.name + '.' + req.params.format);
+  })
   .send(function(res, next) {
-    render(res, this, next);
+    res.set(this.headers);
+    rdr.run(res, this, next);
   })
   .takeout();
 };
