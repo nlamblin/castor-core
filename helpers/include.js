@@ -16,6 +16,9 @@ module.exports = function(basedirs, modname, req) {
   }
   assert(typeof modname, 'string');
   basedirs = basedirs
+  .filter(function (basedir) {
+    return (typeof basedir === 'string');
+  })
   .map(function(basedir) {
     return path.join(basedir, modname);
   });
