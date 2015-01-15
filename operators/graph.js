@@ -1,3 +1,4 @@
+/*jslint node:true */
 'use strict';
 
 
@@ -42,4 +43,3 @@ module.exports.map = function () {
 module.exports.reduce = function (key, values) {
   return Array.sum(values);
 };
-

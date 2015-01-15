@@ -40,7 +40,7 @@
     "castor-load": "^1.2.8",
     "castor-load-csv": "^1.0.0",
     "castor-load-xml": "^1.0.1",
-    "castor-load-custom": "^1.6.1",
+    "castor-load-custom": "^1.6.2",
     "castor-load-xmlcorpus": "^1.0.2",
     "heartbeats": "^1.1.1",
     "marked": "^0.3.2",
