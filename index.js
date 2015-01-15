@@ -10,7 +10,7 @@ var path = require('path')
   , pck = require('./package.json')
   , config = require('./config.js')
   , Loader = require('castor-load')
-  , Computer = require('castor-compute')
+  , Computer = require('castor-compute').Overall
   , portfinder = require('portfinder')
   , kuler = require('kuler')
   , express = require('express')
@@ -187,6 +187,8 @@ function serve () {
     cpt.use('ventilate', require('./operators/ventilate.js'));
     cpt.use('total', require('./operators/total.js'));
     cpt.use('graph', require('./operators/graph.js'));
+    cpt.use('groupby', require('./operators/groupby.js'));
+    cpt.use('merge', require('./operators/merge.js'));
     hook('operators', config.get('hooks'))
     .from(viewPath, __dirname, config.get('hooksPath'))
     .over(config.get('operators'))

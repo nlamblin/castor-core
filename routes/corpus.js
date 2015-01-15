@@ -6,12 +6,19 @@ var path = require('path')
   , util = require('util')
   , datamodel = require('datamodel')
   , Render = require('castor-render')
+  , Flying = require('castor-compute').Flying
   , pmongo = require('promised-mongo')
   ;
 
 module.exports = function(config) {
   var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName') + '_corpus')
       , rdr = new Render()
+      , flyopts = {
+          "connexionURI" : config.get('connexionURI'),
+          "collectionName": config.get('collectionName'),
+          "concurrency" : config.get('concurrency')
+        }
+      , fly = new Flying(config.get('flyingFields'), flyopts)
     ;
 
 
@@ -79,6 +86,12 @@ module.exports = function(config) {
       "columns" : {
         "alias": ["cols"],
         "type" : "object",
+        "required" : false,
+        "array": true
+      },
+      "flying" : {
+        "alias": ["flyingFields", "ff"],
+        "type" : "string",
         "required" : false,
         "array": true
       }
@@ -160,10 +173,20 @@ module.exports = function(config) {
     coll.find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
   })
   .complete('data', function(req, fill) {
-    if (this.parameters === false) {
+    var self = this;
+    if (self.parameters === false) {
       return fill({});
     }
-    coll.find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
+    if (self.parameters === false) {
+      return fill({});
+    }
+    var func = fill;
+    if (self.parameters.flying) {
+      func = function(r) {
+        fly.affix(self.parameters.flying, r, fill);
+      }
+    }
+    coll.find(self.mongoQuery, self.mongoOptions).sort(self.mongoSort).skip(self.parameters.startIndex).limit(self.parameters.itemsPerPage).toArray().then(func).catch(fill);
   })
   .send(function(res, next) {
     res.set(this.headers);

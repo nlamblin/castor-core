@@ -36,7 +36,7 @@
     "formatik": "^1.2.0",
     "body-parser": "^1.6.6",
     "object-path": "^0.6.0",
-    "castor-compute": "^1.1.1",
+    "castor-compute": "^1.2.0",
     "castor-load": "^1.2.8",
     "castor-load-csv": "^1.0.0",
     "castor-load-xml": "^1.0.1",

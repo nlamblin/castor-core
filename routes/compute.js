@@ -8,6 +8,7 @@ var path = require('path')
   , crypto = require('crypto')
   , datamodel = require('datamodel')
   , Render = require('castor-render')
+  , Flying = require('castor-compute').Flying
   , pmongo = require('promised-mongo')
   , struct = require('object-path')
   , extend = require('extend')
@@ -20,7 +21,13 @@ var path = require('path')
 module.exports = function(config, computer) {
   var db   = pmongo(config.get('connexionURI'));
   var coll = db.collection(config.get('collectionName'))
-      , rdr = new Render()
+    , rdr = new Render()
+    , flyopts = {
+        "connexionURI" : config.get('connexionURI'),
+        "collectionName": config.get('collectionName'),
+        "concurrency" : config.get('concurrency')
+      }
+    , fly = new Flying(config.get('flyingFields'), flyopts)
     ;
 
 
@@ -114,7 +121,14 @@ module.exports = function(config, computer) {
         "type" : "object",
         "required" : false,
         "array": true
+      },
+      "flying" : {
+        "alias": ["flyingFields", "ff"],
+        "type" : "string",
+        "required" : false,
+        "array": true
       }
+
     };
     var form = require('formatik').parse(req.query, schema);
     if (form.isValid()) {
@@ -235,17 +249,17 @@ module.exports = function(config, computer) {
     db.collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
   })
   .complete('data', function(req, fill) {
-    if (this.parameters === false) {
+    var self = this;
+    if (self.parameters === false) {
       return fill({});
     }
-    db.collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).sort(this.mongoSort).skip(this.parameters.startIndex).limit(this.parameters.itemsPerPage).toArray().then(fill).catch(fill);
-  })
-  .transform(function(req, fill) {
-    var self = this;
-    if (self.parameters !== false) {
-      self.data = computer.operator(self.parameters.operator).finalize(self.data, self.mongoCollection);
+    var func = fill;
+    if (self.parameters.flying) {
+      func = function(r) {
+        fly.affix(self.parameters.flying, r, fill);
+      }
     }
-    fill(self);
+    db.collection(self.mongoCollection).find(self.mongoQuery, self.mongoOptions).sort(self.mongoSort).skip(self.parameters.startIndex).limit(self.parameters.itemsPerPage).toArray().then(func).catch(fill);
   })
   .send(function(res, next) {
     if (this.parameters === false) {
