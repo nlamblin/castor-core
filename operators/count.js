@@ -26,11 +26,3 @@ module.exports.reduce = function (key, values) {
   return Array.sum(values);
 };
 
-
-module.exports.finalize = function(items) {
-  var results = {};
-  if (Array.isArray(items)) {
-    items.forEach(function(e) { results[e._id] = e.value; });
-  }
-  return results;
-}
