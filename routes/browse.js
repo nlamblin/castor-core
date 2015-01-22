@@ -11,7 +11,7 @@ var path = require('path')
   ;
 
 module.exports = function(config) {
-  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
+  var db = pmongo(config.get('connexionURI'))
     , rdr = new Render()
     , flyopts = {
         "connexionURI" : config.get('connexionURI'),
@@ -93,6 +93,12 @@ module.exports = function(config) {
         "type" : "string",
         "required" : false,
         "array": true
+      },
+      "resource" : {
+        "alias": ["r", "rsc"],
+        "type" : "string",
+        "required" : false,
+        "values": Object.keys(config.get('resources'))
       }
     };
     var form = require('formatik').parse(req.query, schema);
@@ -106,6 +112,12 @@ module.exports = function(config) {
       }
       if (!v.startIndex) {
         v.startIndex = 0;
+      }
+      if (!v.resource) {
+        v.resource = config.get('collectionName');
+      }
+      else {
+        v.resource = config.get('collectionName') + '_resources_' + v.resource;
       }
       fill(v);
     }
@@ -124,6 +136,9 @@ module.exports = function(config) {
     }
     fill(s);
   })
+  .prepend('mongoCollection', function(req, fill) {
+    fill(this.parameters.resource);
+  })
   .append('headers', function(req, fill) {
     var headers = {};
     headers['Content-Type'] = rdr.transpose(req.params.format);
@@ -136,7 +151,7 @@ module.exports = function(config) {
     if (this.parameters === false) {
       return fill(0);
     }
-    coll.find(this.selector).count().then(fill).catch(fill);
+    db.collection(this.mongoCollection).find(this.selector).count().then(fill).catch(fill);
   })
   .append('mongoQuery', function(req, fill) {
     var sel = {};
@@ -169,7 +184,7 @@ module.exports = function(config) {
     if (this.parameters === false) {
       return fill(0);
     }
-    coll.find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
+    db.collection(this.mongoCollection).find(this.mongoQuery, this.mongoOptions).count().then(fill).catch(fill);
   })
   .complete('data', function(req, fill) {
     var self = this;
@@ -182,7 +197,7 @@ module.exports = function(config) {
         fly.affix(self.parameters.flying, r, fill);
       }
     }
-    coll.find(self.mongoQuery, self.mongoOptions).sort(self.mongoSort).skip(self.parameters.startIndex).limit(self.parameters.itemsPerPage).toArray().then(func).catch(fill);
+    db.collection(this.mongoCollection).find(self.mongoQuery, self.mongoOptions).sort(self.mongoSort).skip(self.parameters.startIndex).limit(self.parameters.itemsPerPage).toArray().then(func).catch(fill);
   })
   .send(function(res, next) {
     res.set(this.headers);

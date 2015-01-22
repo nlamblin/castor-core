@@ -19,8 +19,7 @@ var path = require('path')
   ;
 
 module.exports = function(config, computer) {
-  var db   = pmongo(config.get('connexionURI'));
-  var coll = db.collection(config.get('collectionName'))
+  var db   = pmongo(config.get('connexionURI'))
     , rdr = new Render()
     , flyopts = {
         "connexionURI" : config.get('connexionURI'),
@@ -127,8 +126,13 @@ module.exports = function(config, computer) {
         "type" : "string",
         "required" : false,
         "array": true
+      },
+      "resource" : {
+        "alias": ["r", "rsc"],
+        "type" : "string",
+        "required" : false,
+        "values": Object.keys(config.get('resources'))
       }
-
     };
     var form = require('formatik').parse(req.query, schema);
     if (form.isValid()) {
@@ -141,6 +145,12 @@ module.exports = function(config, computer) {
       }
       if (!v.startIndex) {
         v.startIndex = 0;
+      }
+      if (!v.resource) {
+        v.resource = config.get('collectionName');
+      }
+      else {
+        v.resource = config.get('collectionName') + '_resources_' + v.resource;
       }
       fill(v);
     }
@@ -183,7 +193,7 @@ module.exports = function(config, computer) {
           }
         }
       // collection for this query (operator and opts)
-      , ret = config.get('collectionName') + '_' + crypto.createHash('sha1').update(self.parameters.operator + JSON.stringify(opts)).digest('hex')
+      , ret = this.parameters.resource + '_' + crypto.createHash('sha1').update(self.parameters.operator + JSON.stringify(opts)).digest('hex')
       , beatoffset = pulse.missedBeats()
       ;
 
@@ -193,7 +203,7 @@ module.exports = function(config, computer) {
       lock = true;
       opts.out = { merge : ret };
       debug('processing Map/Reduce, opts:', opts);
-      coll.mapReduce(map, reduce, opts).then(function(newcoll) {
+      db.collection(self.parameters.resource).mapReduce(map, reduce, opts).then(function(newcoll) {
         lock = false;
         if (first.indexOf(ret) === -1) {
           first.push(ret);

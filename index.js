@@ -1,6 +1,9 @@
 /*jshint node:true, laxcomma:true*/
 "use strict";
 
+// for all which not use debug
+console.log = require('debug')('console:log');
+
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:' + basename)
@@ -20,11 +23,13 @@ var path = require('path')
   , hook = require('./helpers/hook.js')
   , bodyParser = require('body-parser')
   , pmongo = require('promised-mongo')
+  , extend = require('extend')
   ;
+
 
 function serve () {
 
-  console.log(kuler('Core version :', 'olive'), kuler(pck.version, 'limegreen'));
+  console.info(kuler('Core version :', 'olive'), kuler(pck.version, 'limegreen'));
 
   //
   // Data path :
@@ -41,7 +46,7 @@ function serve () {
   var dateConfig;
   var confile = path.normalize(dataPath) + '.json';
   if (fs.existsSync(confile)) {
-    console.log(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
+    console.info(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
     config.load(confile);
     dateConfig = fs.statSync(confile).mtime;
   }
@@ -69,6 +74,7 @@ function serve () {
   config.fix('markdown',             undefined);
   config.fix('filters',              {});
   config.fix('asynchronousFilters',  {});
+  config.fix('resources',            {});
   config.fix('operators',            {});
   config.fix('loaders',              {});
   config.fix('routes',               {});
@@ -86,6 +92,7 @@ function serve () {
   config.fix('turnoffIndexes',       false);
   config.fix('turnoffWebdav',        false);
   config.fix('turnoffComputer',      false);
+  config.fix('turnoffResources',     false);
   config.fix('turnoffUpload',        false);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);
   config.fix('tempPath',             os.tmpdir());
@@ -103,13 +110,14 @@ function serve () {
     config.set('turnoffIndexes', true);
   }
 
+
   //  create an heart & set heartrate
   var heart = require('./helpers/heart.js')(config.get('heartrate'))
     , pulse = heart.newPulse()
     ;
 
 
-  console.log(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
+  console.info(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
 
   //
   // add some statements when loading files to MongoDB
@@ -126,7 +134,7 @@ function serve () {
   }, ldr = new Loader(dataPath, ldropts);
 
   if (fs.existsSync(dataPath)) {
-    console.log(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
+    console.info(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
     ldr.use('**/*', require('./loaders/prepend.js')());
     hook('loaders', config.get('hooks'))
     .from(viewPath, __dirname, config.get('hooksPath'))
@@ -141,7 +149,7 @@ function serve () {
     ldr.use('**/*', require('./loaders/append.js')());
     if (config.get('turnoffSync') === false) {
       ldr.sync(function(err) {
-        console.log(kuler('Files and Database are synchronised.', 'green'));
+        console.info(kuler('Files and Database are synchronised.', 'green'));
       });
     }
     config.set('collectionName', ldr.options.collectionName);
@@ -163,7 +171,7 @@ function serve () {
     idx.push({ 'text': 'text' });
     idx.forEach(function(i) {
       coll.ensureIndex(i, { w: config.get('writeConcern')}, function(err, indexName) {
-        console.log(kuler('Index field :', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
+        console.info(kuler('Index field :', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
       });
     });
   }
@@ -201,7 +209,7 @@ function serve () {
         heart.onceOnBeat(2, function() {
           cptlock = false; // évite d'oublier un evenement pendant le calcul
           cpt.compute(function(err) {
-            console.log(kuler('Corpus fields computed.', 'green'));
+            console.info(kuler('Corpus fields computed.', 'green'));
           });
         });
       }
@@ -211,6 +219,43 @@ function serve () {
     ldr.on('cancelled', cptfunc);
     ldr.on('dropped', cptfunc);
     ldr.on('added', cptfunc);
+  }
+
+  //
+  // Resources
+  //
+  var rsclock
+    , rscopts = {
+        "connexionURI" : config.get('connexionURI'),
+        "collectionName": config.get('collectionName'),
+        "concurrency" : config.get('concurrency')
+      }
+    , resources = config.get('resources')
+    , corpusHandles = {}
+    ;
+
+  if (config.get('turnoffResources') === false) {
+    Object.keys(resources).forEach(function(rid) {
+      var options = {};
+      extend(true, options, rscopts);
+      options.collectionName = options.collectionName + '_resources_' + rid;
+      console.info(kuler('Resource :', 'olive'), kuler(rid, 'limegreen'));
+      corpusHandles[rid] = new Loader('/dev/null', options);
+      hook('loaders', config.get('hooks'))
+      .from(viewPath, __dirname, config.get('hooksPath'))
+      .over(config.get('loaders'))
+      .apply(function(hash, func, item) {
+        corpusHandles[rid].use(item.pattern || '**/*', func(item.options, config));
+      });
+
+      if (resources[rid].url ) {
+        if (Array.isArray(resources[rid].url)) {
+          resources[rid].url.forEach(function(c) {
+            corpusHandles[rid].push(c);
+          });
+        }
+      }
+    });
   }
 
 
@@ -390,7 +435,7 @@ function serve () {
     }
     config.set('port', newport);
     server.listen(newport, function() {
-      console.log(kuler('Server is listening on port ' + server.address().port + '.', 'green'));
+      console.info(kuler('Server is listening on port ' + server.address().port + '.', 'green'));
     });
   });
 

@@ -12,7 +12,7 @@ var path = require('path')
   ;
 
 module.exports = function(config) {
-  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
+  var db = pmongo(config.get('connexionURI'))
     , rdr = new Render()
     , flyopts = {
         "connexionURI" : config.get('connexionURI'),
@@ -67,17 +67,31 @@ module.exports = function(config) {
         "type" : "string",
         "required" : false,
         "array": true
+      },
+      "resource" : {
+        "alias": ["r", "rsc"],
+        "type" : "string",
+        "required" : false,
+        "values": Object.keys(config.get('resources'))
       }
-
     };
     var form = require('formatik').parse(req.query, schema);
     if (form.isValid()) {
       var v = form.mget('value');
+      if (!v.resource) {
+        v.resource = config.get('collectionName');
+      }
+      else {
+        v.resource = config.get('collectionName') + '_resources_' + v.resource;
+      }
       fill(v);
     }
     else {
       fill(false);
     }
+  })
+  .prepend('mongoCollection', function(req, fill) {
+    fill(this.parameters.resource);
   })
   .prepend('selector', function(req, fill) {
     var self = this, sel;
@@ -108,7 +122,7 @@ module.exports = function(config) {
         fly.affix(self.parameters.flying, r, fill);
       }
     }
-    coll.findOne(self.selector).then(func).catch(fill);
+    db.collection(self.mongoCollection).findOne(self.selector).then(func).catch(fill);
   })
   .send(function(res, next) {
     res.set(this.headers);
