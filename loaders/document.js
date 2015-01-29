@@ -6,19 +6,12 @@ var path = require('path')
   ;
 module.exports = function(options) {
   options = options || {};
-  options.fieldname = options.fieldname ? options.fieldname : 'documentFields';
   options.stylesheet = options.stylesheet ? options.stylesheet : {};
 
   if (typeof options.stylesheet !== 'object') {
     options.stylesheet = {};
   }
   return function (input, submit) {
-    try {
-      input[options.fieldname] = JBJ.render(options.stylesheet);
-      submit(null, input);
-    }
-    catch(e) {
-      submit(e);
-    }
+    submit(null, JBJ.renderSync(options.stylesheet, input));
   }
 }

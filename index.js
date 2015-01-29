@@ -143,7 +143,6 @@ function serve () {
       ldr.use(item.pattern || '**/*', func(item.options));
     });
     ldr.use('**/*', require('./loaders/document.js')({
-      fieldname : 'fields',
       stylesheet: config.get('documentFields')
     }));
     ldr.use('**/*', require('./loaders/append.js')());
