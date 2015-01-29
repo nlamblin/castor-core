@@ -34,9 +34,7 @@
     "formatik": "^1.2.0",
     "body-parser": "^1.6.6",
     "object-path": "^0.6.0",
-    "castor-compute": "^2.0.0",
     "castor-load": "^4.1.0",
-    "castor-load-custom": "^2.0.0",
     "heartbeats": "^1.1.1",
     "marked": "^0.3.2",
     "nunjucks-markdown": "^0.5.2",
@@ -45,7 +43,11 @@
     "castor-load-xmlcorpus": "^2.1.0",
     "castor-load-xml": "^2.1.0",
     "castor-load-json": "^1.0.0",
-    "castor-load-csv": "^2.1.0"
+    "castor-load-csv": "^2.1.0",
+    "jbj": "^2.0.0",
+    "async": "^0.9.0",
+    "castor-load-jsoncorpus": "^1.0.0",
+    "castor-load-raw": "^2.1.0"
   },
   "optionalDependencies": {
     "jsDAV": "^0.3.2",

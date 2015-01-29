@@ -13,7 +13,7 @@ var path = require('path')
   , pck = require('./package.json')
   , config = require('./config.js')
   , Loader = require('castor-load')
-  , Computer = require('castor-compute').Overall
+  , Computer = require('./lib/compute.js')
   , portfinder = require('portfinder')
   , kuler = require('kuler')
   , express = require('express')
@@ -142,9 +142,9 @@ function serve () {
     .apply(function(hash, func, item) {
       ldr.use(item.pattern || '**/*', func(item.options));
     });
-    ldr.use('**/*', require('castor-load-custom')({
+    ldr.use('**/*', require('./loaders/document.js')({
       fieldname : 'fields',
-      schema: config.get('documentFields')
+      stylesheet: config.get('documentFields')
     }));
     ldr.use('**/*', require('./loaders/append.js')());
     if (config.get('turnoffSync') === false) {
@@ -208,7 +208,7 @@ function serve () {
         cptlock = true;
         heart.onceOnBeat(2, function() {
           cptlock = false; // évite d'oublier un evenement pendant le calcul
-          cpt.compute(function(err) {
+          cpt.run(function(err) {
             console.info(kuler('Corpus fields computed.', 'green'));
           });
         });

@@ -6,7 +6,7 @@ var path = require('path')
   , util = require('util')
   , datamodel = require('datamodel')
   , Render = require('castor-render')
-  , Flying = require('castor-compute').Flying
+  , Flying = require('../lib/flying.js')
   , pmongo = require('promised-mongo')
   ;
 
