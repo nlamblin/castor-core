@@ -329,6 +329,7 @@ function serve () {
     app.route('/display/:doc.:format').all(require('./routes/display.js')(config));
     app.route('/dump/:doc.:format').all(require('./routes/dump.js')(config));
     app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save.js')(config));
+    app.route('/drop/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/drop.js')(config));
     app.route('/config.js(on|)').all(function (req, res) { res.jsonp(config.expose()); });
     var modules = config.get('browserifyModules');
 
