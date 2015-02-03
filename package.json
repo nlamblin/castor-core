@@ -47,7 +47,8 @@
     "jbj": "^3.0.0",
     "async": "^0.9.0",
     "castor-load-jsoncorpus": "^1.0.0",
-    "castor-load-raw": "^2.1.0"
+    "castor-load-raw": "^2.1.0",
+    "request": "^2.53.0"
   },
   "optionalDependencies": {
     "jsDAV": "^0.3.2",
