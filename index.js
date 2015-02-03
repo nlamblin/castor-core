@@ -180,6 +180,7 @@ function serve () {
   //
   var cptlock
     , cptopts = {
+        "port": config.get('port'),
         "connexionURI" : config.get('connexionURI'),
         "collectionName": config.get('collectionName'),
         "concurrency" : config.get('concurrency')
@@ -208,7 +209,7 @@ function serve () {
         heart.onceOnBeat(2, function() {
           cptlock = false; // évite d'oublier un evenement pendant le calcul
           cpt.run(function(err) {
-            console.info(kuler('Corpus fields computed.', 'green'));
+            console.info(kuler('Corpus fields computed.', 'green'), err);
           });
         });
       }
