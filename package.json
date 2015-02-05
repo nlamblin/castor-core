@@ -37,7 +37,7 @@
     "castor-load": "^4.1.0",
     "heartbeats": "^1.1.1",
     "marked": "^0.3.2",
-    "nunjucks-markdown": "^0.5.2",
+    "nunjucks-markdown": "^0.7.0",
     "flat": "^1.3.0",
     "castor-render": "^1.0.0",
     "castor-load-xmlcorpus": "^2.1.0",
