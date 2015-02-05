@@ -26,39 +26,8 @@ var path = require('path')
   , extend = require('extend')
   ;
 
-
-function serve () {
-
-  console.info(kuler('Core version :', 'olive'), kuler(pck.version, 'limegreen'));
-
   //
-  // Data path :
-  // Check and fix a data source directory
-  //
-  config.fix('dataPath', path.normalize(path.resolve(process.cwd(), path.normalize(process.argv.slice(2).shift() || 'data'))));
-  var dataPath = config.get('dataPath') ;
-  debug('dataPath', dataPath);
-
-  //
-  // Conf file :
-  // Load conf file attached to dataPath
-  //
-  var dateConfig;
-  var confile = path.normalize(dataPath) + '.json';
-  if (fs.existsSync(confile)) {
-    console.info(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
-    config.load(confile);
-    dateConfig = fs.statSync(confile).mtime;
-  }
-
-  //
-  // View path :
-  // Find and Check the directory's templates
-  //
-  var viewPath = require('./helpers/view.js')(config);
-
-  //
-  // Check & Fix required config parameters
+  // Fix required config parameters
   //
   config.fix('connexionURI',         'mongodb://localhost:27017/castor/');
   config.fix('collectionName',       undefined); // auto
@@ -102,6 +71,40 @@ function serve () {
   // config.fix('files:csv:separator', undefined); // auto
   // config.fix('files:csv:encoding', 'utf8');
 
+
+function serve () {
+
+  console.info(kuler('Core version :', 'olive'), kuler(pck.version, 'limegreen'));
+
+  //
+  // Data path :
+  // Check and fix a data source directory
+  //
+  config.fix('dataPath', path.normalize(path.resolve(process.cwd(), path.normalize(process.argv.slice(2).shift() || 'data'))));
+  var dataPath = config.get('dataPath') ;
+  debug('dataPath', dataPath);
+
+  //
+  // Conf file :
+  // Load conf file attached to dataPath
+  //
+  var dateConfig;
+  var confile = path.normalize(dataPath) + '.json';
+  if (fs.existsSync(confile)) {
+    console.info(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
+    config.load(confile);
+    dateConfig = fs.statSync(confile).mtime;
+  }
+
+  //
+  // View path :
+  // Find and Check the directory's templates
+  //
+  var viewPath = require('./helpers/view.js')(config);
+
+  //
+  // Deduct some config parameters
+  //
   if (config.get('turnoffAll') === true) {
     config.set('turnoffSync', true);
     config.set('turnoffPrimus', true);
@@ -425,26 +428,22 @@ function serve () {
     });
   }
 
-  //
-  // Listen :
-  // get or find  a port number and launche the server.
-  //
-  portfinder.basePort = config.get('port');
-  portfinder.getPort(function (err, newport) {
-    if (err) {
-      throw err;
-    }
-    config.set('port', newport);
-    server.listen(newport, function() {
-      console.info(kuler('Server is listening on port ' + server.address().port + '.', 'green'));
-    });
+  server.listen(config.get('port'), function() {
+    console.info(kuler('Server is listening on port ' + server.address().port + '.', 'green'));
   });
 
   return server;
 }
 
 module.exports = function(callback) {
-  callback(config, serve);
+  portfinder.basePort = config.get('port');
+  portfinder.getPort(function (err, newport) {
+    if (err) {
+      throw err;
+    }
+    config.set('port', newport);
+    callback(config, serve);
+  });
 };
 
 if (!module.parent) {

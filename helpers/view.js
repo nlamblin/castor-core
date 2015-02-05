@@ -11,7 +11,7 @@ var path = require('path')
 
 
 module.exports = function(config) {
-  var themename = config.get('theme') || 'default'
+  var themename = config.get('theme')
     , themedirs = [
         process.cwd(),
         process.env.HOME,
