@@ -457,14 +457,31 @@ Ex:
 }
 ```
 
+#### documentFields
+
+``documentFields` are fields of documents, that are not parts of the input document, but computed when loading.
+
+They use [JBJ](http://castorjs.github.io/node-jbj/) syntax to add fields to the document, computed from the current document.
+
 #### corpusFields
-FIXME
+
+``corpusFields` are fields computed from the whole corpus, like the number of records, the period it covers (from `year` document field, for example), etc.
+
+They are computed when the corpus is finished loading. Like `documentFields`, they use 
+[JBJ](http://castorjs.github.io/node-jbj/) syntax.
 
 Ex:
 
 ```json
 {
-  "corpusFields": {}
+  "corpusFields": {
+    "$recordNb": {
+      "$?": "local:///compute.json?operator=count&field=wid",
+      "parseJSON": true,
+      "get": "data.0.value",
+      "cast": "number"
+    }
+  }
 }
 ```
 
