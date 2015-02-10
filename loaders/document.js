@@ -26,7 +26,6 @@ module.exports = function(options) {
         }
       }
     }
-    console.log('res',res.text);
     submit(null, res);
   };
 };
