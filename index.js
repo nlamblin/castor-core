@@ -167,7 +167,9 @@ function serve () {
   if (config.get('turnoffIndexes') === false) {
     var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
       , usfs = config.get('documentFields')
-      , idx = Object.keys(usfs).filter(function(i) { return (usfs[i].noindex !== true); }).map(function(i) {var j = {}; j[i.replace('$','')] = 1; return j;});
+      , idx = Object.keys(usfs)
+              .filter(function(i) { return (i !== '$text') && (usfs[i].noindex !== true); })
+              .map(function(i) {var j = {}; j[i.replace('$','')] = 1; return j;});
     idx.push({ 'wid': 1 });
     idx.push({ 'text': 'text' });
     idx.forEach(function(i) {
@@ -215,7 +217,7 @@ function serve () {
           });
         });
       }
-    }
+    };
     ldr.on('watching', cptfunc);
     ldr.on('changed', cptfunc);
     ldr.on('cancelled', cptfunc);

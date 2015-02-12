@@ -21,7 +21,7 @@ module.exports = function(options) {
       if (!options.stylesheet[field].noindex) {
         field = field.slice(1);
         var value = objectPath.get(res, field);
-        if (typeof value === 'string') {
+        if (field !== 'text' && typeof value === 'string') {
           objectPath.set(res,field,value.slice(0,1000));
         }
       }
