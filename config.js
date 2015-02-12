@@ -2,7 +2,8 @@
 
 var nconf = require('nconf')
   , path = require('path')
-  , fs = require('fs')
+  , extend = require('extend')
+ , fs = require('fs')
 ;
 
 //
@@ -89,7 +90,11 @@ Configuration.prototype.load = function load(filename) {
 };
 
 Configuration.prototype.merge = function merge(obj) {
-  nconf.overrides(obj);
+  Object.keys(obj).forEach(function(key) {
+    var o = nconf.get(key) || {};
+    extend(true, o, obj[key])
+    nconf.set(key, o);
+  });
 };
 
 Configuration.prototype.expose = function expose(obj) {

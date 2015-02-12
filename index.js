@@ -45,7 +45,7 @@ var path = require('path')
   config.fix('asynchronousFilters',  {});
   config.fix('resources',            {});
   config.fix('operators',            {});
-  config.fix('loaders',              {});
+  config.fix('loaders',              []);
   config.fix('routes',               {});
   config.fix('browserifyModules',    []);
   config.fix('itemsPerPage',         30);
@@ -121,7 +121,6 @@ function serve () {
 
 
   console.info(kuler('Theme :', 'olive'), kuler(viewPath, 'limegreen'));
-
   //
   // add some statements when loading files to MongoDB
   //
@@ -212,7 +211,7 @@ function serve () {
         heart.onceOnBeat(2, function() {
           cptlock = false; // évite d'oublier un evenement pendant le calcul
           cpt.run(function(err) {
-            console.info(kuler('Corpus fields computed.', 'green'), err);
+            console.info(kuler('Corpus fields computed.', 'green'), err ?  err : '');
           });
         });
       }
