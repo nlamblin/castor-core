@@ -1,6 +1,6 @@
 {
   "name": "castor-core",
-  "version": "2.0.4",
+  "version": "2.1.1",
   "author": "Nicolas Thouvenin <nthouvenin@gmail.com>",
   "contributors": [],
   "description": "CastorJS the Document Management System",
@@ -44,7 +44,7 @@
     "castor-load-xml": "^2.1.0",
     "castor-load-json": "^1.0.0",
     "castor-load-csv": "^2.1.0",
-    "jbj": "^3.0.0",
+    "jbj": "^3.2.0",
     "async": "^0.9.0",
     "castor-load-jsoncorpus": "^1.0.0",
     "castor-load-raw": "^2.1.0",

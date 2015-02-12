@@ -88,6 +88,10 @@ module.exports = function(config, computer) {
         "alias": ["sel", "select"],
         "type" : "text"
       },
+      "query" : {
+        "alias": ["q"],
+        "type": "text"
+      },
       "itemsPerPage" : {
         "alias": ["count", "length", "l"],
         "type" : "number",
@@ -231,6 +235,22 @@ module.exports = function(config, computer) {
         }
       });
     }
+    if (this.parameters.query) {
+      var self = this;
+      var q;
+      try {
+        q = JSON.parse(self.parameters.query, function(key, value) {
+          return typeof value !== 'function' ? value : undefined;
+        });
+      }
+      catch(e) {
+        q = {};
+      }
+      if (typeof q !== 'object' || q === null ||q === undefined) {
+        q = {};
+      }
+      sel.value = q;
+    }
     if (this.parameters.search && this.parameters.search.regex  && this.parameters.search.value !== '') {
       sel.text = {
         $regex : this.parameters.search.value,
@@ -267,7 +287,7 @@ module.exports = function(config, computer) {
     if (self.parameters.flying) {
       func = function(r) {
         fly.affix(self.parameters.flying, r, fill);
-      }
+      };
     }
     db.collection(self.mongoCollection).find(self.mongoQuery, self.mongoOptions).sort(self.mongoSort).skip(self.parameters.startIndex).limit(self.parameters.itemsPerPage).toArray().then(func).catch(fill);
   })
