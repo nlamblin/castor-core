@@ -85,7 +85,7 @@ Configuration.prototype.unset = function unset() {
 
 Configuration.prototype.load = function load(filename) {
   if (fs.existsSync(filename)) {
-    nconf.file({ file: filename});
+    this.merge(require(filename));
   }
 };
 
