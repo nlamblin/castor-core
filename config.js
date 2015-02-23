@@ -92,7 +92,12 @@ Configuration.prototype.load = function load(filename) {
 Configuration.prototype.merge = function merge(obj) {
   Object.keys(obj).forEach(function(key) {
     var o = nconf.get(key) || {};
-    extend(true, o, obj[key])
+    if (typeof obj[key] === 'object') {
+      extend(true, o, obj[key])
+    }
+    else {
+      o = obj[key];
+    }
     nconf.set(key, o);
   });
 };
