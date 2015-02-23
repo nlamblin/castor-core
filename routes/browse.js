@@ -1,3 +1,4 @@
+/*jshint node:true,laxcomma:true*/
 'use strict';
 
 var path = require('path')
@@ -5,6 +6,7 @@ var path = require('path')
   , debug = require('debug')('castor:routes:' + basename)
   , util = require('util')
   , datamodel = require('datamodel')
+  , extend = require('extend')
   , Render = require('castor-render')
   , Flying = require('../lib/flying.js')
   , pmongo = require('promised-mongo')
@@ -55,6 +57,10 @@ module.exports = function(config) {
   })
   .declare('parameters', function(req, fill) {
     var schema = {
+      "selector" : {
+        "alias": ["sel", "select"],
+        "type" : "text"
+      },
       "itemsPerPage" : {
         "alias": ["count", "length", "l"],
         "type" : "number",
@@ -124,6 +130,22 @@ module.exports = function(config) {
     else {
       fill(false);
     }
+  })
+  .prepend('selector', function(req, fill) {
+    var self = this, sel;
+    try {
+      sel = JSON.parse(self.parameters.selector, function(key, value) {
+        return typeof value !== 'function' ? value : undefined;
+      });
+    }
+    catch(e) {
+      sel = {};
+    }
+    if (typeof sel !== 'object' || sel === null || sel === undefined) {
+      sel = {};
+    }
+    extend(sel, { state: { $nin: [ "deleted", "hidden" ] } });
+    fill(sel);
   })
   .declare('mongoSort', function(req, fill) {
     var s = {};
