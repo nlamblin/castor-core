@@ -94,7 +94,7 @@ Configuration.prototype.merge = function merge(obj) {
   Object.keys(obj).forEach(function(key) {
     var o = nconf.get(key) || {};
     if (typeof obj[key] === 'object') {
-      if (Array.isArray(obj[key]) && Array.isArray(o)) {
+      if (Array.isArray(obj[key])) {
         o = obj[key].concat(o);
       }
       else {
