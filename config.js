@@ -1,9 +1,10 @@
+/*jshint node:true,laxcomma:true*/
 'use strict';
 
-var nconf = require('nconf')
-  , path = require('path')
+var nconf  = require('nconf')
+  , path   = require('path')
   , extend = require('extend')
- , fs = require('fs')
+  , fs     = require('fs')
 ;
 
 //
@@ -93,7 +94,12 @@ Configuration.prototype.merge = function merge(obj) {
   Object.keys(obj).forEach(function(key) {
     var o = nconf.get(key) || {};
     if (typeof obj[key] === 'object') {
-      extend(true, o, obj[key])
+      if (Array.isArray(obj[key]) && Array.isArray(o)) {
+        o = obj[key].concat(o);
+      }
+      else {
+        extend(true, o, obj[key]);
+      }
     }
     else {
       o = obj[key];
@@ -106,7 +112,7 @@ Configuration.prototype.expose = function expose(obj) {
   var conf = this.get();
   delete conf.dataPath;
   delete conf.collectionName;
-  delete conf.connexionURI
+  delete conf.connexionURI;
   delete conf._;
   delete conf.c;
   delete conf.config;
