@@ -142,7 +142,7 @@ function serve () {
     .from(viewPath, __dirname, config.get('hooksPath'))
     .over(config.get('loaders'))
     .apply(function(hash, func, item) {
-      ldr.use(item.pattern || '**/*', func(item.options));
+      ldr.use(item.pattern || '**/*', func(item.options , config));
     });
     ldr.use('**/*', require('./loaders/document.js')({
       stylesheet: config.get('documentFields')
