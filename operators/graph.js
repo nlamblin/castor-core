@@ -25,7 +25,7 @@ module.exports.map = function () {
       if (!Array.isArray(values)) {
         values = [values];
       }
-      values = values.map(function(value) {
+      values = values.sort().map(function(value) {
         var o = {};
         o[fields[0]] = value;
         return o;
@@ -42,7 +42,7 @@ module.exports.map = function () {
     .reduce(function(previous, current) {
       var field = Object.keys(current)[0];
       if (Array.isArray(current[field])) {
-        current[field].forEach(function (value) {
+        current[field].sort().forEach(function (value) {
           var o    = {};
           o[field] = value;
           previous.push(o);
