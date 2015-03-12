@@ -191,7 +191,7 @@ module.exports = function(config) {
       sel.text = {
         $regex : this.parameters.search.value,
         $options : 'i'
-      }
+      };
     }
     fill(sel);
   })
@@ -217,7 +217,7 @@ module.exports = function(config) {
     if (self.parameters.flying) {
       func = function(r) {
         fly.affix(self.parameters.flying, r, fill);
-      }
+      };
     }
     db.collection(this.mongoCollection).find(self.mongoQuery, self.mongoOptions).sort(self.mongoSort).skip(self.parameters.startIndex).limit(self.parameters.itemsPerPage).toArray().then(func).catch(fill);
   })
@@ -227,4 +227,4 @@ module.exports = function(config) {
   }
 )
 .takeout();
-}
+};
