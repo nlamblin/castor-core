@@ -63,7 +63,7 @@ Ex:
 
 ```json
 {
-  "collexionURI": "mongodb://localhost:27017/test/"
+  "connexionURI": "mongodb://localhost:27017/test/"
 }
 ```
 
