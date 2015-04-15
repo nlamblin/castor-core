@@ -75,12 +75,12 @@ module.exports = function(config, computer) {
         "type" : "text",
         "array": true,
         "required" : true,
-        "pattern" : "[a-z*-][a-z0-9*. _-]*"
+        "pattern" : "^[a-zA-Z-][a-zA-Z0-9. _-]*$"
       },
       "operator" : {
         "alias": "o",
         "type" : "text",
-        "pattern" : "[a-z][a-z0-9. _-]+",
+        "pattern" : "^[a-z][a-z0-9. _-]+$",
         "required" : true,
         "values" : computer.operators()
       },
