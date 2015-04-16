@@ -63,7 +63,7 @@ module.exports = function(options) {
         field = field.slice(1);
         var value = objectPath.get(res, field);
         if (field !== 'text' && typeof value === 'string') {
-          objectPath.set(res,field,value.slice(0,1000));
+          objectPath.set(res,field,value.slice(0,999));
         }
       }
     }
