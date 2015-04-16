@@ -74,6 +74,7 @@ var path = require('path')
 
 function serve () {
 
+
   console.info(kuler('Core version :', 'olive'), kuler(pck.version, 'limegreen'));
 
   //
@@ -136,6 +137,10 @@ function serve () {
   }, ldr = new Loader(dataPath, ldropts);
 
   if (fs.existsSync(dataPath)) {
+    var themePack = config.get('package');
+    if (themePack) {
+      console.info(kuler('App    :', 'olive'), kuler(themePack.name + ' ' + themePack.version, 'limegreen'));
+    }
     console.info(kuler('Source :', 'olive'), kuler(dataPath, 'limegreen'));
     ldr.use('**/*', require('./loaders/prepend.js')());
     hook('loaders', config.get('hooks'))
