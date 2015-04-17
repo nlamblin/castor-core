@@ -1,10 +1,11 @@
+/*jshint node:true,laxcomma:true*/
 "use strict";
-var path = require('path')
+var path     = require('path')
   , basename = path.basename(__filename, '.js')
-  , debug = require('debug')('castor:' + basename)
-  , util = require('util')
-  , assert = require('assert')
-  , include = require('./include.js')
+  , debug    = require('debug')('castor:' + basename)
+  , util     = require('util')
+  , assert   = require('assert')
+  , include  = require('./include.js')
   ;
 
 function Hook(nd, hks) {
@@ -32,7 +33,7 @@ Hook.prototype.from = function ()
     }
   });
   return self;
-}
+};
 
 Hook.prototype.over = function (object)
 {
@@ -50,7 +51,7 @@ Hook.prototype.over = function (object)
     });
   }
   return self;
-}
+};
 
 Hook.prototype.apply = function (callback)
 {
@@ -69,9 +70,9 @@ Hook.prototype.apply = function (callback)
       callback(name, include(self.basedirs, func), item);
     }
   });
-}
+};
 
 module.exports = function (nd, hks) {
   return new Hook(nd, hks);
-}
+};
 
