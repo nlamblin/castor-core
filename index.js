@@ -275,12 +275,11 @@ function serve () {
   // add middlewares to Express
   //
   app.use(morgan(config.get('logFormat'), { stream : process.stderr }));
-
   hook('middlewares', config.get('hooks'))
   .from(viewPath, __dirname, config.get('hooksPath'))
   .over(config.get('middlewares'))
-  .apply(function(hash, func) {
-    app.use(hash, func(config));
+  .apply(function(hash, func, item) {
+    app.use(item.path || hash, func(item.options || config, config));
   });
 
   if (config.get('turnoffRoutes') === false) {
