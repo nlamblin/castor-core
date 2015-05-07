@@ -131,7 +131,7 @@ Example for [castor-theme-sbadmin](https://github.com/castorjs/castor-theme-sbad
 ```
 
 ### documentFields
-See [castor-load-custom](https://github.com/castorjs/castor-load-custom).
+See [ezvis](https://github.com/madec-project/ezvis#documentfields).
 
 
 ### routes
