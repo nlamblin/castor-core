@@ -63,13 +63,14 @@ module.exports = function(options) {
   }
   return function (input, submit) {
     JBJ.render(options.stylesheet, input, function (err, res) {
-      // Truncate all indexed documentFields
       for (var field in options.stylesheet) {
+        // Remove all nosave documentFields
         if (options.stylesheet[field].nosave) {
           field = field.slice(1);
           console.info('nosave',field);
           objectPath.del(res,field);
         }
+        // Truncate all indexed documentFields
         else if (!options.stylesheet[field].noindex) {
           field = field.slice(1);
           var value = objectPath.get(res, field);
