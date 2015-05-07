@@ -9,7 +9,13 @@ var path = require('path')
 
 
 function request(urlObj, callback) {
-  require('request')({url : urlObj}, function(error, response, body) {
+  var options = {
+    url: urlObj
+  };
+  if (urlObj.hostname === '127.0.0.1' || urlObj.hostname === 'localhost') {
+    options.proxy = null;
+  }
+  require('request')(options, function(error, response, body) {
     if (!error && response.statusCode == 200) {
       callback(null, body);
     }
@@ -56,17 +62,23 @@ module.exports = function(options) {
     options.stylesheet = {};
   }
   return function (input, submit) {
-    var res = JBJ.renderSync(options.stylesheet, input);
-    // Truncate all indexed documentFields
-    for (var field in options.stylesheet) {
-      if (!options.stylesheet[field].noindex) {
-        field = field.slice(1);
-        var value = objectPath.get(res, field);
-        if (field !== 'text' && typeof value === 'string') {
-          objectPath.set(res,field,value.slice(0,999));
+    JBJ.render(options.stylesheet, input, function (err, res) {
+      // Truncate all indexed documentFields
+      for (var field in options.stylesheet) {
+        if (options.stylesheet[field].nosave) {
+          field = field.slice(1);
+          console.info('nosave',field);
+          objectPath.del(res,field);
+        }
+        else if (!options.stylesheet[field].noindex) {
+          field = field.slice(1);
+          var value = objectPath.get(res, field);
+          if (field !== 'text' && typeof value === 'string') {
+            objectPath.set(res,field,value.slice(0,999));
+          }
         }
       }
-    }
-    submit(null, res);
+      submit(null, res);
+    });
   };
 };
