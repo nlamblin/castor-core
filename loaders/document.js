@@ -67,7 +67,6 @@ module.exports = function(options) {
         // Remove all nosave documentFields
         if (options.stylesheet[field].nosave) {
           field = field.slice(1);
-          console.info('nosave',field);
           objectPath.del(res,field);
         }
         // Truncate all indexed documentFields
