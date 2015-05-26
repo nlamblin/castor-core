@@ -195,13 +195,13 @@ Ex:
 ```json
 {
   "markdown": {
-		 gfm: true,
-		 tables: true,
-		 breaks: false,
-		 pendantic: false,
-		 sanitize: true,
-		 smartLists: true,
-		 smartypants: false
+		 "gfm": true,
+		 "tables": true,
+		 "breaks": false,
+		 "pendantic": false,
+		 "sanitize": true,
+		 "smartLists": true,
+		 "smartypants": false
   }
 }
 ```
@@ -459,13 +459,13 @@ Ex:
 
 #### documentFields
 
-``documentFields` are fields of documents, that are not parts of the input document, but computed when loading.
+`documentFields` are fields of documents, that are not parts of the input document, but computed when loading.
 
 They use [JBJ](http://castorjs.github.io/node-jbj/) syntax to add fields to the document, computed from the current document.
 
 #### corpusFields
 
-``corpusFields` are fields computed from the whole corpus, like the number of records, the period it covers (from `year` document field, for example), etc.
+`corpusFields` are fields computed from the whole corpus, like the number of records, the period it covers (from `year` document field, for example), etc.
 
 They are computed when the corpus is finished loading. Like `documentFields`, they use 
 [JBJ](http://castorjs.github.io/node-jbj/) syntax.
@@ -483,6 +483,20 @@ Ex:
     }
   }
 }
+```
+
+### Cleaning the database
+
+Use [castor-clean](https://github.com/castorjs/castor-clean) to remove the main collection (and all its associated collections) from MongoDB.
+
+```bash
+$ npm install castor-clean -g
+$ ls
+repository
+repository.json
+$ grep collectionName repository.json
+  "collectionName" : "data",
+$ castor-clean data
 ```
 
 ### filters 
