@@ -434,7 +434,7 @@ function serve () {
   }
 
   server.listen(config.get('port'), function() {
-    console.info(kuler('Server is listening on port ' + server.address().port + '.', 'green'));
+    console.info(kuler('Server is listening on port ' + server.address().port + ': http://localhost:' + server.address().port, 'green'));
   });
 
   return server;
