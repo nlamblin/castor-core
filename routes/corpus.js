@@ -94,6 +94,11 @@ module.exports = function(config) {
         "type" : "string",
         "required" : false,
         "array": true
+      },
+      "firstOnly" : {
+        "alias": ["fo"],
+        "type" : "boolean",
+        "required" : false
       }
     };
     var form = require('formatik').parse(req.query, schema);
@@ -183,7 +188,12 @@ module.exports = function(config) {
     var func = fill;
     if (self.parameters.flying) {
       func = function(r) {
-        fly.affix(self.parameters.flying, r, fill);
+        fly.affix(self.parameters.flying, self.parameters.firstOnly && Array.isArray(r) ? r[0] : r, fill);
+      }
+    }
+    else {
+      func = function(r) {
+        fill(self.parameters.firstOnly && Array.isArray(r) ? r[0] : r);
       }
     }
     coll.find(self.mongoQuery, self.mongoOptions).sort(self.mongoSort).skip(self.parameters.startIndex).limit(self.parameters.itemsPerPage).toArray().then(func).catch(fill);
