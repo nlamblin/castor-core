@@ -155,7 +155,12 @@ function serve () {
     ldr.use('**/*', require('./loaders/append.js')());
     if (config.get('turnoffSync') === false) {
       ldr.sync(function(err) {
-        console.info(kuler('Files and Database are synchronised.', 'green'));
+          if (err instanceof Error) {
+            console.error(kuler(err.message, 'red'));
+          }
+          else {
+            console.info(kuler('Files and Database are synchronised.', 'green'));
+          }
       });
     }
     config.set('collectionName', ldr.options.collectionName);
@@ -178,8 +183,13 @@ function serve () {
     idx.push({ 'wid': 1 });
     idx.push({ 'text': 'text' });
     idx.forEach(function(i) {
-      coll.ensureIndex(i, { w: config.get('writeConcern')}, function(err, indexName) {
-        console.info(kuler('Index field :', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
+        coll.ensureIndex(i, { w: config.get('writeConcern')}, function(err, indexName) {
+            if (err instanceof Error) {
+              console.error(kuler(err.message, 'red'));
+            }
+            else {
+              console.info(kuler('Index field :', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
+            }
       });
     });
   }
@@ -218,7 +228,12 @@ function serve () {
         heart.onceOnBeat(2, function() {
           cptlock = false; // évite d'oublier un evenement pendant le calcul
           cpt.run(function(err) {
-            console.info(kuler('Corpus fields computed.', 'green'), err ?  err : '');
+              if (err instanceof Error) {
+                console.error(kuler(err.message, 'red'));
+              }
+              else {
+                console.info(kuler('Corpus fields computed.', 'green'));
+              }
           });
         });
       }
@@ -443,11 +458,13 @@ function serve () {
 module.exports = function(callback) {
   portfinder.basePort = config.get('port');
   portfinder.getPort(function (err, newport) {
-    if (err) {
-      throw err;
+    if (err instanceof Error) {
+      console.error(kuler(err.message, 'red'));
     }
-    config.set('port', newport);
-    callback(config, serve);
+    else {
+      config.set('port', newport);
+      callback(config, serve);
+    }
   });
 };
 
