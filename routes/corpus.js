@@ -136,6 +136,10 @@ module.exports = function(config) {
     if (req.params.format === 'zip') {
       headers['Content-Disposition'] = 'attachment; filename="export.zip"';
     }
+    else if (req.params.format === 'json') {
+      headers['Access-Control-Allow-Origin']  = '*';
+      headers['Access-Control-Allow-Headers'] = 'X-Requested-With'; // TODO: check it's useful
+    }
     fill(headers);
   })
   .append('recordsTotal', function(req, fill) {
