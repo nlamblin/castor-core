@@ -1,0 +1,20 @@
+{
+  "name": "pollux",
+  "version": "0.0.1",
+  "author": "Nicolas Thouvenin <nthouvenin@gmail.com>",
+  "contributors": [],
+  "description": "",
+  "keywords": [],
+  "homepage": "http://github.com/touv/pollux",
+  "main": "index.js",
+  "bin": {
+    "pollux": "./pollux"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/touv/pollux.git"
+  },
+  "bugs": {
+    "url": "https://github.com/touv/pollux/issues"
+  }
+}
