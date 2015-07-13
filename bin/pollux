@@ -3,49 +3,41 @@
 "use strict";
 
 var path = require('path')
-  , optimist = require('optimist')
+  , minimist = require('minimist')
   , portfinder = require('portfinder')
   , kuler = require('kuler')
+  , os = require('os')
   , pck = require('../package.json')
-  , app = require('../lib/app.js')
+  , app = require('../app')
   , Configurator = require('../lib/configurator.js')
 ;
 
-var argv = optimist.usage(
-  [
-    'USAGE: $0 [<options>] [<directory>]',
-  ].join('\n\n')
-)
-.option('version', {
-    alias: 'v',
-    description: 'Show the current version'
-  }
-)
-.option('verbose', {
-    alias: 'V',
-    description: 'Show the logs'
-  }
-)
-.option('debug', {
-    alias: 'd',
-    description: 'Run the debug mode'
-  }
-)
-.option('help', {
-    alias: 'h',
-    description: 'Display this help message'
-  }
-)
-.boolean(['help', 'version', 'verbose', 'debug'])
-.argv;
 
+var usage = [
+  "Usage: pollux [options...] <path>",
+  "",
+  "Options:",
+  "\t -v, --verbose       Make the operation more talkative",
+  "\t -V, --version       Show version number and quit",
+  ""
+].join("\n");
+
+var argv = minimist(process.argv.slice(2), {
+    alias: {
+      h: 'help',
+      V: 'version',
+      v: 'verbose',
+      d: 'debug'
+    },
+    boolean: ['help', 'version', 'verbose', 'debug']
+});
 if (argv.help) {
-  require('optimist').showHelp(console.log);
+  console.info(usage)
   process.exit(0);
 }
 
 if (argv.version) {
-  console.info(kuler('version :', 'olive'), kuler(pck.version, 'limegreen'));
+  console.info(pck.version);
   process.exit(0);
 }
 
@@ -64,11 +56,12 @@ config.fix('debug',                false);
 config.fix('port',                 '3000');
 config.fix('logFormat',            'combined');
 config.fix('title',                'Pollux');
-config.fix('description',          '');
+config.fix('description',          'Publish & link yours data.>');
 config.fix('itemsPerPage',         30);
 config.fix('concurrency',          os.cpus().length);
 config.fix('writeConcern',         1);
 config.fix('delay',                250);
+config.fix('authorityName',        undefined);
 config.fix('maxFileSize',          undefined);
 config.fix('heartrate',            5000);
 config.fix('turnoffUpload',        false);

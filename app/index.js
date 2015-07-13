@@ -4,21 +4,14 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('pollux:' + basename)
-  , util = require('util')
-  , fs = require('fs')
-  , os = require('os')
-  , pck = require('./package.json')
+  , pck = require('../package.json')
   , kuler = require('kuler')
   , express = require('express')
-  , router = express.Router()
   , nunjucks = require('nunjucks')
-  , morgan  = require('morgan')
   , browserify = require('browserify-middleware')
-  , bodyParser = require('body-parser')
-  , pmongo = require('promised-mongo')
   ;
 
-  function serve (config, online) {
+  module.exports = function(config, online) {
 
 
     var app = express();
@@ -27,14 +20,18 @@ var path = require('path')
     // Middlewares :
     // add middlewares to Express
     //
-    app.use(morgan(config.get('logFormat'), { stream : process.stderr }));
-
+    app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
+    app.use(require('serve-favicon')(__dirname + '/../www/favicon.ico'));
+    app.use(function (req, res, next) {
+        req.config = config;
+        next();
+    })
 
     //
     // Define the view template engine
     //
     //
-    var env = nunjucks.configure("../www/", {
+    var env = nunjucks.configure(path.resolve(__dirname, "../www/"), {
         autoescape: false,
         watch: false,
         express: app
@@ -56,10 +53,12 @@ var path = require('path')
     //
     // DEfines Dynamics routes
     //
-    app.use('/-/config', require('./routes/config-api.js')(config);
+    app.use(require('./routes/table.js')(config));
+    app.use(require('./routes/config.js')(config));
+    app.use(require('./routes/files.js')(config));
 
-    app.route("/:authority" +  "/:resource").all(require('./routes/resource-display.js')(config));
-    app.route("/:authority" +  "/:resource.n3').all(require('./routes/resource-display-n3.js')(config));
+    // app.route("/:authority" +  "/:resource").all(require('./routes/resource-display.js')(config));
+    // app.route("/:authority" +  "/:resource.n3").all(require('./routes/resource-display-n3.js')(config));
 
 
     //
@@ -79,7 +78,7 @@ var path = require('path')
     //
     //
     app.route('/assets/*').all(require('ecstatic')({
-          root : path.join('../view', 'assets'),
+          root : path.resolve(__dirname, '../www/assets'),
           baseDir : '/assets',
           cache         : 3600,
           showDir       : true,
@@ -90,7 +89,6 @@ var path = require('path')
           gzip          : false
     }));
     app.route('/').all(function(req, res) { res.redirect('index'); });
-    app.route('/:name.:format').all(require('./routes/page-display.js')(config));
 
     app.use(function(req, res, next) {
         res.status(404).send('Not Found').end();

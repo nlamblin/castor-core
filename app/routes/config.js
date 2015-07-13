@@ -6,18 +6,20 @@ var path = require('path')
   , debug = require('debug')('pollux:routes:' + basename)
   , express = require('express')
   , formatik = require('formatik')
+  , bodyParser = require('body-parser')
   ;
 
 module.exports = function(config) {
+  var router = express.Router()
 
-  var api = express.Router().route('/movies');
-
-  api.get(function(req, res) {
-      var form = formatik.parse(req.body, {
+  router.route('/-/config')
+  .all(bodyParser.urlencoded({ extended: false }))
+  .get(function(req, res) {
+      var form = formatik.parse(req.query, {
           "key" : {
             "type" : "text",
             "required" : true,
-            "pattern" : "[a-z][a-z0-9. _-]+"
+            "pattern" : "[a-zA-Z][a-zA-Z0-9. _-]+"
           }
       }, 'fr');
       if (form.isValid()) {
@@ -28,9 +30,8 @@ module.exports = function(config) {
         res.status(400).send('Bad Request').end();
       }
     }
-  );
-
-  api.post(function(req, res) {
+  )
+  .post(function(req, res) {
       var form = formatik.parse(req.body, {
           "key" : {
             "type" : "text",
@@ -53,6 +54,5 @@ module.exports = function(config) {
       }
 
   });
-  return api;
-
+  return router;
 }
