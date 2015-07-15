@@ -8,6 +8,7 @@ var path = require('path')
   , faker = require('faker')
   , assert = require('assert')
   , MongoClient = require('mongodb').MongoClient
+  , Errors = require('../errors.js')
   ;
 
 
@@ -50,7 +51,14 @@ var path = require('path')
       }
       this.mongoHandle.collection(req.config.get('collectionIndex'))
       .findOne(this.mongoQuery)
-      .then(fill)
+      .then(function(doc) {
+          if (!doc) {
+            fill(new Errors.TableNotFound('The table does not exist.'));
+          }
+          else {
+            fill(doc);
+          }
+      })
       .catch(fill);
   })
   .attach(module);

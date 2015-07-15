@@ -66,26 +66,36 @@ body {
 
     <div class="container">
 
-      {% if error %}
-      <div class="alert alert-danger alert-dismissible fade in" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-        <h4> {{ message }}</h4>
-        <p>
-        {{ error }}
-        </p>
-      </div>
-
-      {% endif %}
 
       <!-- Jumbotron -->
       <div class="jumbotron">
-        <h1><span class="glyphicon glyphicon-fire red"></span> {{page.title}}</h1>
+        <h1><span class="glyphicon glyphicon-fire red"></span> <small>{{message}}</small></h1>
         <p class="lead">The web server is returning an internal error.</p>
+        {% if name == "TableNotFound"%}
+        <form action="#" method="post">
+          <a href="/" class="btn btn-default">Back home</a>
+          <button type="submit" class="btn btn-success">Create a new table</button>
+        </form>
+        {% elif name == "IndexNotFound"%}
+         <form action="/test" method="post">
+          <button type="submit" class="btn btn-success">Create a first table</button>
+        </form>
+        {% else %}
         <a href="/" class="btn btn-default">Back home</a>
         <a href="javascript:document.location.reload(true);" class="btn btn-success">Try Again</a>
+        {% endif %}
       </div>
 
-          </div>
+      {% if error %}
+      <div class="alert alert-danger alert-dismissible fade in" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+        <h4> {{ name }}</h4>
+        <pre>{{ error.stack.split('\n').slice(1).join('\n') }}</pre>
+      </div>
+      {% endif %}
+
+
+    </div>
      <!-- /container -->
 
 

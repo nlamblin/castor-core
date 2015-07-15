@@ -21,7 +21,7 @@ var path = require('path')
     // add middlewares to Express
     //
     app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
-    app.use(require('serve-favicon')(__dirname + '/../www/favicon.ico'));
+    app.use(require('serve-favicon')(__dirname + '/views/favicon.ico'));
     app.use(function (req, res, next) {
         req.config = config;
         next();
@@ -31,7 +31,7 @@ var path = require('path')
     // Define the view template engine
     //
     //
-    var env = nunjucks.configure(path.resolve(__dirname, "../www/"), {
+    var env = nunjucks.configure(path.resolve(__dirname, "./views/"), {
         autoescape: false,
         watch: false,
         express: app
@@ -78,7 +78,7 @@ var path = require('path')
     //
     //
     app.route('/assets/*').all(require('ecstatic')({
-          root : path.resolve(__dirname, '../www/assets'),
+          root : path.resolve(__dirname, './views/assets'),
           baseDir : '/assets',
           cache         : 3600,
           showDir       : true,
@@ -101,7 +101,7 @@ var path = require('path')
     });
 
 
-    // 
+    //
     // error handler
     //
     //
@@ -109,6 +109,7 @@ var path = require('path')
       app.use(function(err, req, res, next) {
           res.status(err.status || 500);
           res.render('error.html', {
+              name: err.name,
               message: err.message,
               error: err
           });
@@ -117,6 +118,7 @@ var path = require('path')
     app.use(function(err, req, res, next) {
         res.status(err.status || 500);
         res.render('error.html', {
+            name: err.name,
             message: err.message
         });
     });

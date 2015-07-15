@@ -6,13 +6,13 @@ var path = require('path')
   , debug = require('debug')('pollux:routes:' + basename)
   , express = require('express')
   , assert = require('assert')
-  , faker = require('faker')
-  , MongoClient = require('mongodb').MongoClient
+  , Errors = require('../errors.js')
   ;
 
 module.exports = function(config) {
 
   var check = require('../models/check-table.js');
+  var create = require('../models/create-table.js');
   var router = express.Router();
   var template = 'table.html';
 
@@ -31,10 +31,11 @@ module.exports = function(config) {
   else {
     router.route('/:resource')
     .get(function(req, res, next) {
-        debug('check', req.params.resource);
         check(req, function(err, locals) {
-            debug('err', err);
-            if (err) {
+            if (err instanceof Errors.TableNotFound && req.params.resource === "index") {
+              next(new Errors.IndexNotFound('Database looks empty.'));
+            }
+            else if (err) {
               next(err);
             }
             else {
@@ -43,29 +44,19 @@ module.exports = function(config) {
         });
     })
     .post(function(req, res, next) {
-        MongoClient.connect(req.config.get('connexionURI')).then(function(db) {
-
-            var coll = db.collection(req.config.get('collectionIndex'));
-            var doc = {
-              "@id": req.params.resource,
-              "@context": {
-                "url": "http://schema.org/url",
-                "title": "http://schema.org/title",
-                "description": "http://schema.org/description",
-                "name": "http://schema.org/name"
-              },
-              "url": String(req.config.get('baseURL')).concat("/").concat(req.params.resource),
-              "title": faker.lorem.sentence(),
-              "description": faker.lorem.paragraph(),
-              "reducer": { "get": "title" },
-              "name": ""
-            };
-            coll.insertOne(doc).then(function() {
+        if (req.params.resource === "index") {
+          next(new Errors.IndexNotFound('Database looks empty.'));
+        }
+        else {
+          create(req, function(err, locals) {
+              if (err) {
+                next(err);
+              }
+              else {
                 res.redirect('.');
-            })
-            .catch(next);
-
-        }).catch(next);
+              }
+          });
+        }
     });
   }
 

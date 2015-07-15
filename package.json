@@ -21,6 +21,7 @@
     "body-parser": "^1.13.2",
     "browserify-middleware": "^6.0.0",
     "clone": "^1.0.2",
+    "custom-error": "^0.2.1",
     "datamodel": "^1.1.1",
     "debug": "^2.2.0",
     "ecstatic": "^0.8.0",
