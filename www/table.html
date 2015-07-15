@@ -85,7 +85,24 @@ var users = new Vue({
 
     <div class="container-fuild">
 
+      {% if data %}
       <h1>{{ page.title|d('No title') }}</h1>
+      {% else %}
+
+      <div class="alert alert-warning alert-dismissible fade in" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+        <h4>Oups ! This page does not exist !</h4>
+        <p>No worries, you can create it !</p>
+        <p>
+        <form action="#" method="post">
+          <a href="/" class="btn btn-default">Back home</a>
+          <button type="submit" class="btn btn-success">Create a new table</button>
+        </form>
+        </p>
+      </div>
+      {% endif %}
+
+
 
       <div id="data">
       <table class="table table-striped">

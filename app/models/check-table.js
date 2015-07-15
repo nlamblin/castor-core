@@ -39,13 +39,16 @@ var path = require('path')
       MongoClient.connect(req.config.get('connexionURI')).then(fill).catch(fill);
   })
   .complete('mongoHandle', function(req, fill) {
+      if (this.mongoHandle instanceof Error) {
+        return fill(this.mongoHandle);
+      }
       this.mongoHandle.close().then(fill).catch(fill);
   })
   .append('data', function(req, fill) {
       if (this.mongoHandle instanceof Error) {
-        return fill({});
+        return fill([]);
       }
-      this.mongoHandle.collection('px_index')
+      this.mongoHandle.collection(req.config.get('collectionIndex'))
       .findOne(this.mongoQuery)
       .then(fill)
       .catch(fill);

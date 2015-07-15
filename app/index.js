@@ -90,9 +90,37 @@ var path = require('path')
     }));
     app.route('/').all(function(req, res) { res.redirect('index'); });
 
+    //
+    // catch 404 and forward to error handler
+    //
+    //
     app.use(function(req, res, next) {
-        res.status(404).send('Not Found').end();
+        var err = new Error('Not Found');
+        err.status = 404;
+        next(err);
     });
+
+
+    // 
+    // error handler
+    //
+    //
+    if (app.get('env') === 'development') {
+      app.use(function(err, req, res, next) {
+          res.status(err.status || 500);
+          res.render('error.html', {
+              message: err.message,
+              error: err
+          });
+      });
+    }
+    app.use(function(err, req, res, next) {
+        res.status(err.status || 500);
+        res.render('error.html', {
+            message: err.message
+        });
+    });
+
 
     //
     // Create HTTP server
