@@ -9,6 +9,7 @@ var path = require('path')
   , os = require('os')
   , pck = require('../package.json')
   , app = require('../app')
+  , fs = require('fs')
   , Configurator = require('../lib/configurator.js')
 ;
 
@@ -61,7 +62,7 @@ config.fix('itemsPerPage',         30);
 config.fix('concurrency',          os.cpus().length);
 config.fix('writeConcern',         1);
 config.fix('delay',                250);
-config.fix('authorityName',        undefined);
+config.fix('authorityName',        ''); // ex: /1234
 config.fix('maxFileSize',          undefined);
 config.fix('heartrate',            5000);
 config.fix('turnoffUpload',        false);
@@ -70,18 +71,23 @@ config.fix('tempPath',             os.tmpdir());
 config.fix('dataPath',             path.normalize(path.resolve(process.cwd(), path.normalize(argv._[0] || "."))));
 config.load('pollux', argv);
 
+if (!fs.existsSync(config.get('dataPath'))) {
+  console.info(usage)
+  process.exit(1);
+}
+
 portfinder.basePort = config.get('port');
 portfinder.getPort(function (err, newport) {
     if (err instanceof Error) {
       console.error(kuler("Unable to get a free port. Try to stop some services.", "red"));
-      process.exit(0);
+      process.exit(2);
     }
     else {
       config.set('port', newport);
       app(config, function(err, server) {
           if (err instanceof Error) {
             console.error(kuler("Unable to init the server. Try the debug mode with --debug.", "red"));
-            process.exit(0);
+            process.exit(3);
           }
           else {
             console.info(kuler("Server is listening on http://127.0.0.1:" + server.address().port + "/", "green"));

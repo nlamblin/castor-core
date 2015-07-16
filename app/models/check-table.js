@@ -32,7 +32,7 @@ var path = require('path')
   })
   .declare('mongoQuery', function(req, fill) {
       var q = {
-          wid: req.params.resource
+          "@id": req.params.resource
       }
       fill(q);
   })
@@ -45,7 +45,7 @@ var path = require('path')
       }
       this.mongoHandle.close().then(fill).catch(fill);
   })
-  .append('data', function(req, fill) {
+  .append('table', function(req, fill) {
       if (this.mongoHandle instanceof Error) {
         return fill([]);
       }

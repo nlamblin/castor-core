@@ -13,52 +13,54 @@ module.exports = function(config) {
 
   var check = require('../models/check-table.js');
   var create = require('../models/create-table.js');
+  var dump = require('../models/dump-table.js');
   var router = express.Router();
   var template = 'table.html';
+  var authorityName = config.get('authorityName');
 
-  if (config.has('authorityName')) {
-    router.route('/' + config.get('authorityName') + '/:resource').get(function(req, res, next) {
-        check(req, function(err, locals) {
-            if (err) {
-              next(err);
-            }
-            else {
-              res.render(template, locals);
-            }
-        });
-    });
-  }
-  else {
-    router.route('/:resource')
-    .get(function(req, res, next) {
-        check(req, function(err, locals) {
-            if (err instanceof Errors.TableNotFound && req.params.resource === "index") {
-              next(new Errors.IndexNotFound('Database looks empty.'));
-            }
-            else if (err) {
-              next(err);
-            }
-            else {
-              res.render(template, locals);
-            }
-        });
-    })
-    .post(function(req, res, next) {
-        if (req.params.resource === "index") {
-          next(new Errors.IndexNotFound('Database looks empty.'));
-        }
-        else {
-          create(req, function(err, locals) {
-              if (err) {
-                next(err);
-              }
-              else {
-                res.redirect('.');
-              }
-          });
-        }
-    });
-  }
+
+
+  router.route(authorityName + '/index')
+  .get(function(req, res, next) {
+      debug('check', '/index');
+      req.params.resource = 'index';
+      check(req)
+      .then(function(locals) {
+          return res.render(template, locals);
+      })
+      .catch(next);
+  })
+  .post(function(req, res, next) {
+      next(new Errors.IndexNotFound('Database looks empty.'));
+  });
+
+
+  router.route(authorityName + '/:resource')
+  .get(function(req, res, next) {
+      debug('check', '/' + req.params.resource);
+      check(req)
+      .then(function(locals) {
+          debug('render', locals);
+          return res.render(template, locals);
+      })
+      .catch(next);
+  })
+  .post(function(req, res, next) {
+      debug('create', '/' + req.params.resource);
+      create(req)
+      .then(function(locals) {
+          return res.redirect(authorityName + '/' + req.params.resource);
+      })
+      .catch(next);
+  });
+
+
+  router.route(authorityName + '/:resource.json')
+  .get(function(req, res, next) {
+      debug('dump', '/' + req.params.resource);
+      dump(req, res, next);
+  })
+
 
   return router;
 };

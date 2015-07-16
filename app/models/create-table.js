@@ -8,16 +8,11 @@ var path = require('path')
   , faker = require('faker')
   , assert = require('assert')
   , MongoClient = require('mongodb').MongoClient
+  , fs = require('fs')
   ;
 
 
 datamodel()
-.declare('mongoQuery', function(req, fill) {
-    var q = {
-      wid: req.params.resource
-    }
-    fill(q);
-})
 .declare('mongoHandle', function(req, fill) {
     MongoClient.connect(req.config.get('connexionURI')).then(fill).catch(fill);
 })
@@ -43,11 +38,22 @@ datamodel()
         "name": ""
     });
 })
-.append('result', function(req, fill) {
+.append('database', function(req, fill) {
     if (this.mongoHandle instanceof Error) {
       return fill([]);
     }
+    debug('insert', this.doc);
     this.mongoHandle.collection(req.config.get('collectionIndex')).insertOne(this.doc).then(fill).catch(fill);
+})
+.append('directory', function(req, fill) {
+    if (this.mongoHandle instanceof Error) {
+      return fill([]);
+    }
+    var tabledir = path.join(req.config.get('dataPath'), req.params.resource);
+    debug('mkdir', tabledir);
+    fs.mkdir(tabledir, function(err, res) {
+        fill(err ? err : res);
+    });
 })
 .attach(module);
 

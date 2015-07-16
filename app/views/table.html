@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="./favicon.ico">
 
-    <title> {{ page.title }} | {{ site.title }} </title>
+    <title> {{ table.title }} | {{ site.title }} </title>
 
     <!-- Bootstrap core CSS -->
     <link href="./assets/css/bootstrap.min.css" rel="stylesheet">
@@ -27,34 +27,6 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <script src="./assets/js/vue.min.js"></script>
-    <script type="text/javascript">
-var apiUrl = 'http://localhost:8888/api/v0/users';
-Vue.config({ delimiters: ["(", ")"] })
-
-var users = new Vue({
-    el: '#data',
-    data: {
-        items: []
-    },
-    created: function () {
-      this.fetchData();
-    },
-    filters: {
-    },
-    methods: {
-        fetchData: function () {
-            var xhr = new XMLHttpRequest(),
-                self = this
-            xhr.open('GET', apiUrl)
-            xhr.onload = function () {
-                self.users = JSON.parse(xhr.responseText)
-            }
-            xhr.send()
-        }
-    }
-});
-</script>
   </head>
 
   <body>
@@ -85,10 +57,11 @@ var users = new Vue({
 
     <div class="container-fuild">
 
-      <h1>{{ page.title|d('No title') }}</h1>
+      <h1>{{ table.title|d('No title') }}</h1>
+      <p>{{ table.title|d('No description') }}</p>
 
 
-      <div id="data">
+      <div id="table-items">
       <table class="table table-striped">
         <thead>
           <tr>
@@ -129,10 +102,17 @@ var users = new Vue({
       ================================================== -->
       <!-- Placed at the end of the document so the pages load faster -->
       <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script> -->
-      <script src="./assets/js/jquery.min.js"></script>
-      <script src="./assets/js/bootstrap.min.js"></script>
+
+      <script type="text/javascript" charset="utf-8" src="/-/bundle.js"></script>
+      <script type="text/javascript" charset="utf-8">
+      var $ = jQuery = require('jquery');
+      var Vue = require('vue');
+      Vue.config.delimiters = ['(', ')'];
+      </script>
+      <script type="text/javascript" charset="utf-8" src="./assets/js/table.js"></script>
+      <script type="text/javascript" charset="utf-8" src="./assets/js/bootstrap.min.js"></script>
       <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-      <script src="./assets/js/ie10-viewport-bug-workaround.js"></script>
+      <script type="text/javascript" charset="utf-8" src="./assets/js/ie10-viewport-bug-workaround.js"></script>
   </body>
 </html>
 

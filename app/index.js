@@ -4,15 +4,44 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('pollux:' + basename)
-  , pck = require('../package.json')
+  , fs = require('fs')
   , kuler = require('kuler')
   , express = require('express')
   , nunjucks = require('nunjucks')
   , browserify = require('browserify-middleware')
+  , Loader = require('castor-load')
+  , kuler = require('kuler')
   ;
 
   module.exports = function(config, online) {
 
+    var options = {
+      "connexionURI" : config.get('connexionURI'),
+      "concurrency" : config.get('concurrency'),
+      "delay" : config.get('delay'),
+      "maxFileSize" : config.get('maxFileSize'),
+      "writeConcern" : config.get('writeConcern'),
+      "ignore" : config.get('filesToIgnore'),
+      "watch" : false
+    };
+    var p = config.get('dataPath');
+    fs.readdir(p, function (err, files) {
+        if (err) {
+          throw err;
+        }
+        files.map(function (file) {
+            return path.join(p, file);
+        }).filter(function (file) {
+            return fs.statSync(file).isDirectory();
+        }).forEach(function (file) {
+            var name = path.basename(file)
+            options['collectionName'] = name;
+            var ldr = new Loader(file, options);
+            ldr.sync(function(processed) {
+                console.info(kuler("Synchronization done.", "green"));
+            });
+        });
+    });
 
     var app = express();
 
@@ -65,7 +94,7 @@ var path = require('path')
     // Set JS modules for the browser
     //
     //
-    var modules = [ 'jquery', 'vue', 'moment', 'qs', 'marked' ];
+    var modules = [ 'jquery', 'vue', 'qs', 'superagent'];
     if (Array.isArray(modules) && modules.length > 0) {
       app.get('/-/bundle.js', browserify(modules, {
             debug: false
