@@ -17,7 +17,7 @@ module.exports = function(model) {
       MongoClient.connect(req.config.get('connexionURI')).then(fill).catch(fill);
   })
   .complete('mongoHandle', function(req, fill) {
-      if (this.mongoHandle instanceof Error) {
+      if (this.mongoHandle instanceof Error || this.mongoCursor !== undefined) {
         return fill(this.mongoHandle);
       }
       this.mongoHandle.close().then(fill).catch(fill);

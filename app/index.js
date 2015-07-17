@@ -94,7 +94,7 @@ var path = require('path')
     // Set JS modules for the browser
     //
     //
-    var modules = [ 'jquery', 'vue', 'qs', 'superagent'];
+    var modules = [ 'jquery', 'vue', 'qs', 'oboe'];
     if (Array.isArray(modules) && modules.length > 0) {
       app.get('/-/bundle.js', browserify(modules, {
             debug: false

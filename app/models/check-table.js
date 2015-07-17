@@ -6,8 +6,6 @@ var path = require('path')
   , debug = require('debug')('pollux:models:' + basename)
   , datamodel = require('datamodel')
   , faker = require('faker')
-  , assert = require('assert')
-  , MongoClient = require('mongodb').MongoClient
   , Errors = require('../errors.js')
   ;
 

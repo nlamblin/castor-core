@@ -1,5 +1,13 @@
 {% extends "layout.html" %}
 
+{% block head %}
+    <title> {{ table.title }} | {{ site.title }} </title>
+    <meta name="description" content="{{ site.description|e }}">
+    <meta name="author" content="">
+{% endblock %}
+
+
+
 {% block body %}
 
     <!-- Fixed navbar -->

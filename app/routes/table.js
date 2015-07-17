@@ -20,7 +20,6 @@ module.exports = function(config) {
   var template = 'table.html';
   var authorityName = config.get('authorityName');
 
-
   //
   // Route /index
   //
@@ -43,7 +42,7 @@ module.exports = function(config) {
   .get(function(req, res, next) {
       req.params.resource = 'index';
       debug('dump', '/' + req.params.resource);
-      dump(req, res, next);
+      mongo(dump()).apply(req, res, next);
   });
 
 
@@ -53,7 +52,7 @@ module.exports = function(config) {
   router.route(authorityName + '/:resource')
   .get(function(req, res, next) {
       debug('check', '/' + req.params.resource);
-      root(mongo(check())).apply(req)
+      site(mongo(check())).apply(req)
       .then(function(locals) {
           debug('render', locals);
           return res.render(template, locals);
