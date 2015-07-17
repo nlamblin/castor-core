@@ -11,6 +11,8 @@ var path = require('path')
 
 module.exports = function(config) {
 
+  var site = require('../models/site.js');
+  var mongo = require('../models/mongo.js');
   var check = require('../models/check-table.js');
   var create = require('../models/create-table.js');
   var dump = require('../models/dump-table.js');
@@ -19,13 +21,12 @@ module.exports = function(config) {
   var authorityName = config.get('authorityName');
 
 
-
+  //
+  // Route /index
+  //
   router.route(authorityName + '/index')
   .get(function(req, res, next) {
-      debug('check', '/index');
-      req.params.resource = 'index';
-      check(req)
-      .then(function(locals) {
+      site().apply(req).then(function(locals) {
           return res.render(template, locals);
       })
       .catch(next);
@@ -35,10 +36,24 @@ module.exports = function(config) {
   });
 
 
+  //
+  // Route /index.json
+  //
+  router.route(authorityName + '/index.json')
+  .get(function(req, res, next) {
+      req.params.resource = 'index';
+      debug('dump', '/' + req.params.resource);
+      dump(req, res, next);
+  });
+
+
+  //
+  // Route /resource
+  //
   router.route(authorityName + '/:resource')
   .get(function(req, res, next) {
       debug('check', '/' + req.params.resource);
-      check(req)
+      root(mongo(check())).apply(req)
       .then(function(locals) {
           debug('render', locals);
           return res.render(template, locals);
@@ -55,11 +70,14 @@ module.exports = function(config) {
   });
 
 
+  //
+  // /resource.json
+  //
   router.route(authorityName + '/:resource.json')
   .get(function(req, res, next) {
       debug('dump', '/' + req.params.resource);
       dump(req, res, next);
-  })
+  });
 
 
   return router;

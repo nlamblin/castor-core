@@ -38,7 +38,7 @@ var path = require('path')
             options['collectionName'] = name;
             var ldr = new Loader(file, options);
             ldr.sync(function(processed) {
-                console.info(kuler("Synchronization done.", "green"));
+                console.info(kuler("Synnchronization done for `" + name+ "`", "green"));
             });
         });
     });
