@@ -7,21 +7,23 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
     {% block head %}{% endblock %}
-    
+
     <link href="./favicon.ico" rel="icon">
 
+	<!-- Fonts -->
+	<!-- <link href='http://fonts.googleapis.com/css?family=Arvo' rel='stylesheet' type='text/css'> -->
+
     <!-- Bootstrap core CSS -->
-    <link href="./assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="./assets/css/customstyles.css" rel="stylesheet">
+    <link href="./assets/css/pollux.css" rel="stylesheet">
 
     <!-- Material Design for Bootstrap -->
     <!-- Include roboto.css to use the Roboto web font, material.css to include the theme and ripples.css to style the ripple effect -->
-    <link href="./assets/css/roboto.min.css" rel="stylesheet">
-    <link href="./assets/css/material.min.css" rel="stylesheet">
-    <link href="./assets/css/ripples.min.css" rel="stylesheet">
-
+    <!-- <link href="./libs/bootstrap-material-design/dist/css/roboto.min.css" rel="stylesheet"> -->
+    <!-- <link href="./libs/bootstrap-material-design/dist/css/material.min.css" rel="stylesheet"> -->
+    <!-- <link href="./libs/bootstrap-material-design/dist/css/ripples.min.css" rel="stylesheet"> -->
 
     <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
     <!--[if lt IE 9]><script src="./assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
@@ -53,18 +55,19 @@
       var Vue = require('vue');
       Vue.config.delimiters = ['(', ')'];
       </script>
-      <script type="text/javascript" charset="utf-8" src="./assets/js/bootstrap.min.js"></script>
-      <script type="text/javascript" charset="utf-8" src="./assets/js/ripples.min.js"></script>
-      <script type="text/javascript" charset="utf-8" src="./assets/js/material.min.js"></script>
+      <script type="text/javascript" charset="utf-8" src="./libs/bootstrap/dist/js/bootstrap.min.js"></script>
+	  <!-- Disabled
+      <script type="text/javascript" charset="utf-8" src="./libs/bootstrap-material-design/dist/js/ripples.min.js"></script>
+      <script type="text/javascript" charset="utf-8" src="./libs/bootstrap-material-design/dist/js/material.min.js"></script>
       <script type="text/javascript" charset="utf-8">
       $(document).ready(function() {
         // This command is used to initialize some elements and make them work properly
         $.material.init();
       });
       </script>
+	  <!-- -->
 
       {% block scripts %}{% endblock %}
-      <script type="text/javascript" charset="utf-8" src="./assets/js/table.js"></script>
       <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
       <script type="text/javascript" charset="utf-8" src="./assets/js/ie10-viewport-bug-workaround.js"></script>
   </body>

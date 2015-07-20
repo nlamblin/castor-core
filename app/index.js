@@ -11,6 +11,7 @@ var path = require('path')
   , browserify = require('browserify-middleware')
   , Loader = require('castor-load')
   , kuler = require('kuler')
+  , ecstatic = require('ecstatic')
   ;
 
   module.exports = function(config, online) {
@@ -103,12 +104,12 @@ var path = require('path')
 
 
     //
-    // Define specials routes
+    // Define reserved routes : /libs, /assets, /index
     //
     //
-    app.route('/assets/*').all(require('ecstatic')({
-          root : path.resolve(__dirname, './views/assets'),
-          baseDir : '/assets',
+    app.route('/assets/*').all(ecstatic({
+          root          : path.resolve(__dirname, './views/assets'),
+          baseDir       : '/assets',
           cache         : 3600,
           showDir       : true,
           autoIndex     : true,
@@ -117,7 +118,20 @@ var path = require('path')
           defaultExt    : 'html',
           gzip          : false
     }));
-    app.route('/').all(function(req, res) { res.redirect('index'); });
+    app.route('/libs/*').all(ecstatic({
+          root          : path.resolve(__dirname, './views/libs'),
+          baseDir       : '/libs',
+          cache         : 3600,
+          showDir       : true,
+          autoIndex     : true,
+          humanReadable : true,
+          si            : false,
+          defaultExt    : 'html',
+          gzip          : false
+    }));
+    app.route('/').all(function(req, res) {
+        res.redirect('index');
+    });
 
     //
     // catch 404 and forward to error handler

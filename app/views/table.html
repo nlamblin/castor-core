@@ -26,6 +26,7 @@
           <ul class="nav navbar-nav">
             <li><a href="/index">Index</a></li>
             <li><a href="/{{page.fakeName}}">New table</a></li>
+            <li><a href=""  data-toggle="modal" data-target="#modal-load">Load data</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li>
@@ -58,25 +59,94 @@
         <tbody>
           <tr v-repeat="items">
             <th>X1</th>
-            <td>James</td>
-            <td>Matman</td>
-            <td>Chief Sandwich Eater</td>
-            <td>Lettuce Green</td>
-            <td>Trek</td>
-            <td>Digby Green</td>
-            <td>January 13, 1979</td>
-            <td>Gotham City</td>
-            <td>3.1</td>
-            <td>RBX-12</td>
+            <td>((name))</td>
+            <td>((title))</td>
+            <td>((description))</td>
           </tr>
         </tbody>
       </table>
       </div>
 
     </div> <!-- /container -->
-{% endblock %}
 
-{% block scripts %}
-<script type="text/javascript" charset="utf-8" src="./assets/js/table.js"></script>
-{% endblock %}
+
+	<!-- Modal -->
+	<div class="modal fade" id="modal-load" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">Modal title</h4>
+				</div>
+				<div class="modal-body">
+					<p>
+					Onec purus dui, vehicula in egestas in, lobortis et sem. Mauris neque quam, pharetra in lacinia vel, tempor vitae tellus. Sed eu augue eget neque euismod euismod. Praesent cursus tincidunt interdum.
+					</p>
+					<ul role="tablist" class="nav nav-tabs">
+						<li role="presentation" class="active">
+							<a href="#modal-load-tab-uri" aria-controls="#modal-load-tab-uri" role="tab" data-toggle="tab">From Internet</a>
+						</li>
+						<li role="presentation">
+							<a href="#modal-load-tab-file" aria-controls="#modal-load-tab-file" role="tab" data-toggle="tab">From Computer</a>
+						</li>
+						<li role="presentation">
+							<a href="#modal-load-tab-text"  aria-controls="#modal-load-tab-text" role="tab" data-toggle="tab">From Keyboard</a>
+						</li>
+					</ul>
+					<div class="panel panel-default">
+						<div class="panel-body">
+							<div class="tab-content">
+								<div role="tabpanel" class="tab-pane active" id="modal-load-tab-uri">
+									<div class="control-group">
+										<label class="control-label" for="modal-load-input-uri">Location</label>
+										<div class="controls">
+											<input id="modal-load-input-uri" class="action input-xxlarge" type="url" placeholder="URL" value="" maxlength="255" pattern="https?://.+">
+											<span class="help-inline"></span>
+										</div>
+									</div>
+								</div>
+								<div role="tabpanel" class="tab-pane" id="modal-load-tab-file">
+									<div class="control-group">
+										<input id="modal-load-input-filename" type="file" name="inputFile" style="display:none">
+										<label class="control-label" for="modal-load-input-file">Name</label>
+										<div class="controls">
+											<div class="input-append">
+												<input id="modal-load-input-file" class="input-xxlarge" type="text" placeholder="Local file" value="" readonly style="cursor:auto">
+												<button class="btn" type="button" onclick="$('#modal-load-input-filename').click();">Browse</button>
+												<span class="add-on" id="modal-load-input-indicator" style="display:none"></span>
+											</div>
+											<span class="help-inline"></span>
+										</div>
+									</div>
+								</div>
+								<div role="tabpanel" class="tab-pane" id="modal-load-tab-text">
+									<div class="control-group">
+										<label class="control-label" for="modal-load-input-text">Text</label>
+										<div class="controls">
+											<textarea class="action input-xxlarge" id="modal-load-input-text" rows="3"></textarea>
+											<span class="help-inline"></span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary">Save changes</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{% endblock %}
+
+	{% block scripts %}
+	<script type="text/javascript" src="./libs/jquery-file-upload/js/jquery.iframe-transport.js"></script>
+	<script type="text/javascript" src="./libs/jquery-file-upload/js/jquery.fileupload.js"></script>
+	<script type="text/javascript" charset="utf-8" src="./assets/js/pollux.table.js"></script>
+	{% endblock %}
 
