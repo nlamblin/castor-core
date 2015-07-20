@@ -63,6 +63,9 @@ module.exports = function(options) {
   }
   return function (input, submit) {
     JBJ.render(options.stylesheet, input, function (err, res) {
+      if (err) {
+        return submit(err);
+      }
       for (var field in options.stylesheet) {
         // Remove all nosave documentFields
         if (options.stylesheet[field].nosave) {
@@ -78,7 +81,7 @@ module.exports = function(options) {
           }
         }
       }
-      submit(null, res);
+      submit(err, res);
     });
   };
 };
