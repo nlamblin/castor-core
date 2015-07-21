@@ -80,28 +80,17 @@ var path = require('path')
     //env.addFilter('nl2br', require('./filters/nl2br.js')(config));
 
 
-    //
-    // DEfines Dynamics routes
-    //
-    app.use(require('./routes/table.js')(config));
-    app.use(require('./routes/config.js')(config));
-    app.use(require('./routes/files.js')(config));
-
-    // app.route("/:authority" +  "/:resource").all(require('./routes/resource-display.js')(config));
-    // app.route("/:authority" +  "/:resource.n3").all(require('./routes/resource-display-n3.js')(config));
-
-
+  
     //
     // Set JS modules for the browser
     //
     //
-    var modules = [ 'jquery', 'vue', 'qs', 'oboe'];
+    var modules = [ 'vue', 'qs', 'oboe'];
     if (Array.isArray(modules) && modules.length > 0) {
-      app.get('/-/bundle.js', browserify(modules, {
+      app.get('/libs.js', browserify(modules, {
             debug: false
       }));
     }
-
 
     //
     // Define reserved routes : /libs, /assets, /index
@@ -132,6 +121,20 @@ var path = require('path')
     app.route('/').all(function(req, res) {
         res.redirect('index');
     });
+
+
+    //
+    // Defines Dynamics routes
+    //
+    app.use(require('./routes/table.js')(config));
+    app.use(require('./routes/config.js')(config));
+    app.use(require('./routes/upload.js')(config));
+    app.use(require('./routes/files.js')(config));
+
+    // app.route("/:authority" +  "/:resource").all(require('./routes/resource-display.js')(config));
+    // app.route("/:authority" +  "/:resource.n3").all(require('./routes/resource-display-n3.js')(config));
+
+
 
     //
     // catch 404 and forward to error handler

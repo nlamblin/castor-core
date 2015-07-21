@@ -19,11 +19,14 @@ module.exports = function(model) {
       });
   })
   .declare('parameters', function(req, fill) {
-      fill(req.query);
+      fill({
+          authorityName : req.config.get('authorityName'),
+          resourceName: req.params.resourcename
+      });
   })
   .declare('mongoQuery', function(req, fill) {
       var q = {
-        "@id": req.params.resource
+        "@id": req.params.resourcename
       }
       fill(q);
   })

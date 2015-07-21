@@ -31,7 +31,7 @@
     "extend": "^3.0.0",
     "faker": "^3.0.0",
     "formatik": "^1.2.0",
-    "jquery": "^2.1.4",
+    "jfum": "^1.0.3",
     "kuler": "0.0.0",
     "minimist": "^1.1.1",
     "mongodb": "^2.0.36",

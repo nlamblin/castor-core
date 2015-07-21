@@ -82,14 +82,14 @@
 					<p>
 					Onec purus dui, vehicula in egestas in, lobortis et sem. Mauris neque quam, pharetra in lacinia vel, tempor vitae tellus. Sed eu augue eget neque euismod euismod. Praesent cursus tincidunt interdum.
 					</p>
-					<ul role="tablist" class="nav nav-tabs">
-						<li role="presentation" class="active">
+					<ul id="modal-load-tab-list" role="tablist" class="nav nav-tabs">
+						<li role="presentation" class="active" data-type="uri">
 							<a href="#modal-load-tab-uri" aria-controls="#modal-load-tab-uri" role="tab" data-toggle="tab">From Internet</a>
 						</li>
-						<li role="presentation">
+						<li role="presentation"  data-type="file">
 							<a href="#modal-load-tab-file" aria-controls="#modal-load-tab-file" role="tab" data-toggle="tab">From Computer</a>
 						</li>
-						<li role="presentation">
+						<li role="presentation"  data-type="text">
 							<a href="#modal-load-tab-text"  aria-controls="#modal-load-tab-text" role="tab" data-toggle="tab">From Keyboard</a>
 						</li>
 					</ul>
@@ -97,46 +97,43 @@
 						<div class="panel-body">
 							<div class="tab-content">
 								<div role="tabpanel" class="tab-pane active" id="modal-load-tab-uri">
-									<div class="control-group">
-										<label class="control-label" for="modal-load-input-uri">Location</label>
-										<div class="controls">
-											<input id="modal-load-input-uri" class="action input-xxlarge" type="url" placeholder="URL" value="" maxlength="255" pattern="https?://.+">
-											<span class="help-inline"></span>
-										</div>
+									<div class="form-group">
+										<label for="modal-load-input-uri">Location</label>
+										<input id="modal-load-input-uri" class="form-control" type="url" placeholder="URL" value="" maxlength="255" pattern="https?://.+">
 									</div>
 								</div>
 								<div role="tabpanel" class="tab-pane" id="modal-load-tab-file">
-									<div class="control-group">
-										<input id="modal-load-input-filename" type="file" name="inputFile" style="display:none">
-										<label class="control-label" for="modal-load-input-file">Name</label>
-										<div class="controls">
-											<div class="input-append">
-												<input id="modal-load-input-file" class="input-xxlarge" type="text" placeholder="Local file" value="" readonly style="cursor:auto">
-												<button class="btn" type="button" onclick="$('#modal-load-input-filename').click();">Browse</button>
-												<span class="add-on" id="modal-load-input-indicator" style="display:none"></span>
-											</div>
-											<span class="help-inline"></span>
+									<div class="form-group">
+										<input data-type="POST" data-url="/-/upload" id="modal-load-input-filename" type="file" name="inputFile" style="display:none">
+										<label for="modal-load-input-file">Name</label>
+										<div class="input-group">
+											<input id="modal-load-input-file" class="form-control" type="text" placeholder="Local file" value="" readonly style="cursor:auto">
+											<span class="input-group-btn">
+												<button class="btn btn-default" type="button" onclick="$('#modal-load-input-filename').click();">Browse<span class="badge" id="modal-load-input-indicator" style="display:none"></span></button>
+											</span>
 										</div>
 									</div>
 								</div>
 								<div role="tabpanel" class="tab-pane" id="modal-load-tab-text">
-									<div class="control-group">
+									<div class="form-group">
 										<label class="control-label" for="modal-load-input-text">Text</label>
-										<div class="controls">
-											<textarea class="action input-xxlarge" id="modal-load-input-text" rows="3"></textarea>
-											<span class="help-inline"></span>
-										</div>
+										<textarea class="form-control" id="modal-load-input-text" rows="3"></textarea>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-
-
+					<div class="form-group">
+						<label class="control-label" for="modal-load-input-type">Type</label>
+						<select id="modal-load-er" class="form-control">
+							<option value="xml">XML Loader</option>
+							<option value="csv">CSV Loader</option>
+						</select>
+					</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-					<button type="button" class="btn btn-primary">Save changes</button>
+					<button id="modal-load-submit" type="button" class="btn btn-primary">Load</button>
 				</div>
 			</div>
 		</div>
@@ -145,8 +142,9 @@
 	{% endblock %}
 
 	{% block scripts %}
-	<script type="text/javascript" src="./libs/jquery-file-upload/js/jquery.iframe-transport.js"></script>
-	<script type="text/javascript" src="./libs/jquery-file-upload/js/jquery.fileupload.js"></script>
-	<script type="text/javascript" charset="utf-8" src="./assets/js/pollux.table.js"></script>
+	<script type="text/javascript" src="/libs/jquery-file-upload/js/vendor/jquery.ui.widget.js"></script>
+	<script type="text/javascript" src="/libs/jquery-file-upload/js/jquery.iframe-transport.js"></script>
+	<script type="text/javascript" src="/libs/jquery-file-upload/js/jquery.fileupload.js"></script>
+	<script type="text/javascript" charset="utf-8" src="/assets/js/pollux.table.js"></script>
 	{% endblock %}
 

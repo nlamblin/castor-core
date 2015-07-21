@@ -39,14 +39,31 @@ $(document).ready(function() {
         send:  function (e, data) {
           $('#modal-load-input-indicator').show().html('Loading ... ');
         },
-        done: function (e, data) {
-          $('#modal-load-input-indicator').html('Loading ... 100%');
+        done: function (error, data) {
+          console.log('error', error);
+          console.log('data.textStatus', data.textStatus);
+          console.log('data.result', data.result);
+          $('#modal-load-input-indicator').html('100%');
           setTimeout(function() { $('#modal-load-input-indicator').fadeOut(); }, 2500);
         },
         progressall: function (e, data) {
           var progress = parseInt(data.loaded / data.total * 100, 10);
-          $('#modal-load-input-indicator').html('Loading ... '+progress + '%');
+          $('#modal-load-input-indicator').html(progress + '%');
         }
+    });
+    $('#modal-load-submit').click(function() {
+        var formData = {
+          loader : $("#modal-load-er").val(),
+          text   : $('#modal-load-input-text').text(),
+          files  : [],
+          uri    : $("#modal-load-input-uri").val(),
+          type   : $("#modal-load-tab-list li.active").data('type')
+        }
+
+        console.log('formData', formData);
+        // $.post("/-/load", formData, function( res ) {
+            // console.log( 'res', res); // John
+        // }, "json");
     });
 
 

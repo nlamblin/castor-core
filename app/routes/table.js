@@ -8,6 +8,7 @@ var path = require('path')
   , assert = require('assert')
   , Errors = require('../errors.js')
   ;
+  
 
 module.exports = function(config) {
 
@@ -23,7 +24,7 @@ module.exports = function(config) {
   //
   // Route /index
   //
-  router.route(authorityName + '/index')
+  router.route(authorityName + '/index/')
   .get(function(req, res, next) {
       site().apply(req).then(function(locals) {
           return res.render(template, locals);
@@ -40,18 +41,18 @@ module.exports = function(config) {
   //
   router.route(authorityName + '/index.json')
   .get(function(req, res, next) {
-      req.params.resource = 'index';
-      debug('dump', '/' + req.params.resource);
+      req.params.resourcename = 'index';
+      debug('dump', '/' + req.params.resourcename);
       mongo(dump()).apply(req, res, next);
   });
 
 
   //
-  // Route /resource
+  // Route /resourcename
   //
-  router.route(authorityName + '/:resource')
+  router.route(authorityName + '/:resourcename/')
   .get(function(req, res, next) {
-      debug('check', '/' + req.params.resource);
+      debug('check', '/' + req.params.resourcename);
       site(mongo(check())).apply(req)
       .then(function(locals) {
           debug('render', locals);
@@ -60,21 +61,20 @@ module.exports = function(config) {
       .catch(next);
   })
   .post(function(req, res, next) {
-      debug('create', '/' + req.params.resource);
+      debug('create', '/' + req.params.resourcename);
       create(req)
       .then(function(locals) {
-          return res.redirect(authorityName + '/' + req.params.resource);
+          return res.redirect(authorityName + '/' + req.params.resourcename);
       })
       .catch(next);
   });
 
-
   //
-  // /resource.json
+  // /resourcename.json
   //
-  router.route(authorityName + '/:resource.json')
+  router.route(authorityName + '/:resourcename.json')
   .get(function(req, res, next) {
-      debug('dump', '/' + req.params.resource);
+      debug('dump', '/' + req.params.resourcename);
       dump(req, res, next);
   });
 

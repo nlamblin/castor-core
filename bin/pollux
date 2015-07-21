@@ -61,7 +61,7 @@ config.fix('concurrency',          os.cpus().length);
 config.fix('writeConcern',         1);
 config.fix('delay',                250);
 config.fix('authorityName',        ''); // ex: /1234
-config.fix('maxFileSize',          undefined);
+config.fix('maxFileSize',          10485760); // 10 Mo
 config.fix('heartrate',            5000);
 config.fix('turnoffUpload',        false);
 config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);

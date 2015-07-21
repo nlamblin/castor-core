@@ -24,14 +24,14 @@ datamodel()
 })
 .prepend('doc', function(req, fill) {
     fill({
-        "@id": req.params.resource,
+        "@id": req.params.resourcename,
         "@context": {
           "url": "http://schema.org/url",
           "title": "http://schema.org/title",
           "description": "http://schema.org/description",
           "name": "http://schema.org/name"
         },
-        "url": String(req.config.get('baseURL')).concat("/").concat(req.params.resource),
+        "url": String(req.config.get('baseURL')).concat("/").concat(req.params.resourcename),
         "title": faker.lorem.sentence(),
         "description": faker.lorem.paragraph(),
         "reducer": { "get": "title" },
@@ -49,7 +49,7 @@ datamodel()
     if (this.mongoHandle instanceof Error) {
       return fill([]);
     }
-    var tabledir = path.join(req.config.get('dataPath'), req.params.resource);
+    var tabledir = path.join(req.config.get('dataPath'), req.params.resourcename);
     debug('mkdir', tabledir);
     fs.mkdir(tabledir, function(err, res) {
         fill(err ? err : res);

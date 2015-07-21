@@ -20,6 +20,6 @@ module.exports = function(model) {
   })
   .declare('url', function(req, fill) {
       fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
-  });
+  })
   return model;
 }
