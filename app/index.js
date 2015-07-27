@@ -12,6 +12,7 @@ var path = require('path')
   , Loader = require('castor-load')
   , kuler = require('kuler')
   , ecstatic = require('ecstatic')
+  , I18n = require('i18n-2')
   ;
 
   module.exports = function(config, online) {
@@ -45,6 +46,12 @@ var path = require('path')
     });
 
     var app = express();
+    //
+    // is it behind a proxy,
+    //
+    if (config.get('trustProxy') === true) {
+      app.enable('trust proxy');
+    }
 
     //
     // Middlewares :
@@ -52,10 +59,30 @@ var path = require('path')
     //
     app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
     app.use(require('serve-favicon')(__dirname + '/views/favicon.ico'));
+    app.use(require('cookie-parser')(__dirname));
+    app.use(require('express-session')({
+          secret: __dirname,
+          cookie: {
+            maxAge: 60000,
+            secure: true
+          },
+          resave: false,
+          saveUninitialized: true
+    }));
+
+
     app.use(function (req, res, next) {
         req.config = config;
         next();
     })
+
+    //
+    // Define I18N
+    //
+    I18n.expressBind(app, {
+        locales: ['en', 'fr']
+    });
+    app.use(require('./middlewares/i18n.js')());
 
     //
     // Define the view template engine
@@ -80,7 +107,7 @@ var path = require('path')
     //env.addFilter('nl2br', require('./filters/nl2br.js')(config));
 
 
-  
+
     //
     // Set JS modules for the browser
     //
