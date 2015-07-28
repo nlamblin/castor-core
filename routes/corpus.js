@@ -52,7 +52,7 @@ module.exports = function(config) {
     fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
   })
   .declare('selector', function(req, fill) {
-    fill({});
+    fill({ state: { $nin: [ "deleted", "hidden" ] } });
   })
   .declare('parameters', function(req, fill) {
     var schema = {
