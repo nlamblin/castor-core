@@ -63,11 +63,12 @@ $(document).ready(function() {
     $('#modal-load-submit').click(function() {
         var formData = {
           loader : $("#modal-load-er").val(),
-          text   : $('#modal-load-input-text').text(),
+          text   : $('#modal-load-input-text').val(),
           file   : fileToLoad,
           uri    : $("#modal-load-input-uri").val(),
           type   : $("#modal-load-tab-list li.active").data('type')
         }
+        console.log(formData);
         if (formData[formData.type] === undefined || formData[formData.type] === '') {
           return false;
         }

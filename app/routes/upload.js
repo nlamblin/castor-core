@@ -48,12 +48,10 @@ module.exports = function(config) {
       }
   });
 
-  router.route('/-/echo')
+  router.route('/-/echo/:basename.:extension')
   .get(function(req, res, next) {
-      var plain = req.param('plain');
-      debug("plain", req.param('plain'));
-      if (plain) {
-        res.send(plain);
+      if (req.query.plain) {
+        res.send(req.query.plain);
       }
       else {
         next(new Errors.InvalidParameters('No input.'));
@@ -63,8 +61,35 @@ module.exports = function(config) {
   router.route('/-/load')
   .all(bodyParser.urlencoded({ extended: false }))
   .post(function(req, res, next) {
-      var ldr;
-      debug('req.body', req.body);
+      var ldr
+        , referer = url.parse(req.get('Referer'))
+        , resourceName = path.basename(referer.pathname)
+        , loader = {}
+        , loaders = {
+            'xml' : {
+              pattern: '**/*.xml',
+              options: {},
+              module: 'castor-load-xml'
+            },
+            'csv' : {
+              pattern: '**/*.csv',
+              options: {},
+              module: 'castor-load-csv'
+            }
+          };
+
+      // TODO : check if req.body is valid
+      // TODO : check if resourceName already exists
+
+      if (req.body.loader === undefined || loaders[req.body.loader] === undefined) {
+        return next(new Errors.InvalidParameters('Unknown loader.'));
+      }
+      else {
+        loader = loaders[req.body.loader];
+      }
+
+      debug('req.body', resourceName, loader, req.body);
+
       if (req.body.type === 'file') {
         var p = require('os').tmpdir(); // upload go to tmpdir
         fs.readdir(p, function (err, files) {
@@ -76,32 +101,35 @@ module.exports = function(config) {
             }).filter(function (file) {
                 return crypto.createHash('sha1').update(file).digest('hex') === req.body.file.token;
             }).forEach(function (file) {
-                options['collectionName'] = req.body.resourceName;
+                options['collectionName'] = resourceName;
                 var ldr = new Loader(__dirname, options);
+                ldr.use(loader.pattern, require(loader.module)(loader.options));
                 ldr.push(file);
             });
         });
       }
       else if (req.body.type === 'text') {
-        options['collectionName'] = req.body.resourceName;
+        options['collectionName'] = resourceName;
         ldr = new Loader(__dirname, options);
+        ldr.use(loader.pattern, require(loader.module)(loader.options));
         ldr.push(url.format({
               protocol: "http",
               hostname: "127.0.0.1",
               port: config.get('port'),
-              pathname: "/-/echo",
+              pathname: "/-/echo/keyboard." + req.body.loader,
               query: {
                 plain : req.body.text
               }
         }));
       }
       else if (req.body.type === 'uri') {
-        options['collectionName'] = req.body.resourceName;
+        options['collectionName'] = resourceName;
         ldr = new Loader(__dirname, options);
+        ldr.use(loader.pattern, require(loader.module)(loader.options));
         ldr.push(req.body.uri);
       }
       else {
-        next(new Errors.InvalidParameters('Unknown type.'));
+        return next(new Errors.InvalidParameters('Unknown type.'));
       }
       res.json({});
   });
