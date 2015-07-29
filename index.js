@@ -277,7 +277,9 @@ function serve () {
         readline.moveCursor(process.stdout, 0, moveY);
         readline.clearLine(process.stdout, 0);
         readline.cursorTo(process.stdout, 0);
-        process.stdout.write('saved from:' + doc.filename.substr(1) + ': ' + nbSavedByFile[doc.fid]);
+        process.stdout.write(kuler('Saved from : ', 'olive') +
+          kuler(doc.filename.substr(1) + ': ', 'limegreen') +
+          nbSavedByFile[doc.fid]);
         onSaved.previousFileNb = fileNb;
       }
     };
