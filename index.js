@@ -24,6 +24,7 @@ var path = require('path')
   , bodyParser = require('body-parser')
   , pmongo = require('promised-mongo')
   , extend = require('extend')
+  , readline = require('readline')
   ;
 
   //
@@ -71,6 +72,7 @@ var path = require('path')
   // config.fix('files:csv:separator', undefined); // auto
   // config.fix('files:csv:encoding', 'utf8');
 
+var development = process.env.NODE_ENV !== 'production';
 
 function serve () {
 
@@ -155,11 +157,25 @@ function serve () {
     ldr.use('**/*', require('./loaders/append.js')());
     if (config.get('turnoffSync') === false) {
       ldr.sync(function(err) {
+          if (development) {
+            process.stdout.write("\n");
+          }
           if (err instanceof Error) {
             console.error(kuler(err.message, 'red'));
           }
           else {
-            console.info(kuler('Files and Database are synchronised.', 'green'));
+            if (development) {
+              // moveCursor below last display
+              var nbFiles = Object.keys(nbSavedByFile).length;
+              readline.moveCursor(process.stdout, 0, nbFiles - onSaved.previousFileNb - 1);
+              readline.cursorTo(process.stdout, 0);
+              process.stdout.write('\n');
+            }
+            var nbSaved = 0;
+            for(var fid in nbSavedByFile) {
+              nbSaved += nbSavedByFile[fid];
+            }
+            console.info(kuler('Files and Database are synchronised. (' + nbSaved + ' saved documents)' , 'green'));
           }
       });
     }
@@ -243,6 +259,31 @@ function serve () {
     ldr.on('cancelled', cptfunc);
     ldr.on('dropped', cptfunc);
     ldr.on('added', cptfunc);
+    var onSaved = function onSaved(doc) {
+      if (nbSavedByFile[doc.fid]) {
+        nbSavedByFile[doc.fid] = nbSavedByFile[doc.fid]+1;
+      }
+      else {
+        nbSavedByFile[doc.fid] = 1;
+      }
+      // if (development && 0 === nbSavedByFile[doc.fid] % 10) {
+      if (development) {
+        if (nbSavedByFile[doc.fid] === 1) {
+          process.stdout.write('\n');
+        }
+        var files = Object.keys(nbSavedByFile);
+        var fileNb = files.indexOf(doc.fid);
+        var moveY = fileNb - onSaved.previousFileNb;
+        readline.moveCursor(process.stdout, 0, moveY);
+        readline.clearLine(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
+        process.stdout.write('saved from:' + doc.filename.substr(1) + ': ' + nbSavedByFile[doc.fid]);
+        onSaved.previousFileNb = fileNb;
+      }
+    };
+    var nbSavedByFile = {};
+    onSaved.previousFileNb = 0;
+    ldr.on('saved', onSaved);
   }
 
   //
