@@ -13,6 +13,28 @@ The configuration object has first level keys, but also further level
 ones.
 General configuration has first-level keys.
 
+### NODE_ENV
+
+If `NODE_ENV` environment variable is set to `production`, no display is done during synchronization of files and database:
+
+```bash
+$ export NODE_ENV=production
+```
+
+Before:
+
+```bash
+saved from:XML_14_08_corpus.xml: 681
+saved from:XML_14_10_corpus.xml: 669
+Files and Database are synchronised. (1350 saved documents)
+```
+
+After:
+
+```bash
+Files and Database are synchronised. (1350 saved documents)
+```
+
 ### General
 #### title
 Site title. The title key is present for each page (although depending on themes too).
