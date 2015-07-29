@@ -100,6 +100,19 @@ function serve () {
   }
 
   //
+  // Load file :
+  // Compute load log file name. It would be removed at next synchronization
+  //
+  function removeFile (file, cb) {
+    fs.exists(file, function removeExistingFile (exists) {
+      if (exists) {
+        fs.unlink(file, cb);
+      }
+    });
+  }
+  var loadLogFile = path.normalize(dataPath) + '_load.json';
+
+  //
   // View path :
   // Find and Check the directory's templates
   //
@@ -172,10 +185,19 @@ function serve () {
               process.stdout.write('\n');
             }
             var nbSaved = 0;
-            for(var fid in nbSavedByFile) {
-              nbSaved += nbSavedByFile[fid];
+            for(var filename in nbSavedByFile) {
+              nbSaved += nbSavedByFile[filename];
             }
             console.info(kuler('Files and Database are synchronised. (' + nbSaved + ' saved documents)' , 'green'));
+
+            var loadLog = "";
+            for (filename in nbSavedByFile) {
+              loadLog += filename + " : " + nbSavedByFile[filename] + "\n";
+            }
+            loadLog += "Total    : " + nbSaved + " documents\n";
+            loadLog += Date() + "\n";
+            loadLog += "---------------------------------\n";
+            fs.appendFile(loadLogFile, loadLog);
           }
       });
     }
@@ -259,27 +281,32 @@ function serve () {
     ldr.on('cancelled', cptfunc);
     ldr.on('dropped', cptfunc);
     ldr.on('added', cptfunc);
+    ldr.on('browseOver', function (found) {
+      nbSavedByFile = {};
+      onSaved.previousFileNb = 0;
+      removeFile(loadLogFile);
+    });
     var onSaved = function onSaved(doc) {
-      if (nbSavedByFile[doc.fid]) {
-        nbSavedByFile[doc.fid] = nbSavedByFile[doc.fid]+1;
+      if (nbSavedByFile[doc.filename]) {
+        nbSavedByFile[doc.filename] = nbSavedByFile[doc.filename]+1;
       }
       else {
-        nbSavedByFile[doc.fid] = 1;
+        nbSavedByFile[doc.filename] = 1;
       }
-      // if (development && 0 === nbSavedByFile[doc.fid] % 10) {
+      // if (development && 0 === nbSavedByFile[doc.filename] % 10) {
       if (development) {
-        if (nbSavedByFile[doc.fid] === 1) {
+        if (nbSavedByFile[doc.filename] === 1) {
           process.stdout.write('\n');
         }
         var files = Object.keys(nbSavedByFile);
-        var fileNb = files.indexOf(doc.fid);
+        var fileNb = files.indexOf(doc.filename);
         var moveY = fileNb - onSaved.previousFileNb;
         readline.moveCursor(process.stdout, 0, moveY);
         readline.clearLine(process.stdout, 0);
         readline.cursorTo(process.stdout, 0);
         process.stdout.write(kuler('Saved from : ', 'olive') +
           kuler(doc.filename.substr(1) + ': ', 'limegreen') +
-          nbSavedByFile[doc.fid]);
+          nbSavedByFile[doc.filename]);
         onSaved.previousFileNb = fileNb;
       }
     };
