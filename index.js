@@ -110,8 +110,8 @@ function serve () {
       }
     });
   }
-  var loadLogFile = path.normalize(dataPath) + '_load.json';
-
+  var loadLogFile   = path.normalize(dataPath) + '_load.json';
+  var errorsLogFile = path.normalize(dataPath) + '_errors.json';
   //
   // View path :
   // Find and Check the directory's templates
@@ -285,6 +285,7 @@ function serve () {
       nbSavedByFile = {};
       onSaved.previousFileNb = 0;
       removeFile(loadLogFile);
+      removeFile(errorsLogFile);
     });
     var onSaved = function onSaved(doc) {
       if (nbSavedByFile[doc.filename]) {
@@ -313,6 +314,15 @@ function serve () {
     var nbSavedByFile = {};
     onSaved.previousFileNb = 0;
     ldr.on('saved', onSaved);
+    ldr.on('loadError', function (err, location, number) {
+      if (development) {
+        console.error('\n' +
+          kuler('Error : ' + err, 'red'),
+          'in file', kuler(location, 'red'),
+          'document #'+ kuler(number,'red'));
+      }
+      fs.appendFile(errorsLogFile, location+" #"+number+": "+err+"\n");
+    });
   }
 
   //
