@@ -83,13 +83,16 @@ portfinder.getPort(function (err, newport) {
     }
     else {
       config.set('port', newport);
+      if (!config.has('baseURL')) {
+        config.set('baseURL', 'http://127.0.0.1:' + newport);
+      }
       require('../app')(config, function(err, server) {
           if (err instanceof Error) {
             console.error(kuler("Unable to init the server. Try the debug mode with --debug.", "red"));
             process.exit(3);
           }
           else {
-            console.info(kuler("Server is listening on http://127.0.0.1:" + server.address().port + "/", "green"));
+            console.info(kuler("Server is listening on " + config.get('baseURL') + "/", "green"));
           }
       });
     }

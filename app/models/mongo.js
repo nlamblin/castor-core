@@ -4,16 +4,13 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('pollux:models:' + basename)
-  , datamodel = require('datamodel')
   , MongoClient = require('mongodb').MongoClient
   ;
 
 
 module.exports = function(model) {
-  if (model === undefined) {
-    model = datamodel();
-  }
-  model.declare('mongoHandle', function(req, fill) {
+  model
+  .declare('mongoHandle', function(req, fill) {
       MongoClient.connect(req.config.get('connexionURI')).then(fill).catch(fill);
   })
   .complete('mongoHandle', function(req, fill) {

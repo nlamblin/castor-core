@@ -10,14 +10,20 @@ var path = require('path')
   ;
 
 module.exports = function(model) {
-  if (model === undefined) {
-    model = datamodel();
-  }
-  model.append('mongoCursor', function(req, fill) {
+  model
+  .declare('collectionName', function(req, fill) {
+      if (req.params.resourcename === 'index') {
+        fill(req.config.get('collectionIndex'))
+      }
+      else {
+        fill(req.params.resourcename);
+      }
+  })
+  .append('mongoCursor', function(req, fill) {
       if (this.mongoHandle instanceof Error) {
         return fill();
       }
-      fill(this.mongoHandle.collection(req.config.get('collectionIndex')).find());
+      fill(this.mongoHandle.collection(this.collectionName).find());
   })
   .send(function(res, next) {
       var self = this;

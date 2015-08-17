@@ -15,7 +15,7 @@ $(document).ready(function() {
         methods: {
           refreshData: function () {
             var self = this;
-            oboe(window.location.href + '.json')
+            oboe(window.location.href.replace(/\/+$/,'') + '.json')
             .node('!.*', function(chunk){
                 self.items.unshift(chunk);
                 return oboe.drop;

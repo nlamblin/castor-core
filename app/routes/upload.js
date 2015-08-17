@@ -59,7 +59,7 @@ module.exports = function(config) {
   });
 
   router.route('/-/load')
-  .all(bodyParser.urlencoded({ extended: false }))
+  .all(bodyParser.urlencoded({ extended: true}))
   .post(function(req, res, next) {
       var ldr
         , referer = url.parse(req.get('Referer'))
@@ -88,9 +88,10 @@ module.exports = function(config) {
         loader = loaders[req.body.loader];
       }
 
-      debug('req.body', resourceName, loader, req.body);
+      debug('resourceName',  resourceName);
+      debug('req.body',  req.body, typeof req.body.file);
 
-      if (req.body.type === 'file') {
+      if (req.body.type === 'file' && typeof req.body.file === 'object') {
         var p = require('os').tmpdir(); // upload go to tmpdir
         fs.readdir(p, function (err, files) {
             if (err) {
@@ -99,8 +100,10 @@ module.exports = function(config) {
             files.map(function (file) {
                 return path.join(p, file);
             }).filter(function (file) {
-                return crypto.createHash('sha1').update(file).digest('hex') === req.body.file.token;
+                var token = crypto.createHash('sha1').update(file).digest('hex');
+                return  (token === req.body.file.token);
             }).forEach(function (file) {
+                debug('file', file);
                 options['collectionName'] = resourceName;
                 var ldr = new Loader(__dirname, options);
                 ldr.use(loader.pattern, require(loader.module)(loader.options));

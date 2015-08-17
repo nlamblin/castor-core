@@ -11,5 +11,6 @@
 	"Text": "Text",
 	"Type": "Type",
 	"Cancel": "Cancel",
-	"Load": "Load"
+	"Load": "Load",
+	"Load Data": "Load Data"
 }
