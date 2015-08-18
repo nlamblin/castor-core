@@ -54,7 +54,9 @@
           <tr v-repeat="items">
             <th>X1</th>
 			{% for column in columns %}
-			<td>(({{column.field}}))</td>
+			<td>
+				<cell name="{{column.field}}" value="(({{column.field}}))" title="(({{column.field}}-title))" ></cell>
+			</td>
 			{% endfor %}
           </tr>
         </tbody>

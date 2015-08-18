@@ -16,7 +16,7 @@ module.exports = function(config) {
   var site = require('../models/site.js')
     , mongo = require('../models/mongo.js')
     , check = require('../models/check-table.js')
-    , check = require('../models/check-table.js')
+    , reduce = require('../models/reduce-table.js')
     , create = require('../models/create-table.js')
     , cols = require('../models/cols-table.js')
     , dump = require('../models/dump-table.js')
@@ -43,25 +43,34 @@ module.exports = function(config) {
 
 
   //
-  // Route /index.json
+  // resources (L)isted
   //
-  router.route(authorityName + '/index.json')
+  router.route(authorityName + '/index.l')
   .get(function(req, res, next) {
+      debug('resources (L)isted');
       req.params.resourcename = 'index';
-      debug('dump', '/' + req.params.resourcename);
       datamodel([mongo, dump])
       .apply(req, res, next);
   });
 
   //
-  // /resourcename.json
+  // documents (L)isted
   //
-  router.route(authorityName + '/:resourcename.json')
+  router.route(authorityName + '/:resourcename.l')
   .get(function(req, res, next) {
-      debug('dump', '/' + req.params.resourcename);
       datamodel([mongo, dump])
       .apply(req, res, next);
   });
+
+  //
+  // documents list (R)educed
+  //
+  router.route(authorityName + '/:resourcename.r')
+  .get(function(req, res, next) {
+      datamodel([mongo, reduce])
+      .apply(req, res, next);
+  });
+
 
 
   //

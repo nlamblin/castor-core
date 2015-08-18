@@ -12,10 +12,29 @@ $(document).ready(function() {
         },
         filters: {
         },
+        components: {
+          cell : {
+            props: {
+              name: {
+                type : String,
+                required : true
+              },
+              value: {
+                type : String,
+                required : true
+              },
+              target: {
+                type : String,
+                required : false 
+              }
+            },
+            template : '<span>((value))</span>'
+          }
+        },
         methods: {
           refreshData: function () {
             var self = this;
-            oboe(window.location.href.replace(/\/+$/,'') + '.json')
+            oboe(window.location.href.replace(/\/+$/,'') + '.l')
             .node('!.*', function(chunk){
                 self.items.unshift(chunk);
                 return oboe.drop;

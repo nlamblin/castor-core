@@ -27,7 +27,10 @@ module.exports = function(model) {
       fill({
           "@id": req.params.resourcename,
           "@context": {
-            "url": "http://schema.org/url",
+            "url": {
+              "@id": "http://schema.org/url",
+              "@type": "@id"
+            },
             "title": "http://schema.org/title",
             "description": "http://schema.org/description",
             "name": "http://schema.org/name"
