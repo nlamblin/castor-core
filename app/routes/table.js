@@ -43,9 +43,9 @@ module.exports = function(config) {
 
 
   //
-  // resources (L)isted
+  // resources list
   //
-  router.route(authorityName + '/index.l')
+  router.route(authorityName + '/index/[\*]')
   .get(function(req, res, next) {
       debug('resources (L)isted');
       req.params.resourcename = 'index';
@@ -56,16 +56,16 @@ module.exports = function(config) {
   //
   // documents (L)isted
   //
-  router.route(authorityName + '/:resourcename.l')
+  router.route(authorityName + '/:resourcename/[\*]')
   .get(function(req, res, next) {
       datamodel([mongo, dump])
       .apply(req, res, next);
   });
 
   //
-  // documents list (R)educed
+  // documents list title
   //
-  router.route(authorityName + '/:resourcename.r')
+  router.route(authorityName + '/:resourcename/[\$]')
   .get(function(req, res, next) {
       datamodel([mongo, reduce])
       .apply(req, res, next);

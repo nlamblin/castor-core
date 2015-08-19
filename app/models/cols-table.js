@@ -26,12 +26,15 @@ module.exports = function(model) {
       var cols = [
         {
           label: 'Identifier',
-          field : '@id'
+          scheme : 'http://purl.org/dc/elements/1.1/identifier',
+          name : 'identifier',
+          value : {
+            "get" : "@id"
+          }
         },
         {
           label : 'Name',
           field: 'url',
-          resource: true
         },
         {
           label: 'Description',

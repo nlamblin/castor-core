@@ -25,6 +25,7 @@ module.exports = function(model) {
   })
   .prepend('doc', function(req, fill) {
       fill({
+          /*
           "@id": req.params.resourcename,
           "@context": {
             "url": {
@@ -35,11 +36,14 @@ module.exports = function(model) {
             "description": "http://schema.org/description",
             "name": "http://schema.org/name"
           },
+          */
           "url": String(req.config.get('baseURL')).concat("/").concat(req.params.resourcename),
           "title": faker.lorem.sentence(),
           "description": faker.lorem.paragraph(),
-          "reducer": { "get": "title" },
-          "name": ""
+          "name": req.params.resourcename,
+          "reducer" : {
+            "get" : "title"
+          }
       });
   })
   .append('database', function(req, fill) {

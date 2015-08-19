@@ -44,7 +44,6 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>X</th>
 			{% for column in columns %}
 			<th>{{column.label}}</th>
 			{% endfor %}
@@ -52,10 +51,9 @@
         </thead>
         <tbody>
           <tr v-repeat="items">
-            <th>X1</th>
 			{% for column in columns %}
 			<td>
-				<cell name="{{column.field}}" value="(({{column.field}}))" title="(({{column.field}}-title))" ></cell>
+				<cell name="{{column.field}}" value="(($data['{{column.field}}']))" title="(($data['${{column.field}}']))" ></cell>
 			</td>
 			{% endfor %}
           </tr>

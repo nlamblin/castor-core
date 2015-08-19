@@ -1,6 +1,7 @@
 /* global $, Vue, document */
 $(document).ready(function() {
     'use strict';
+    Vue.config.debug = true;
     var oboe = require('oboe');
     var TableItemVue = new Vue( {
         el: '#table-items',
@@ -20,21 +21,27 @@ $(document).ready(function() {
                 required : true
               },
               value: {
-                type : String,
-                required : true
+                default: ''
               },
-              target: {
-                type : String,
-                required : false 
+              title: {
+                default: ''
               }
             },
-            template : '<span>((value))</span>'
+            computed: {
+              isLink: function () {
+                return this.title !== ''  ? true : false;
+              },
+              isLiteral: function () {
+                return this.title === '' || this.title === undefined  ? true : false;
+              }
+            },
+            template : '<span v-if="isLiteral">((value))</span><a v-attr="href:value" v-if="isLink">((title))</a>'
           }
         },
         methods: {
           refreshData: function () {
             var self = this;
-            oboe(window.location.href.replace(/\/+$/,'') + '.l')
+            oboe(window.location.href.replace(/\/+$/,'') + '/*')
             .node('!.*', function(chunk){
                 self.items.unshift(chunk);
                 return oboe.drop;
