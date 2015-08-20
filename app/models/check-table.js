@@ -26,15 +26,15 @@ module.exports = function(model) {
   })
   .declare('mongoQuery', function(req, fill) {
       var q = {
-        "@id": req.params.resourcename
+        "name": req.params.resourcename
       }
       fill(q);
   })
   .append('table', function(req, fill) {
-      if (this.mongoHandle instanceof Error) {
+      if (this.mongoDatabseHandle instanceof Error) {
         return fill([]);
       }
-      this.mongoHandle.collection(req.config.get('collectionIndex'))
+      this.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'))
       .findOne(this.mongoQuery)
       .then(function(doc) {
           debug('doc', doc);

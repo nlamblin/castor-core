@@ -1,4 +1,4 @@
-/*jshint node:true, laxcomma:true */
+/* jshint node:true, laxcomma:true */
 'use strict';
 
 var path = require('path')
@@ -13,6 +13,7 @@ var path = require('path')
   , JBJ = require('jbj')
   , async = require('async')
   , url =require('url')
+  , Errors = require('../errors.js')
   ;
 
 module.exports = function(model) {
@@ -23,45 +24,23 @@ module.exports = function(model) {
   model
   .declare('collectionName', function(req, fill) {
       if (req.params.resourcename === 'index') {
-        fill(req.config.get('collectionIndex'))
+        fill(req.config.get('collectionsIndexName'))
       }
       else {
         fill(req.params.resourcename);
       }
   })
-  .append('columns', function(req, fill) {
-      var obj = [
-        {
-          "@id": "http://schema.org/url",
-          "@type": "@id",
-          "stylesheet" : {
-            "get" : "url"
-          },
-          "name" : "url",
-          "label" : "L'URL"
-        },
-        {
-          "@id": "http://schema.org/description",
-          "stylesheet" : {
-            "get" : "description"
-          },
-          "name" : "description",
-          "label" : "La description"
-        }
-      ];
-      fill(obj);
-  })
   .append('mongoCursor', function(req, fill) {
-      if (this.mongoHandle instanceof Error) {
+      if (this.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
-      fill(this.mongoHandle.collection(this.collectionName).find());
+      fill(this.mongoDatabaseHandle.collection(this.collectionName).find());
   })
   .send(function(res, next) {
       var self = this;
       res.set('Content-Type', 'application/json');
       res.on('finish', function() {
-          self.mongoHandle.close();
+          self.mongoDatabaseHandle.close();
       });
       this.mongoCursor.stream()
       .pipe(es.map(function (data, submit) {

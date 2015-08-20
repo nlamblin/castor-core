@@ -6,42 +6,28 @@ var path = require('path')
   , debug = require('debug')('pollux:models:' + basename)
   , MongoClient = require('mongodb').MongoClient
   , JSONStream = require('JSONStream')
+  , Errors = require('../errors.js')
   ;
 
 module.exports = function(model) {
   model
-  .declare('collectionName', function(req, fill) {
-      if (req.params.resourcename === 'index') {
-        fill(req.config.get('collectionIndex'))
-      }
-      else {
-        fill(req.params.resourcename);
-      }
+  .declare('mongoQuery', function(req, fill) {
+      fill({
+          "name" : req.params.resourcename
+      });
   })
   .append('columns', function(req, fill) {
-      if (this.mongoHandle instanceof Error) {
+      if (this.mongoCollectionsIndexHandle instanceof Error) {
         return fill();
       }
-      // fill(this.mongoHandle.collection(this.collectionName).find());
-      var cols = [
-        {
-          label: 'Identifier',
-          scheme : 'http://purl.org/dc/elements/1.1/identifier',
-          name : 'identifier',
-          value : {
-            "get" : "@id"
+      this.mongoCollectionsIndexHandle.findOne(this.mongoQuery).then(function(doc) {
+          if (doc && doc['_fields']) {
+            fill(doc['_fields']);
           }
-        },
-        {
-          label : 'Name',
-          field: 'url',
-        },
-        {
-          label: 'Description',
-          field : 'description'
-        }
-      ];
-      fill(cols)
+          else {
+            fill(new Error.PropertyNotFound('`_fields` is missing.'));
+          }
+      }).catch(fill);
   })
 
   return model;

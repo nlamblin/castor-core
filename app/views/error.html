@@ -52,7 +52,7 @@
           <a href="/" class="btn btn-default">Back home</a>
           <button type="submit" class="btn btn-success">Create a new table</button>
         </form>
-        {% elif name == "IndexNotFound"%}
+        {% elif name == "IndexNotFound" or name == "CollectionNotFound" %}
          <form action="/test" method="post">
           <button type="submit" class="btn btn-success">Create a first table</button>
         </form>

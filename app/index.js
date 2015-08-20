@@ -13,6 +13,7 @@ var path = require('path')
   , kuler = require('kuler')
   , ecstatic = require('ecstatic')
   , I18n = require('i18n-2')
+  , Errors = require('./errors.js')
   ;
 
   module.exports = function(config, online) {
@@ -168,7 +169,7 @@ var path = require('path')
     //
     //
     app.use(function(req, res, next) {
-        var err = new Error('Not Found');
+        var err = new Errors.PageNotFound('Not Found');
         err.status = 404;
         next(err);
     });

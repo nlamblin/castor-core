@@ -26,11 +26,12 @@ module.exports = function(config) {
     ;
 
   //
-  // Route /index
+  // Home page
   //
   router.route(authorityName + '/index/')
   .get(function(req, res, next) {
-      datamodel([site, cols])
+      req.params.resourcename = 'index';
+      datamodel([site, mongo, cols])
       .apply(req)
       .then(function(locals) {
           return res.render(template, locals);
@@ -49,7 +50,7 @@ module.exports = function(config) {
   .get(function(req, res, next) {
       debug('resources (L)isted');
       req.params.resourcename = 'index';
-      datamodel([mongo, dump])
+      datamodel([mongo, cols, dump])
       .apply(req, res, next);
   });
 
@@ -58,7 +59,7 @@ module.exports = function(config) {
   //
   router.route(authorityName + '/:resourcename/[\*]')
   .get(function(req, res, next) {
-      datamodel([mongo, dump])
+      datamodel([mongo, cols, dump])
       .apply(req, res, next);
   });
 
@@ -89,9 +90,10 @@ module.exports = function(config) {
   })
   .post(function(req, res, next) {
       debug('create', '/' + req.params.resourcename);
-      datamodel([create])
+      datamodel([mongo, create])
       .apply(req)
       .then(function(locals) {
+          debug('redirect', authorityName + '/' + req.params.resourcename);
           return res.redirect(authorityName + '/' + req.params.resourcename);
       })
       .catch(next);

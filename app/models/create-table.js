@@ -12,51 +12,104 @@ var path = require('path')
   ;
 
 module.exports = function(model) {
-  model
 
-  .declare('mongoHandle', function(req, fill) {
-      MongoClient.connect(req.config.get('connexionURI')).then(fill).catch(fill);
-  })
-  .complete('mongoHandle', function(req, fill) {
-      if (this.mongoHandle instanceof Error) {
-        return fill(this.mongoHandle);
-      }
-      this.mongoHandle.close().then(fill).catch(fill);
-  })
-  .prepend('doc', function(req, fill) {
+  model
+  .declare('doc', function(req, fill) {
       fill({
-          /*
-          "@id": req.params.resourcename,
-          "@context": {
-            "url": {
-              "@id": "http://schema.org/url",
-              "@type": "@id"
+          "_fields" : [
+            {
+              "@id": "http://schema.org/name",
+              "stylesheet" : {
+                "get" : "title"
+              },
+              "name" : "localTitle",
+              "label" : "localTitle"
             },
-            "title": "http://schema.org/title",
-            "description": "http://schema.org/description",
-            "name": "http://schema.org/name"
-          },
-          */
+            {
+              "@id": "http://schema.org/url",
+              "@type": "@id",
+              "stylesheet" : {
+                "get" : "url"
+              },
+              "name" : "url",
+              "label" : "L'URL"
+            },
+            {
+              "@id": "http://schema.org/description",
+              "stylesheet" : {
+                "get" : "description"
+              },
+              "name" : "description",
+              "label" : "La description"
+            }
+          ],
           "url": String(req.config.get('baseURL')).concat("/").concat(req.params.resourcename),
           "title": faker.lorem.sentence(),
           "description": faker.lorem.paragraph(),
-          "name": req.params.resourcename,
-          "reducer" : {
-            "get" : "title"
-          }
+          "name": req.params.resourcename
       });
   })
-  .append('database', function(req, fill) {
-      if (this.mongoHandle instanceof Error) {
+  .append('mongoResult', function(req, fill) {
+      var self = this;
+      if (self.mongoDatabaseHandle instanceof Error) {
         return fill([]);
       }
-      debug('insert', this.doc);
-      this.mongoHandle.collection(req.config.get('collectionIndex')).insertOne(this.doc).then(fill).catch(fill);
+
+      if (self.mongoCollectionsIndexHandle instanceof Error) {
+        self.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'), function(err, newcoll) {
+            self.mongoCollectionsIndexHandle = err ? err : newcoll;
+            var index = {
+              "_fields" : [
+                {
+                  "@id": "http://schema.org/name",
+                  "stylesheet" : {
+                    "get" : "title"
+                  },
+                  "name" : "localTitle",
+                  "label" : "localTitle"
+                },
+                {
+                  "@id": "http://schema.org/url",
+                  "@type": "@id",
+                  "stylesheet" : {
+                    "get" : "url"
+                  },
+                  "name" : "url",
+                  "label" : "L'URL"
+                },
+                {
+                  "@id": "http://schema.org/description",
+                  "stylesheet" : {
+                    "get" : "description"
+                  },
+                  "name" : "description",
+                  "label" : "La description"
+                }
+
+                /*,
+                 {
+                   label: 'Identifier',
+                   scheme : 'http://purl.org/dc/elements/1.1/identifier',
+                   name : 'identifier',
+                   value : {
+                     "get" : "@id"
+                   }
+                 }
+                 */
+              ],
+              "url": String(req.config.get('baseURL')).concat("/").concat("index"),
+              "title": req.config.get('title'),
+              "description": req.config.get('description'),
+              "name": "index"
+            };
+            newcoll.insertMany([index, self.doc]).then(fill).catch(fill);
+        });
+      }
+      else {
+        self.mongoCollectionsIndexHandle.insertOne(self.doc).then(fill).catch(fill);
+      }
   })
   .append('directory', function(req, fill) {
-      if (this.mongoHandle instanceof Error) {
-        return fill([]);
-      }
       var tabledir = path.join(req.config.get('dataPath'), req.params.resourcename);
       debug('mkdir', tabledir);
       fs.mkdir(tabledir, function(err, res) {

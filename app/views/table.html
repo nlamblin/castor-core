@@ -53,7 +53,7 @@
           <tr v-repeat="items">
 			{% for column in columns %}
 			<td>
-				<cell name="{{column.field}}" value="(($data['{{column.field}}']))" title="(($data['${{column.field}}']))" ></cell>
+				<cell name="{{column.name}}" value="(($data['{{column.name}}']))" title="(($data['${{column.name}}']))" ></cell>
 			</td>
 			{% endfor %}
           </tr>

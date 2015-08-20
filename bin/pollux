@@ -50,7 +50,7 @@ if (!argv.verbose) {
 var Configurator = require('../lib/configurator.js');
 var config = new Configurator();
 config.fix('connexionURI',         'mongodb://localhost:27017/pollux/');
-config.fix('collectionIndex',      'px_index');
+config.fix('collectionsIndexName', 'px_index');
 config.fix('debug',                false);
 config.fix('trustProxy',           false);
 config.fix('port',                 '3000');
