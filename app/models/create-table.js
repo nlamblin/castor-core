@@ -16,37 +16,37 @@ module.exports = function(model) {
   model
   .declare('doc', function(req, fill) {
       fill({
+          "_name": req.params.resourcename,
           "_fields" : [
             {
               "@id": "http://schema.org/name",
-              "stylesheet" : {
+              "propertyValue" : {
                 "get" : "title"
               },
-              "name" : "localTitle",
-              "label" : "localTitle"
+              "propertyName" : "localTitle",
+              "propertyLabel" : "localTitle"
             },
             {
               "@id": "http://schema.org/url",
               "@type": "@id",
-              "stylesheet" : {
+              "propertyValue" : {
                 "get" : "url"
               },
-              "name" : "url",
-              "label" : "L'URL"
+              "propertyName" : "url",
+              "propertyLabel" : "L'URL"
             },
             {
               "@id": "http://schema.org/description",
-              "stylesheet" : {
+              "propertyValue" : {
                 "get" : "description"
               },
-              "name" : "description",
-              "label" : "La description"
+              "propertyName" : "description",
+              "propertyLabel" : "La description"
             }
           ],
           "url": String(req.config.get('baseURL')).concat("/").concat(req.params.resourcename),
           "title": faker.lorem.sentence(),
-          "description": faker.lorem.paragraph(),
-          "name": req.params.resourcename
+          "description": faker.lorem.paragraph()
       });
   })
   .append('mongoResult', function(req, fill) {
@@ -62,33 +62,33 @@ module.exports = function(model) {
               "_fields" : [
                 {
                   "@id": "http://schema.org/name",
-                  "stylesheet" : {
+                  "propertyValue" : {
                     "get" : "title"
                   },
-                  "name" : "localTitle",
-                  "label" : "localTitle"
+                  "propertyName" : "localTitle",
+                  "propertyLabel" : "localTitle"
                 },
                 {
                   "@id": "http://schema.org/url",
                   "@type": "@id",
-                  "stylesheet" : {
+                  "propertyValue" : {
                     "get" : "url"
                   },
-                  "name" : "url",
-                  "label" : "L'URL"
+                  "propertyName" : "url",
+                  "propertyLabel" : "L'URL"
                 },
                 {
                   "@id": "http://schema.org/description",
-                  "stylesheet" : {
+                  "propertyValue" : {
                     "get" : "description"
                   },
-                  "name" : "description",
-                  "label" : "La description"
+                  "propertyName" : "description",
+                  "propertyLabel" : "La description"
                 }
 
                 /*,
                  {
-                   label: 'Identifier',
+                   propertyLabel: 'Identifier',
                    scheme : 'http://purl.org/dc/elements/1.1/identifier',
                    name : 'identifier',
                    value : {
@@ -100,7 +100,7 @@ module.exports = function(model) {
               "url": String(req.config.get('baseURL')).concat("/").concat("index"),
               "title": req.config.get('title'),
               "description": req.config.get('description'),
-              "name": "index"
+              "_name": "index"
             };
             newcoll.insertMany([index, self.doc]).then(fill).catch(fill);
         });

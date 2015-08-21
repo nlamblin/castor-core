@@ -12,7 +12,7 @@ module.exports = function(model) {
   model
   .declare('mongoQuery', function(req, fill) {
       fill({
-          "@id" : req.params.resourcename
+          "_name" : req.params.resourcename
       });
   })
   .append('doc', function(req, fill) {
@@ -24,24 +24,29 @@ module.exports = function(model) {
   .complete('value', function(req, fill) {
       debug('doc', this.doc);
 
-      var reducer = this.doc._fields.filter(function(d) {
+      var field = this.doc._fields.filter(function(d) {
           return d["@id"] === "http://schema.org/name";
       }).shift();
 
-      if (reducer.template) {
-        JBJ.render(reducer.template, this.doc, function (err, res) {
-          debug('res', res);
-          if (err) {
-            fill(err);
-          }
-          else {
-            fill(res);
-          }
-      });
-    }
-    else {
-      fill(new Errors.PropertyNotFound('`http://schema.org/name` is missing.'));
-    }
+      if (field === undefined) {
+        fill(new Errors.PropertyNotFound('`http://schema.org/name` is missing.'));
+      }
+      else if (field.propertyValue === undefined) {
+        fill(null);
+      }
+      else if (typeof field.propertyValue === 'object') {
+        JBJ.render(field.propertyValue, this.doc, function (err, res) {
+            if (err) {
+              fill(err);
+            }
+            else {
+              fill(res);
+            }
+        });
+      }
+      else {
+        fill(field.propertyValue);
+      }
   })
   .send(function(res, next) {
       var self = this;

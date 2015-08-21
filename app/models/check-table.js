@@ -26,7 +26,7 @@ module.exports = function(model) {
   })
   .declare('mongoQuery', function(req, fill) {
       var q = {
-        "name": req.params.resourcename
+        "_name": req.params.resourcename
       }
       fill(q);
   })

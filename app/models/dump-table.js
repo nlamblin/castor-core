@@ -30,11 +30,22 @@ module.exports = function(model) {
         fill(req.params.resourcename);
       }
   })
+  .declare('config', function(req, fill) {
+      fill(req.config);
+  })
+  .prepend('mongoQuery', function(req, fill) {
+      if (req.params.resourcename === 'index') {
+        fill({ _name: { $ne: "index" } });
+      }
+      else {
+        fill({});
+      }
+  })
   .append('mongoCursor', function(req, fill) {
       if (this.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
-      fill(this.mongoDatabaseHandle.collection(this.collectionName).find());
+      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery));
   })
   .send(function(res, next) {
       var self = this;
@@ -46,20 +57,28 @@ module.exports = function(model) {
       .pipe(es.map(function (data, submit) {
             async.map(self.columns
             , function(field, callback) {
-                JBJ.render(field.stylesheet, data, callback);
+                if (field.propertyValue === undefined) {
+                  callback(null, null);
+                }
+                else if (typeof field.propertyValue === 'object') {
+                  JBJ.render(field.propertyValue, data, callback);
+                }
+                else {
+                  callback(null, field.propertyValue);
+                }
               }
             , function(err, results) {
                 if (err) {
                   return submit(err);
                 }
                 var doc = {}
-                doc['@id'] = data['@id'];
+                doc['@id'] = String(self.config.get('baseURL')).concat("/").concat(data['_name']);
                 doc['@context'] = {}
                 self.columns.forEach(function(item, index) {
-                    doc[item.name] = results[index];
-                    doc['@context'][item.name] = {};
-                    doc['@context'][item.name]['@id'] = item['@id'];
-                    doc['@context'][item.name]['@type'] = item['@type'] || undefined;
+                    doc[item.propertyName] = results[index];
+                    doc['@context'][item.propertyName] = {};
+                    doc['@context'][item.propertyName]['@id'] = item['@id'];
+                    doc['@context'][item.propertyName]['@type'] = item['@type'] || undefined;
                 });
                 debug('doc', doc);
                 submit(null, doc);

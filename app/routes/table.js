@@ -83,7 +83,7 @@ module.exports = function(config) {
       datamodel([check, mongo, site])
       .apply(req)
       .then(function(locals) {
-          debug('render', locals);
+          debug('render', template);
           return res.render(template, locals);
       })
       .catch(next);

@@ -13,7 +13,7 @@ module.exports = function(model) {
   model
   .declare('mongoQuery', function(req, fill) {
       fill({
-          "name" : req.params.resourcename
+          "_name" : req.params.resourcename
       });
   })
   .append('columns', function(req, fill) {
