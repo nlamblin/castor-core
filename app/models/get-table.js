@@ -11,21 +11,21 @@ var path = require('path')
 
 module.exports = function(model) {
   model
-  .declare('mongoQuery', function(req, fill) {
-      fill({
-          "_name" : req.params.resourcename
-      });
-  })
-  .append('columns', function(req, fill) {
+  .append('table', function(req, fill) {
       if (this.mongoCollectionsIndexHandle instanceof Error) {
         return fill();
       }
-      this.mongoCollectionsIndexHandle.findOne(this.mongoQuery).then(function(doc) {
-          if (doc && doc['_fields']) {
-            fill(doc['_fields']);
+      this.mongoCollectionsIndexHandle.findOne({
+          "_name" : req.routeParams.resourceName
+      }).then(function(doc) {
+          if (!doc) {
+            fill(new Errors.TableNotFound('The table does not exist.'));
+          }
+          else if (!doc['_fields']) {
+            fill(new Error.PropertyNotFound('`_fields` is missing.'));
           }
           else {
-            fill(new Error.PropertyNotFound('`_fields` is missing.'));
+            fill(doc);
           }
       }).catch(fill);
   })

@@ -12,5 +12,6 @@
 	"Type": "Type",
 	"Cancel": "Cancel",
 	"Load": "Load",
-	"Load Data": "Load Data"
+	"Load Data": "Load Data",
+	"New column": "New column"
 }

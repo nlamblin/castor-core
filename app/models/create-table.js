@@ -7,7 +7,6 @@ var path = require('path')
   , datamodel = require('datamodel')
   , faker = require('faker')
   , assert = require('assert')
-  , MongoClient = require('mongodb').MongoClient
   , fs = require('fs')
   ;
 
@@ -16,7 +15,7 @@ module.exports = function(model) {
   model
   .declare('doc', function(req, fill) {
       fill({
-          "_name": req.params.resourcename,
+          "_name": req.routeParams.resourceName,
           "_fields" : [
             {
               "@id": "http://schema.org/name",
@@ -44,7 +43,7 @@ module.exports = function(model) {
               "propertyLabel" : "La description"
             }
           ],
-          "url": String(req.config.get('baseURL')).concat("/").concat(req.params.resourcename),
+          "url": String(req.config.get('baseURL')).concat("/").concat(req.routeParams.resourceName),
           "title": faker.lorem.sentence(),
           "description": faker.lorem.paragraph()
       });
@@ -110,7 +109,7 @@ module.exports = function(model) {
       }
   })
   .append('directory', function(req, fill) {
-      var tabledir = path.join(req.config.get('dataPath'), req.params.resourcename);
+      var tabledir = path.join(req.config.get('dataPath'), req.routeParams.resourceName);
       debug('mkdir', tabledir);
       fs.mkdir(tabledir, function(err, res) {
           fill(err ? err : res);

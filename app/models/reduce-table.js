@@ -12,7 +12,7 @@ module.exports = function(model) {
   model
   .declare('mongoQuery', function(req, fill) {
       fill({
-          "_name" : req.params.resourcename
+          "_name" : req.routeParams.resourceName
       });
   })
   .append('doc', function(req, fill) {

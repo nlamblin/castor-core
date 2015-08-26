@@ -3,6 +3,8 @@ $(document).ready(function() {
     'use strict';
     Vue.config.debug = true;
     var oboe = require('oboe');
+    var Faker = require('faker');
+
     var TableItemVue = new Vue( {
         el: '#table-items',
         data: {
@@ -104,7 +106,15 @@ $(document).ready(function() {
         fileToLoad = '';
     });
 
-
+    $('#action-newtable').click(function() {
+        document.location.href= "/" + Faker.lorem.words(1);
+        return false;
+    });
+    $('#action-newcolumn').click(function() {
+        $('#form-newcolumn').attr('action', document.location.pathname + '/*/' + Faker.lorem.words(1) + '/');
+        $('#form-newcolumn').submit();
+        return false;
+    });
 
 
 

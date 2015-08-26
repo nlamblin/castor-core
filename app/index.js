@@ -72,10 +72,19 @@ var path = require('path')
     }));
 
 
+    //
+    // Add some vars in req
+    //
     app.use(function (req, res, next) {
         req.config = config;
         next();
-    })
+    });
+
+    app.use(function (req, res, next) {
+        req.routeParams = {};
+        next();
+    });
+
 
     //
     // Define I18N
@@ -113,7 +122,7 @@ var path = require('path')
     // Set JS modules for the browser
     //
     //
-    var modules = [ 'vue', 'qs', 'oboe'];
+    var modules = [ 'vue', 'qs', 'oboe', 'faker'];
     if (Array.isArray(modules) && modules.length > 0) {
       app.get('/libs.js', browserify(modules, {
             debug: false

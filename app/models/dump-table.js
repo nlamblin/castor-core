@@ -23,29 +23,25 @@ module.exports = function(model) {
 
   model
   .declare('collectionName', function(req, fill) {
-      if (req.params.resourcename === 'index') {
+      if (req.routeParams.resourceName === 'index') {
         fill(req.config.get('collectionsIndexName'))
       }
       else {
-        fill(req.params.resourcename);
+        fill(req.routeParams.resourceName);
       }
   })
-  .declare('config', function(req, fill) {
-      fill(req.config);
-  })
-  .prepend('mongoQuery', function(req, fill) {
-      if (req.params.resourcename === 'index') {
-        fill({ _name: { $ne: "index" } });
-      }
-      else {
-        fill({});
-      }
+  .declare('baseURL', function(req, fill) {
+      fill(String(req.config.get('baseURL')).concat("/"));
   })
   .append('mongoCursor', function(req, fill) {
       if (this.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
-      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery));
+      var q = {};
+      if (req.routeParams.resourceName === 'index') {
+        q = { _name: { $ne: "index" } }
+      }
+      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(q));
   })
   .send(function(res, next) {
       var self = this;
@@ -55,7 +51,7 @@ module.exports = function(model) {
       });
       this.mongoCursor.stream()
       .pipe(es.map(function (data, submit) {
-            async.map(self.columns
+            async.map(self.table._fields
             , function(field, callback) {
                 if (field.propertyValue === undefined) {
                   callback(null, null);
@@ -72,9 +68,9 @@ module.exports = function(model) {
                   return submit(err);
                 }
                 var doc = {}
-                doc['@id'] = String(self.config.get('baseURL')).concat("/").concat(data['_name']);
+                doc['@id'] = self.baseURL.concat(data['_name']);
                 doc['@context'] = {}
-                self.columns.forEach(function(item, index) {
+                self.table._fields.forEach(function(item, index) {
                     doc[item.propertyName] = results[index];
                     doc['@context'][item.propertyName] = {};
                     doc['@context'][item.propertyName]['@id'] = item['@id'];

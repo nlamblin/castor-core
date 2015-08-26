@@ -15,10 +15,10 @@ module.exports = function(config) {
 
   var site = require('../models/site.js')
     , mongo = require('../models/mongo.js')
-    , check = require('../models/check-table.js')
     , reduce = require('../models/reduce-table.js')
     , create = require('../models/create-table.js')
-    , cols = require('../models/cols-table.js')
+    , addcol = require('../models/add-column.js')
+    , table = require('../models/get-table.js')
     , dump = require('../models/dump-table.js')
     , router = express.Router()
     , template = 'table.html'
@@ -26,48 +26,63 @@ module.exports = function(config) {
     ;
 
   //
-  // Home page
+  // Define route parameters
   //
-  router.route(authorityName + '/index/')
-  .get(function(req, res, next) {
-      req.params.resourcename = 'index';
-      datamodel([site, mongo, cols])
-      .apply(req)
-      .then(function(locals) {
-          return res.render(template, locals);
-      })
-      .catch(next);
-  })
-  .post(function(req, res, next) {
-      next(new Errors.IndexNotFound('Database looks empty.'));
+  router.param('resourceName', function(req, res, next, value) {
+      req.routeParams.resourceName = value;
+      next();
   });
 
-
-  //
-  // resources list
-  //
-  router.route(authorityName + '/index/[\*]')
-  .get(function(req, res, next) {
-      debug('resources (L)isted');
-      req.params.resourcename = 'index';
-      datamodel([mongo, cols, dump])
-      .apply(req, res, next);
+  router.param('star', function(req, res, next, value) {
+      if (value === '*') {
+        req.routeParams.star = value;
+      }
+      else {
+        req.routeParams.star = undefined;
+      }
+      next();
   });
+
+  router.param('dollar', function(req, res, next, value) {
+      if (value === '$') {
+        req.routeParams.dollar = value;
+      }
+      else {
+        req.routeParams.dollar = undefined;
+      }
+      next();
+  });
+
+  router.param('columnName', function(req, res, next, value) {
+      req.routeParams.columnName = value;
+      next();
+  });
+
 
   //
   // documents (L)isted
   //
-  router.route(authorityName + '/:resourcename/[\*]')
+  router.route(authorityName + '/:resourceName/:star')
+
   .get(function(req, res, next) {
-      datamodel([mongo, cols, dump])
+      debug('get /:resourceName/:star', req.routeParams);
+      if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined) {
+        return next();
+      }
+      datamodel([mongo, table, dump])
       .apply(req, res, next);
   });
 
   //
   // documents list title
   //
-  router.route(authorityName + '/:resourcename/[\$]')
+  router.route(authorityName + '/:resourceName/:dollar')
+
   .get(function(req, res, next) {
+      debug('get /:resourceName/:dollar', req.routeParams);
+      if (req.routeParams.resourceName === undefined || req.routeParams.dollar === undefined) {
+        return next();
+      }
       datamodel([mongo, reduce])
       .apply(req, res, next);
   });
@@ -77,10 +92,14 @@ module.exports = function(config) {
   //
   // Route /resourcename
   //
-  router.route(authorityName + '/:resourcename/')
+  router.route(authorityName + '/:resourceName')
+
   .get(function(req, res, next) {
-      debug('check', '/' + req.params.resourcename);
-      datamodel([check, mongo, site])
+      debug('get /:resourceName', req.routeParams);
+      if (req.routeParams.resourceName === undefined) {
+        return next();
+      }
+      datamodel([mongo, site, table])
       .apply(req)
       .then(function(locals) {
           debug('render', template);
@@ -89,15 +108,43 @@ module.exports = function(config) {
       .catch(next);
   })
   .post(function(req, res, next) {
-      debug('create', '/' + req.params.resourcename);
+      debug('post /:resourceName', req.routeParams);
+      if (req.routeParams.resourceName === undefined) {
+        return next();
+      }
       datamodel([mongo, create])
       .apply(req)
       .then(function(locals) {
-          debug('redirect', authorityName + '/' + req.params.resourcename);
-          return res.redirect(authorityName + '/' + req.params.resourcename);
+          debug('redirect', authorityName + '/' + req.routeParams.resourceName);
+          return res.redirect(authorityName + '/' + req.routeParams.resourceName);
       })
       .catch(next);
   });
+
+
+  router.route(authorityName + '/:resourceName/:star/:columnName')
+
+  .get(function(req, res, next) {
+      debug('get /:resourceName/:star/:columnName', req.routeParams);
+      if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined || req.routeParams.columnName === undefined) {
+        return next();
+      }
+      res.send(req.routeParams.resourceName + '>' +req.routeParams.star + '>'+req.routeParams.columnName);
+  })
+  .post(function(req, res, next) {
+      debug('post /:resourceName/:star/:columnName', req.routeParams);
+      if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined || req.routeParams.columnName === undefined) {
+        return next();
+      }
+      datamodel([mongo, addcol])
+      .apply(req)
+      .then(function(locals) {
+          debug('redirect', authorityName + '/' + req.routeParams.resourceName);
+          return res.redirect(authorityName + '/' + req.routeParams.resourceName);
+      })
+      .catch(next);
+  });
+
 
 
   return router;

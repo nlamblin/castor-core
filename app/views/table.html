@@ -9,6 +9,7 @@
 
 
 {% block body %}
+	<form method="post" action="" id="form-newcolumn"> </form>
 
     <!-- Fixed navbar -->
 	<nav class="navbar navbar-inverse navbar-fixed-bottom">
@@ -16,17 +17,18 @@
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
 			  <span class="sr-only">{{ __('Toggle navigation') }}</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/">{{ site.title }}</a>
-        </div>
+			  <span class="icon-bar"></span>
+			  <span class="icon-bar"></span>
+			  <span class="icon-bar"></span>
+		  </button>
+		  <a class="navbar-brand" href="/">{{ site.title }}</a>
+		</div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
 			  <li><a href="/index">{{ __('Index') }}</a></li>
-            <li><a href="/{{page.fakeName}}">{{ __('New table') }}</a></li>
-            <li><a href=""  data-toggle="modal" data-target="#modal-load">{{ __('Load data') }}</a></li>
+            <li><a id="action-loaddata" href="" data-toggle="modal" data-target="#modal-loaddata">{{ __('Load data') }}</a></li>
+            <li><a id="action-newtable" href="">{{ __('New table') }}</a></li>
+            <li><a id="action-newcolumn" href="">{{ __('New column') }}</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li>
@@ -44,26 +46,27 @@
       <table class="table table-striped">
         <thead>
           <tr>
-			{% for column in columns %}
-			<th>{{column.propertyLabel}}</th>
+			{% for field in table._fields %}
+			<th><a  data-toggle="modal" data-target="#modal-editcolumn">{{field.propertyLabel}}</a></th>
 			{% endfor %}
           </tr>
         </thead>
         <tbody>
           <tr v-repeat="items">
-			{% for column in columns %}
+			{% for field in table._fields %}
 			<td>
-				<cell name="{{column.propertyName}}" value="(($data['{{column.propertyName}}']))" title="(($data['${{column.propertyName}}']))" ></cell>
+				<cell name="{{field.propertyName}}" value="(($data['{{field.propertyName}}']))" title="(($data['${{field.propertyName}}']))" ></cell>
 			</td>
 			{% endfor %}
           </tr>
         </tbody>
-      </table>
+	  </table>
       </div>
 
     </div> <!-- /container -->
 
-	{% include "./modals/load.html" %}
+	{% include "./modals/load-data.html" %}
+	{% include "./modals/edit-column.html" %}
 
 	{% endblock %}
 
