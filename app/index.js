@@ -114,8 +114,8 @@ var path = require('path')
     // "Filters" for nunjucks
     //
     //
-    //env.addFilter('nl2br', require('./filters/nl2br.js')(config));
-
+    env.addFilter('nl2br', require('./filters/nl2br.js')(config));
+    env.addFilter('json', require('./filters/json.js')(config));
 
 
     //

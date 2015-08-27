@@ -51,12 +51,12 @@ module.exports = function(model) {
       });
       this.mongoCursor.stream()
       .pipe(es.map(function (data, submit) {
-            async.map(self.table._fields
+            async.map(self.table._columns
             , function(field, callback) {
                 if (field.propertyValue === undefined) {
                   callback(null, null);
                 }
-                else if (typeof field.propertyValue === 'object') {
+                else if (field.propertyValue !== undefined && field.propertyValue !== null && typeof field.propertyValue === 'object') {
                   JBJ.render(field.propertyValue, data, callback);
                 }
                 else {
@@ -70,7 +70,7 @@ module.exports = function(model) {
                 var doc = {}
                 doc['@id'] = self.baseURL.concat(data['_name']);
                 doc['@context'] = {}
-                self.table._fields.forEach(function(item, index) {
+                self.table._columns.forEach(function(item, index) {
                     doc[item.propertyName] = results[index];
                     doc['@context'][item.propertyName] = {};
                     doc['@context'][item.propertyName]['@id'] = item['@id'];
@@ -83,7 +83,13 @@ module.exports = function(model) {
       .pipe(es.map(function (data, submit) {
             var urls = [], keys = [];
             Object.keys(data["@context"]).forEach(function(key) {
-                if (data["@context"][key] && typeof data["@context"][key] === 'object' && data["@context"][key]["@type"] && data["@context"][key]["@type"] === "@id") {
+                if (data["@context"][key]
+                  && typeof data["@context"][key] === 'object'
+                  && data["@context"][key]["@type"]
+                  && data["@context"][key]["@type"] === "@id"
+                  && data[key]
+                  && typeof data[key] === 'string'
+                ) {
                   var urlObj = url.parse(data[key]);
                   urlObj.pathname = urlObj.pathname.concat('/$');
                   urls.push(url.format(urlObj));

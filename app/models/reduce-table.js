@@ -10,21 +10,19 @@ var path = require('path')
 
 module.exports = function(model) {
   model
-  .declare('mongoQuery', function(req, fill) {
-      fill({
-          "_name" : req.routeParams.resourceName
-      });
-  })
   .append('doc', function(req, fill) {
-      if (this.mongoDatabaseHandle instanceof Error) {
+      if (this.mongoCollectionsIndexHandle instanceof Error) {
         return fill();
       }
-      this.mongoCollectionsIndexHandle.findOne(this.mongoQuery).then(fill).catch(fill);
+      var q = {
+          "_name" : req.routeParams.resourceName
+      }
+      this.mongoCollectionsIndexHandle.findOne(q).then(fill).catch(fill);
   })
   .complete('value', function(req, fill) {
       debug('doc', this.doc);
 
-      var field = this.doc._fields.filter(function(d) {
+      var field = this.doc._columns.filter(function(d) {
           return d["@id"] === "http://schema.org/name";
       }).shift();
 

@@ -16,7 +16,7 @@ module.exports = function(model) {
   .declare('doc', function(req, fill) {
       fill({
           "_name": req.routeParams.resourceName,
-          "_fields" : [
+          "_columns" : [
             {
               "@id": "http://schema.org/name",
               "propertyValue" : {
@@ -58,7 +58,7 @@ module.exports = function(model) {
         self.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'), function(err, newcoll) {
             self.mongoCollectionsIndexHandle = err ? err : newcoll;
             var index = {
-              "_fields" : [
+              "_columns" : [
                 {
                   "@id": "http://schema.org/name",
                   "propertyValue" : {

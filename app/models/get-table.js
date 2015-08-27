@@ -21,8 +21,8 @@ module.exports = function(model) {
           if (!doc) {
             fill(new Errors.TableNotFound('The table does not exist.'));
           }
-          else if (!doc['_fields']) {
-            fill(new Error.PropertyNotFound('`_fields` is missing.'));
+          else if (!doc['_columns']) {
+            fill(new Error.PropertyNotFound('`_columns` is missing.'));
           }
           else {
             fill(doc);

@@ -13,5 +13,12 @@
 	"Cancel": "Cancel",
 	"Load": "Load",
 	"Load Data": "Load Data",
-	"New column": "New column"
+	"New column": "New column",
+	"Edit Column": "Edit Column",
+	"Save": "Save",
+	"Label": "Label",
+	"Scheme": "Scheme",
+	"Value": "Value",
+	"Drop": "Drop",
+	"View raw data": "View raw data"
 }

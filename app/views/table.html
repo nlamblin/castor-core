@@ -9,8 +9,6 @@
 
 
 {% block body %}
-	<form method="post" action="" id="form-newcolumn"> </form>
-
     <!-- Fixed navbar -->
 	<nav class="navbar navbar-inverse navbar-fixed-bottom">
       <div class="container-fluid">
@@ -46,16 +44,20 @@
       <table class="table table-striped">
         <thead>
           <tr>
-			{% for field in table._fields %}
-			<th><a  data-toggle="modal" data-target="#modal-editcolumn">{{field.propertyLabel}}</a></th>
+			  <th></th>
+			{% for column in table._columns %}
+			<th><a class="action-editcolumn" data-column='{{column|json}}'>{{column.propertyLabel}}</a></th>
 			{% endfor %}
           </tr>
         </thead>
         <tbody>
           <tr v-repeat="items">
-			{% for field in table._fields %}
+			  <td>
+				  <a v-on="click: viewRawData(this)"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a>
+			  </td>
+			{% for column in table._columns %}
 			<td>
-				<cell name="{{field.propertyName}}" value="(($data['{{field.propertyName}}']))" title="(($data['${{field.propertyName}}']))" ></cell>
+				<cell name="{{column.propertyName}}" value="(($data['{{column.propertyName}}']))" title="(($data['${{column.propertyName}}']))" ></cell>
 			</td>
 			{% endfor %}
           </tr>
@@ -66,14 +68,20 @@
     </div> <!-- /container -->
 
 	{% include "./modals/load-data.html" %}
+	{% include "./modals/view-rawdata.html" %}
 	{% include "./modals/edit-column.html" %}
 
+	{% endblock %}
+
+	{% block styles %}
+	<link href="/libs/jsoneditor/jsoneditor.min.css" rel="stylesheet" type="text/css">
 	{% endblock %}
 
 	{% block scripts %}
 	<script type="text/javascript" src="/libs/jquery-file-upload/js/vendor/jquery.ui.widget.js"></script>
 	<script type="text/javascript" src="/libs/jquery-file-upload/js/jquery.iframe-transport.js"></script>
 	<script type="text/javascript" src="/libs/jquery-file-upload/js/jquery.fileupload.js"></script>
+	<script type="text/javascript" src="/libs/jsoneditor/jsoneditor.min.js"></script>
 	<script type="text/javascript" charset="utf-8" src="/assets/js/pollux.table.js"></script>
 	{% endblock %}
 

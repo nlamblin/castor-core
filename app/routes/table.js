@@ -8,6 +8,7 @@ var path = require('path')
   , assert = require('assert')
   , datamodel = require('datamodel')
   , Errors = require('../errors.js')
+  , bodyParser = require('body-parser')
   ;
 
 
@@ -17,7 +18,7 @@ module.exports = function(config) {
     , mongo = require('../models/mongo.js')
     , reduce = require('../models/reduce-table.js')
     , create = require('../models/create-table.js')
-    , addcol = require('../models/add-column.js')
+    , postcol = require('../models/post-column.js')
     , table = require('../models/get-table.js')
     , dump = require('../models/dump-table.js')
     , router = express.Router()
@@ -131,12 +132,13 @@ module.exports = function(config) {
       }
       res.send(req.routeParams.resourceName + '>' +req.routeParams.star + '>'+req.routeParams.columnName);
   })
-  .post(function(req, res, next) {
+  .all(bodyParser.urlencoded({ extended: true}))
+ .post(function(req, res, next) {
       debug('post /:resourceName/:star/:columnName', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined || req.routeParams.columnName === undefined) {
         return next();
       }
-      datamodel([mongo, addcol])
+      datamodel([mongo, postcol])
       .apply(req)
       .then(function(locals) {
           debug('redirect', authorityName + '/' + req.routeParams.resourceName);

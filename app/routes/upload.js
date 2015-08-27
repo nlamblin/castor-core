@@ -64,6 +64,7 @@ module.exports = function(config) {
       var ldr
         , referer = url.parse(req.get('Referer'))
         , resourceName = path.basename(referer.pathname)
+        , widLoader = require('../loaders/wid.js')()
         , loader = {}
         , loaders = {
             'xml' : {
@@ -107,6 +108,7 @@ module.exports = function(config) {
                 options['collectionName'] = resourceName;
                 var ldr = new Loader(__dirname, options);
                 ldr.use(loader.pattern, require(loader.module)(loader.options));
+                ldr.use('**/*', widLoader);
                 ldr.push(file);
             });
         });
@@ -115,6 +117,7 @@ module.exports = function(config) {
         options['collectionName'] = resourceName;
         ldr = new Loader(__dirname, options);
         ldr.use(loader.pattern, require(loader.module)(loader.options));
+        ldr.use('**/*', widLoader);
         ldr.push(url.format({
               protocol: "http",
               hostname: "127.0.0.1",
@@ -129,6 +132,7 @@ module.exports = function(config) {
         options['collectionName'] = resourceName;
         ldr = new Loader(__dirname, options);
         ldr.use(loader.pattern, require(loader.module)(loader.options));
+        ldr.use('**/*', widLoader);
         ldr.push(req.body.uri);
       }
       else {
