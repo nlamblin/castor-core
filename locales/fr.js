@@ -22,5 +22,7 @@
 	"Drop": "Drop",
 	"View raw data": "View raw data",
 	"Edit column": "Edit column",
-	"Comment": "Comment"
+	"Comment": "Comment",
+	"Table": "Table",
+	"Drop table": "Drop table"
 }

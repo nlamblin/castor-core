@@ -25,6 +25,10 @@ module.exports = function(model) {
         property.label = req.body.propertyLabel;
         property.value = req.body.propertyValue;
       }
+      else if (req.body && req.body[req.routeParams.columnName] == 'true') {
+        property.name = false;
+        req.body.previousName = req.routeParams.columnName;
+      }
       else if (req.body) {
         property.scheme = "http://exemple.com/" + req.routeParams.columnName;
         property.label = faker.lorem.words().join(' ');
@@ -47,19 +51,25 @@ module.exports = function(model) {
       };
 
       function miseajour() {
-        var o1 = {
-          "$push" : {
-            "_columns" : {
-              "propertyScheme": self.property.scheme,
-              "propertyType": self.property.type,
-              "propertyValue" : self.property.value,
-              "propertyName" : self.property.name,
-              "propertyLabel" : self.property.label,
-              "propertyComment" : self.property.comment
+        if (self.property.name) {
+          var o1 = {
+            "$push" : {
+              "_columns" : {
+                "propertyScheme": self.property.scheme,
+                "propertyType": self.property.type,
+                "propertyValue" : self.property.value,
+                "propertyName" : self.property.name,
+                "propertyLabel" : self.property.label,
+                "propertyComment" : self.property.comment
+              }
             }
           }
+          self.mongoCollectionsIndexHandle.update(q, o1).then(fill).catch(fill);
         }
-        self.mongoCollectionsIndexHandle.update(q, o1).then(fill).catch(fill);
+        else {
+          debug('Dropped!');
+          fill(true);
+        }
       }
 
       if (req.body && req.body.previousName) {
