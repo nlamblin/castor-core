@@ -34,6 +34,16 @@ module.exports = function(config) {
       next();
   });
 
+  router.param('documentName', function(req, res, next, value) {
+      if (value !== '*' && value !== '$') {
+        req.routeParams.documentName = value;
+      }
+      else {
+        req.routeParams.documentName = undefined;
+      }
+      next();
+  });
+
   router.param('star', function(req, res, next, value) {
       if (value === '*') {
         req.routeParams.star = value;
@@ -73,6 +83,18 @@ module.exports = function(config) {
       datamodel([mongo, table, dump])
       .apply(req, res, next);
   });
+
+  router.route(authorityName + '/:resourceName/:documentName/:star')
+
+  .get(function(req, res, next) {
+      debug('get /:resourceName/:documentName/:star', req.routeParams);
+      if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined || req.routeParams.star === undefined) {
+        return next();
+      }
+      datamodel([mongo])
+      .apply(req, res, next);
+  });
+
 
   //
   // documents list title

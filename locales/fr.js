@@ -20,5 +20,7 @@
 	"Scheme": "Scheme",
 	"Value": "Value",
 	"Drop": "Drop",
-	"View raw data": "View raw data"
+	"View raw data": "View raw data",
+	"Edit column": "Edit column",
+	"Comment": "Comment"
 }

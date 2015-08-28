@@ -10,6 +10,25 @@ var path = require('path')
 
 module.exports = function(model) {
   model
+  .append('field', function(req, fill) {
+      if (this.mongoCollectionsIndexHandle instanceof Error) {
+        return fill();
+      }
+      var q = {
+          "_name" : 'index'
+      }
+      this.mongoCollectionsIndexHandle.findOne(q).then(function(doc) {
+          var field = doc._columns.filter(function(d) {
+              return d.propertyScheme === "http://schema.org/name";
+          }).shift();
+          if (field === undefined) {
+            fill(new Errors.PropertyNotFound('`http://schema.org/name` is missing.'));
+          }
+          else {
+            fill(field);
+          }
+      }).catch(fill);
+  })
   .append('doc', function(req, fill) {
       if (this.mongoCollectionsIndexHandle instanceof Error) {
         return fill();
@@ -20,20 +39,12 @@ module.exports = function(model) {
       this.mongoCollectionsIndexHandle.findOne(q).then(fill).catch(fill);
   })
   .complete('value', function(req, fill) {
-      debug('doc', this.doc);
-
-      var field = this.doc._columns.filter(function(d) {
-          return d["@id"] === "http://schema.org/name";
-      }).shift();
-
-      if (field === undefined) {
-        fill(new Errors.PropertyNotFound('`http://schema.org/name` is missing.'));
-      }
-      else if (field.propertyValue === undefined) {
+      var self = this;
+      if (self.field.propertyValue === undefined) {
         fill(null);
       }
-      else if (typeof field.propertyValue === 'object') {
-        JBJ.render(field.propertyValue, this.doc, function (err, res) {
+      else if (typeof self.field.propertyValue === 'object') {
+        JBJ.render(self.field.propertyValue, self.doc, function (err, res) {
             if (err) {
               fill(err);
             }
@@ -43,7 +54,7 @@ module.exports = function(model) {
         });
       }
       else {
-        fill(field.propertyValue);
+        fill(self.field.propertyValue);
       }
   })
   .send(function(res, next) {

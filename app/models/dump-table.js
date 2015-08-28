@@ -31,7 +31,7 @@ module.exports = function(model) {
       }
   })
   .declare('baseURL', function(req, fill) {
-      fill(String(req.config.get('baseURL')).concat("/"));
+      fill(String(req.config.get('baseURL')).replace(/\/+$/,''));
   })
   .append('mongoCursor', function(req, fill) {
       if (this.mongoDatabaseHandle instanceof Error) {
@@ -50,6 +50,35 @@ module.exports = function(model) {
           self.mongoDatabaseHandle.close();
       });
       this.mongoCursor.stream()
+      //
+      // Compute field with propertyText
+      //
+      .pipe(es.map(function (data, submit) {
+            async.map(self.table._columns
+            , function(field, callback) {
+                if (field.propertyText === undefined) {
+                  callback(null, null);
+                }
+                else if (field.propertyText !== null && typeof field.propertyText === 'object') {
+                  JBJ.render(field.propertyText, data, callback);
+                }
+                else {
+                  callback(null, field.propertyText);
+                }
+              }
+            , function(err, results) {
+                if (err) {
+                  return submit(err);
+                }
+                self.table._columns.forEach(function(item, index) {
+                    data['$' + item.propertyName] = results[index];
+                });
+                submit(null, data);
+            });
+      }))
+      //
+      // Compute field with propertyValue
+      //
       .pipe(es.map(function (data, submit) {
             async.map(self.table._columns
             , function(field, callback) {
@@ -67,19 +96,37 @@ module.exports = function(model) {
                 if (err) {
                   return submit(err);
                 }
-                var doc = {}
-                doc['@id'] = self.baseURL.concat(data['_name']);
-                doc['@context'] = {}
                 self.table._columns.forEach(function(item, index) {
-                    doc[item.propertyName] = results[index];
-                    doc['@context'][item.propertyName] = {};
-                    doc['@context'][item.propertyName]['@id'] = item['@id'];
-                    doc['@context'][item.propertyName]['@type'] = item['@type'] || undefined;
+                    data[item.propertyName] = results[index];
                 });
-                debug('doc', doc);
-                submit(null, doc);
+                submit(null, data);
             });
       }))
+      //
+      // Transform document to standard
+      //
+      .pipe(es.map(function (data, submit) {
+            var doc = {}
+            doc['@id'] = self.baseURL.concat("/").concat(data['_name']);
+            doc['@context'] = {}
+            self.table._columns.forEach(function(item, index) {
+                doc['@context'][item.propertyName] = {};
+                doc['@context'][item.propertyName]['@id'] = item.propertyScheme;
+                if (item.propertyType) {
+                  doc['@context'][item.propertyName]['@type'] = item.propertyType;
+                }
+                if (item.propertyText) {
+                  doc['$' + item.propertyName] = data['$' + item.propertyName];
+                }
+                if (item.propertyValue) {
+                  doc[item.propertyName] = data[item.propertyName];
+                }
+            });
+            submit(null, doc);
+      }))
+      //
+      // Resolve Resource Link
+      //
       .pipe(es.map(function (data, submit) {
             var urls = [], keys = [];
             Object.keys(data["@context"]).forEach(function(key) {
@@ -91,15 +138,20 @@ module.exports = function(model) {
                   && typeof data[key] === 'string'
                 ) {
                   var urlObj = url.parse(data[key]);
-                  urlObj.pathname = urlObj.pathname.concat('/$');
-                  urls.push(url.format(urlObj));
+                  if (urlObj.host !== null) {
+                    urlObj.pathname = urlObj.pathname.concat('/$');
+                    urls.push(url.format(urlObj));
+                  }
+                  else {
+                    urls.push(self.baseURL.concat(urlObj.pathname).concat('/$'));
+                  }
                   keys.push(key);
                 }
             });
             async.map(urls
             , function(urlStr, callback) {
                 agent.get(urlStr, {json: true}, function(error, response, body) {
-                    if (response.statusCode !== 200) {
+                    if (response && response.statusCode !== 200) {
                       body = undefined;
                     }
                     callback(error, body);

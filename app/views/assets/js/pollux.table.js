@@ -5,10 +5,6 @@ $(document).ready(function() {
     var oboe = require('oboe');
     var Faker = require('faker');
 
-    var JSONEditorRawData = new JSONEditor(document.getElementById("modal-viewrawdata-jsoneditor"), {
-        mode: "view"
-    });
-
 
     var TableItemVue = new Vue( {
         el: '#table-items',
@@ -19,35 +15,52 @@ $(document).ready(function() {
           this.refreshData()
         },
         filters: {
+          plusplus: function(input) {
+            return input + 1;
+          }
         },
         components: {
           cell : {
-            props: {
-              name: {
+            props: [
+              {
+                name: 'get-item',
+                type: Function,
+                required: true
+              },
+              {
+                name: 'index',
+                type: Number,
+                required: true
+              },
+              {
+                name: 'name',
                 type : String,
                 required : true
-              },
-              value: {
-                default: ''
-              },
-              title: {
-                default: ''
-              }
-            },
+            }
+          ],
             computed: {
-              isLink: function () {
-                return this.title !== ''  ? true : false;
+              value: function() {
+                var item = this.getItem(this.index);
+                return item[this.name];
+              },
+              title: function() {
+                var item = this.getItem(this.index);
+                return item['$'+this.name];
+              },
+              isResource: function () {
+                var item = this.getItem(this.index);
+                return item['$'+this.name] !== undefined ? true : false;
               },
               isLiteral: function () {
-                return this.title === '' || this.title === undefined  ? true : false;
+                var item = this.getItem(this.index);
+                return item['$'+this.name] === '' || item['$'+this.name] === undefined  ? true : false;
               },
               isNull: function () {
-                return this.value === null || this.value === undefined  ? true : false;
+                var item = this.getItem(this.index);
+                return item[this.name] === null || item[this.name] === undefined  ? true : false;
               }
-
-
             },
-            template : '<span v-if="isLiteral">((value))</span><a v-attr="href:value" v-if="isLink">((title))</a><span v-if="isNull">n/a</span>'
+            template : '<span v-if="isLiteral">((value))</span><a v-attr="href:value" v-if="isResource">((title))</a><span v-if="isNull">n/a</span>'
           }
         },
         methods: {
@@ -57,19 +70,15 @@ $(document).ready(function() {
             .node('!.*', function(chunk){
                 self.items.unshift(chunk);
                 return oboe.drop;
-
             }).done(function(all){
-                console.log( all);
-            })
-            ;
-        },
-        viewRawData : function(item) {
-          console.log('item', item)
-          JSONEditorRawData.set({item:'test'});
-          $('#modal-viewrawdata').modal('toggle');
+                $("#table-items table").resizableColumns();
+            }) ;
+          },
+          onItem : function (i) {
+            return this.items[i];
+          }
         }
       }
-    }
   );
 
 
@@ -115,19 +124,31 @@ $(document).ready(function() {
       if (formData[formData.type] === undefined || formData[formData.type] === '') {
         return false;
       }
-      $.post("/-/load", formData, function( res ) {
-          console.log( 'res', res);
-      }, "json");
+      $.ajax({
+          type: "POST",
+          url: "/-/load",
+          data: formData,
+          success: function(data) {
+            document.location.href= document.location.pathname;
+          }
+      });
       fileToLoad = '';
   });
 
   $('#action-newtable').click(function() {
-      document.location.href= "/" + Faker.lorem.words(1);
+      var url = '/' + Faker.lorem.words(3).join('-') + '/';
+      $.ajax({
+          type: "POST",
+          url: url ,
+          data: {},
+          success: function(data) {
+            document.location.href= document.location.pathname;
+          }
+      });
       return false;
   });
   $('#action-newcolumn').click(function() {
-      var url = document.location.pathname.replace(/\/+$/,'') + '/*/' + Faker.lorem.words(5).join('-') + '/';
-      console.log('url', url);
+      var url = document.location.pathname.replace(/\/+$/,'') + '/*/' + Faker.lorem.words(3).join('-') + '/';
       $.ajax({
           type: "POST",
           url: url ,
@@ -139,40 +160,52 @@ $(document).ready(function() {
       return false;
   });
 
-
   var EditColumnVue = new Vue( {
       el: '#modal-editcolumn',
       data: {
         "previousScheme": "",
+        "previousType": "",
         "previousValue" : {},
         "previousName" : "",
         "previousLabel" : "",
+        "previousComment" : "",
         "propertyScheme": "",
+        "propertyType": "",
         "propertyValue" : {},
         "propertyName" : "",
-        "propertyLabel" : ""
+        "propertyLabel" : "",
+        "propertyComment" : ""
       },
       ready: function() {
+        var JSONEditorOptions = { mode: "code" };
+        var JSONEditorContainer = document.getElementById("modal-editcolumn-jsoneditor");
+        this.JSONEditorHandle = new JSONEditor(JSONEditorContainer, JSONEditorOptions);
       },
       filters: {
       },
       methods: {
         setField: function (column) {
-          console.log('column', column);
           var self = this;
+          console.log('column', column);
           self.propertyLabel = column.propertyLabel;
           self.previousLabel = column.propertyLabel;
           self.propertyValue = column.propertyValue;
           self.previousValue = column.propertyValue;
           self.propertyName = column.propertyName;
           self.previousName = column.propertyName;
-          self.propertyScheme = column['@id'];
-          self.previousScheme = column['@id'];
+          self.propertyScheme = column.propertyScheme;
+          self.previousScheme = column.propertyScheme;
+          self.propertyType= column.propertyType;
+          self.previousType = column.propertyType;
+          self.propertyComment = column.propertyComment;
+          self.previousComment = column.propertyComment;
+          self.JSONEditorHandle.set(self.propertyValue);
         },
         drop: function() {
           console.log('Not yet implemted');
         },
         save : function() {
+          this.propertyValue = this.JSONEditorHandle.get();
           var url = document.location.pathname.replace(/\/+$/,'') + '/*/' + this.propertyName + '/';
           $.ajax({
               type: "POST",
@@ -200,6 +233,7 @@ $(document).ready(function() {
   $('.action-editcolumn').click(function (e) {
       EditColumnVue.setField($(this).data("column"));
       $('#modal-editcolumn').modal('toggle');
+      return false;
   });
   $('#modal-editcolumn-action-save').click(function (e) {
       EditColumnVue.save($(this).data("field"));
@@ -211,7 +245,6 @@ $(document).ready(function() {
       $('#modal-editcolumn').modal('hide');
       return false;
   });
-
 
   /*
    $('#modal-editcolumn-input-scheme').typeahead({

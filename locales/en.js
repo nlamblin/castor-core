@@ -11,5 +11,13 @@
 	"Text": "Text",
 	"Type": "Type",
 	"Cancel": "Cancel",
-	"Load": "Load"
+	"Load": "Load",
+	"New column": "New column",
+	"View raw data": "View raw data",
+	"Edit Column": "Edit Column",
+	"Label": "Label",
+	"Scheme": "Scheme",
+	"Value": "Value",
+	"Drop": "Drop",
+	"Save": "Save"
 }

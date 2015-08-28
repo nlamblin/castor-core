@@ -1,87 +1,89 @@
 {% extends "layout.html" %}
 
 {% block head %}
-    <title> {{ table.title }} | {{ site.title }} </title>
-    <meta name="description" content="{{ site.description|e }}">
-    <meta name="author" content="">
+<title> {{ table.title }} | {{ site.title }} </title>
+<meta name="description" content="{{ site.description|e }}">
+<meta name="author" content="">
 {% endblock %}
 
 
 
 {% block body %}
-    <!-- Fixed navbar -->
-	<nav class="navbar navbar-inverse navbar-fixed-bottom">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-			  <span class="sr-only">{{ __('Toggle navigation') }}</span>
-			  <span class="icon-bar"></span>
-			  <span class="icon-bar"></span>
-			  <span class="icon-bar"></span>
-		  </button>
-		  <a class="navbar-brand" href="/">{{ site.title }}</a>
+<!-- Fixed navbar -->
+<nav class="navbar navbar-inverse navbar-fixed-bottom">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+				<span class="sr-only">{{ __('Toggle navigation') }}</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="/index">{{ __('Index') }}</a>
 		</div>
-        <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-			  <li><a href="/index">{{ __('Index') }}</a></li>
-            <li><a id="action-loaddata" href="" data-toggle="modal" data-target="#modal-loaddata">{{ __('Load data') }}</a></li>
-            <li><a id="action-newtable" href="">{{ __('New table') }}</a></li>
-            <li><a id="action-newcolumn" href="">{{ __('New column') }}</a></li>
-          </ul>
-          <ul class="nav navbar-nav navbar-right">
-            <li class="active"><a href="./">Fixed top <span class="sr-only">(current)</span></a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
-      </div>
-    </nav>
+		<div id="navbar" class="navbar-collapse collapse">
+			<ul class="nav navbar-nav">
+				<li><a id="action-loaddata" href="" data-toggle="modal" data-target="#modal-loaddata">{{ __('Load data') }}</a></li>
+				<li><a id="action-newtable" href="">{{ __('New table') }}</a></li>
+				<li><a id="action-newcolumn" href="">{{ __('New column') }}</a></li>
+			</ul>
+		</div><!--/.nav-collapse -->
+	</div>
+</nav>
 
-    <div class="container-fuild">
+<div class="container-fuild">
 
-      <h1>{{ table.title|d(site.title) }}</h1>
-      <p>{{ table.title|d(site.description) }}</p>
+	<h1>{{ table.title|d(site.title) }}</h1>
+	<p>{{ table.title|d(site.description) }}</p>
 
-      <div id="table-items">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-			  <th></th>
-			{% for column in table._columns %}
-			<th><a class="action-editcolumn" data-column='{{column|json}}'>{{column.propertyLabel}}</a></th>
-			{% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-repeat="items">
-			  <td>
-				  <a v-on="click: viewRawData(this)"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a>
-			  </td>
-			{% for column in table._columns %}
-			<td>
-				<cell name="{{column.propertyName}}" value="(($data['{{column.propertyName}}']))" title="(($data['${{column.propertyName}}']))" ></cell>
-			</td>
-			{% endfor %}
-          </tr>
-        </tbody>
-	  </table>
-      </div>
+	<div id="table-items">
+		<table class="table table-bordered" data-resizable-columns-id="table-html">
+			<thead>
+				<tr>
+					<th style="width: 0.5em"></th>
+					{% for column in table._columns %}
+					<th data-resizable-column-id="column-{{column.propertyName}}">
+						<span>{{column.propertyLabel}}</span>
+						<a href="" class="action-editcolumn pull-right" data-column='{{column|json}}'><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+					</th>
+					{% endfor %}
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-repeat="items">
+					<td>
+						(($index|plusplus))
+					</td>
+					{% for column in table._columns %}
+					<td>
+						<cell get-item="((onItem))" index="(($index))" name="{{column.propertyName}}"></cell>
+					</td>
+					{% endfor %}
+				</tr>
+			</tbody>
+		</table>
+	</div>
 
-    </div> <!-- /container -->
+</div> <!-- /container -->
 
-	{% include "./modals/load-data.html" %}
-	{% include "./modals/view-rawdata.html" %}
-	{% include "./modals/edit-column.html" %}
+{% include "./modals/load-data.html" %}
+{% include "./modals/edit-column.html" %}
 
-	{% endblock %}
+{% endblock %}
 
-	{% block styles %}
-	<link href="/libs/jsoneditor/jsoneditor.min.css" rel="stylesheet" type="text/css">
-	{% endblock %}
+{% block styles %}
+<link href="/libs/jsoneditor/dist/jsoneditor.min.css" rel="stylesheet" type="text/css">
+<link href="/libs/jquery-resizable-columns/dist/jquery.resizableColumns.css" rel="stylesheet" type="text/css">
+{% endblock %}
 
-	{% block scripts %}
-	<script type="text/javascript" src="/libs/jquery-file-upload/js/vendor/jquery.ui.widget.js"></script>
-	<script type="text/javascript" src="/libs/jquery-file-upload/js/jquery.iframe-transport.js"></script>
-	<script type="text/javascript" src="/libs/jquery-file-upload/js/jquery.fileupload.js"></script>
-	<script type="text/javascript" src="/libs/jsoneditor/jsoneditor.min.js"></script>
-	<script type="text/javascript" charset="utf-8" src="/assets/js/pollux.table.js"></script>
-	{% endblock %}
+{% block scripts %}
+<script src="/libs/jquery-file-upload/js/vendor/jquery.ui.widget.js"></script>
+<script src="/libs/jquery-file-upload/js/jquery.iframe-transport.js"></script>
+<script src="/libs/jquery-file-upload/js/jquery.fileupload.js"></script>
+<script src="/libs/jsoneditor/dist/jsoneditor.min.js"></script>
+<script src="/libs/ace-builds/src-min/ace.js"></script>
+<script src="/libs/store.js/store.min.js"></script>
+<script src="/libs/jquery-resizable-columns/dist/jquery.resizableColumns.min.js"></script>
+<script src="/assets/js/pollux.table.js"></script>
+{% endblock %}
 

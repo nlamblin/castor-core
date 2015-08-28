@@ -64,7 +64,6 @@ module.exports = function(config) {
       var ldr
         , referer = url.parse(req.get('Referer'))
         , resourceName = path.basename(referer.pathname)
-        , widLoader = require('../loaders/wid.js')()
         , loader = {}
         , loaders = {
             'xml' : {
@@ -82,15 +81,19 @@ module.exports = function(config) {
       // TODO : check if req.body is valid
       // TODO : check if resourceName already exists
 
+      if (resourceName === 'index') {
+        return next(new Errors.ForbiddenParameter('`index` is read only'));
+      }
       if (req.body.loader === undefined || loaders[req.body.loader] === undefined) {
         return next(new Errors.InvalidParameters('Unknown loader.'));
       }
       else {
         loader = loaders[req.body.loader];
       }
-
-      debug('resourceName',  resourceName);
-      debug('req.body',  req.body, typeof req.body.file);
+      var common = {
+        resourceName :  resourceName,
+        baseURL : String(req.config.get('baseURL')).replace(/\/+$/,'')
+      }
 
       if (req.body.type === 'file' && typeof req.body.file === 'object') {
         var p = require('os').tmpdir(); // upload go to tmpdir
@@ -108,7 +111,9 @@ module.exports = function(config) {
                 options['collectionName'] = resourceName;
                 var ldr = new Loader(__dirname, options);
                 ldr.use(loader.pattern, require(loader.module)(loader.options));
-                ldr.use('**/*', widLoader);
+                ldr.use('**/*', require('../loaders/wid.js')());
+                ldr.use('**/*', require('../loaders/extend.js')(common));
+                ldr.use('**/*', require('../loaders/name.js')());
                 ldr.push(file);
             });
         });
@@ -117,7 +122,9 @@ module.exports = function(config) {
         options['collectionName'] = resourceName;
         ldr = new Loader(__dirname, options);
         ldr.use(loader.pattern, require(loader.module)(loader.options));
-        ldr.use('**/*', widLoader);
+        ldr.use('**/*', require('../loaders/wid.js')());
+        ldr.use('**/*', require('../loaders/extend.js')(common));
+        ldr.use('**/*', require('../loaders/name.js')());
         ldr.push(url.format({
               protocol: "http",
               hostname: "127.0.0.1",
@@ -132,7 +139,9 @@ module.exports = function(config) {
         options['collectionName'] = resourceName;
         ldr = new Loader(__dirname, options);
         ldr.use(loader.pattern, require(loader.module)(loader.options));
-        ldr.use('**/*', widLoader);
+        ldr.use('**/*', require('../loaders/wid.js')());
+        ldr.use('**/*', require('../loaders/extend.js')(common));
+        ldr.use('**/*', require('../loaders/name.js')());
         ldr.push(req.body.uri);
       }
       else {

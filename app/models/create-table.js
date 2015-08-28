@@ -17,33 +17,50 @@ module.exports = function(model) {
       fill({
           "_name": req.routeParams.resourceName,
           "_columns" : [
+            //
+            // Mandatory Column for the reduce system
+            //
             {
-              "@id": "http://schema.org/name",
+              "propertyScheme": "http://schema.org/name",
               "propertyValue" : {
-                "get" : "title"
+                "set" : "n/a"
               },
-              "propertyName" : "localTitle",
-              "propertyLabel" : "localTitle"
+              "propertyName" : "name",
+              "propertyLabel" : "Name",
+              "propertyComment" : "A mandatory column for \"dollar\" URLs"
             },
-            {
-              "@id": "http://schema.org/url",
-              "@type": "@id",
+            //
+            // Helper Column for create specific column
+            //
+           {
+              "propertyScheme": "http://castorjs.github.io/node-jbj/",
+              "propertyType": "http://www.w3.org/TR/xmlschema-2/#anyURI",
               "propertyValue" : {
-                "get" : "url"
+                "template": "http://castorjs.github.io/node-jbj/?input={{baseURL}}/{{_name}}"
               },
-              "propertyName" : "url",
-              "propertyLabel" : "L'URL"
+              "propertyText" : {
+                "get" : "_name",
+              },
+              "propertyName" : "jbj-playground",
+              "propertyLabel" : "View it on JBJ Playground",
+              "propertyComment" : "A help column to define others columns"
             },
+            //
+            // Example Column
+            //
             {
-              "@id": "http://schema.org/description",
+              "propertyScheme": "http://schema.org/description",
               "propertyValue" : {
-                "get" : "description"
+                "set" : faker.lorem.paragraph()
               },
               "propertyName" : "description",
-              "propertyLabel" : "La description"
+              "propertyLabel" : "Description",
+              "propertyComment" : "A example column"
             }
           ],
-          "url": String(req.config.get('baseURL')).concat("/").concat(req.routeParams.resourceName),
+          //
+          // Table metadata
+          //
           "title": faker.lorem.sentence(),
           "description": faker.lorem.paragraph()
       });
@@ -58,48 +75,43 @@ module.exports = function(model) {
         self.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'), function(err, newcoll) {
             self.mongoCollectionsIndexHandle = err ? err : newcoll;
             var index = {
+              "_name": "index",
               "_columns" : [
+                //
+                // Mandatory Column for the reduce system
+                //
                 {
-                  "@id": "http://schema.org/name",
+                  "propertyScheme": "http://schema.org/name",
                   "propertyValue" : {
                     "get" : "title"
                   },
-                  "propertyName" : "localTitle",
-                  "propertyLabel" : "localTitle"
+                  "propertyName" : "name",
+                  "propertyLabel" : "Name",
+                  "propertyComment" : "A mandatory column for \"dollar\" URLs"
                 },
+                //
+                // Recommended Column to expose existing table
+                //
                 {
-                  "@id": "http://schema.org/url",
-                  "@type": "@id",
+                  "propertyScheme": "http://schema.org/url",
+                  "propertyType": "http://www.w3.org/TR/xmlschema-2/#anyURI",
                   "propertyValue" : {
-                    "get" : "url"
+                    "get": ["baseURL", "_name"],
+                    "join": "/"
+                  },
+                  "propertyText" : {
+                    "get" : "_name",
                   },
                   "propertyName" : "url",
-                  "propertyLabel" : "L'URL"
-                },
-                {
-                  "@id": "http://schema.org/description",
-                  "propertyValue" : {
-                    "get" : "description"
-                  },
-                  "propertyName" : "description",
-                  "propertyLabel" : "La description"
+                  "propertyLabel" : "URL",
+                  "propertyComment" : ""
                 }
-
-                /*,
-                 {
-                   propertyLabel: 'Identifier',
-                   scheme : 'http://purl.org/dc/elements/1.1/identifier',
-                   name : 'identifier',
-                   value : {
-                     "get" : "@id"
-                   }
-                 }
-                 */
               ],
-              "url": String(req.config.get('baseURL')).concat("/").concat("index"),
+              //
+              // Table metadata
+              //
               "title": req.config.get('title'),
-              "description": req.config.get('description'),
-              "_name": "index"
+              "description": req.config.get('description')
             };
             newcoll.insertMany([index, self.doc]).then(fill).catch(fill);
         });
