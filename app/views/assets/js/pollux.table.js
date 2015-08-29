@@ -1,84 +1,37 @@
-/* global $, Vue, document, JSONEditor */
+/* global $, Vue, document, JSONEditor, paperclip */
+'use strict';
+
+paperclip.modifiers.get = function (input, key) {
+  return input[key];
+};
+paperclip.modifiers.len = function (input, key) {
+  if (key !== undefined) {
+    input = input[key]
+  }
+  if (input === null || input === undefined) {
+    return  0;
+  }
+  else {
+    return input.length;
+  }
+};
+
 $(document).ready(function() {
-    'use strict';
     Vue.config.debug = true;
     var oboe = require('oboe');
     var Faker = require('faker');
-    var TableItemVue = new Vue( {
-        el: '#table-items',
-        data: {
-          items: []
-        },
-        ready: function() {
-          this.refreshData(function(all){
-              $("#table-items table").resizableColumns();
-          });
-        },
-        filters: {
-          plusplus: function(input) {
-            return input + 1;
-          }
-        },
-        methods: {
-          refreshData: function (cb) {
-            var self = this;
-            oboe(window.location.href.replace(/\/+$/,'') + '/*')
-            .node('!.*', function(chunk){
-                console.log('chunk !');
-                self.items.unshift(chunk);
-                return oboe.drop;
-            }).done(cb);
-          },
-          onItem : function (i) {
-            return this.items[i];
-          }
-        },
-        components: {
-          cell : {
-            props: [
-              {
-                name: 'get-item',
-                type: Function,
-                required: true
-              },
-              {
-                name: 'index',
-                type: Number,
-                required: true
-              },
-              {
-                name: 'name',
-                type : String,
-                required : true
-              }
-            ],
-            computed: {
-              value: function() {
-                var item = this.getItem(this.index);
-                return item[this.name];
-              },
-              title: function() {
-                var item = this.getItem(this.index);
-                return item['$'+this.name];
-              },
-              isResource: function () {
-                var item = this.getItem(this.index);
-                return item['$'+this.name] !== undefined ? true : false;
-              },
-              isLiteral: function () {
-                var item = this.getItem(this.index);
-                return item['$'+this.name] === '' || item['$'+this.name] === undefined  ? true : false;
-              },
-              isNull: function () {
-                var item = this.getItem(this.index);
-                return item[this.name] === null || item[this.name] === undefined  ? true : false;
-              }
-            },
-            template : '<span v-if="isLiteral">((value))</span><a v-attr="href:value" v-if="isResource">((title))</a><span v-if="isNull">n/a</span>'
-          }
-        }
-      }
-    );
+
+
+    var html = document.getElementById("dot").innerHTML.replace(/\[:/g, '{{').replace(/:\]/g, '}}');
+    var template = paperclip.template(html);
+
+    oboe(window.location.href.replace(/\/+$/,'') + '/*').done(function(items) {
+        var view = template.view({
+            items: items
+        });
+        document.getElementById("items-tbody").appendChild(view.render());
+        $("#table-items table").resizableColumns();
+    })
     var EditColumnVue = new Vue( {
         el: '#modal-editcolumn',
         data: {

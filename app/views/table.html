@@ -59,22 +59,28 @@
 					{% endfor %}
 				</tr>
 			</thead>
-			<tbody>
-				<tr v-repeat="items" track-by="$index">
-					<td>
-						(($index|plusplus))
-					</td>
-					{% for column in table._columns %}
-					<td>
-						<cell get-item="((onItem))" index="(($index))" name="{{column.propertyName}}"></cell>
-					</td>
-					{% endfor %}
-				</tr>
+			<tbody id="items-tbody">
 			</tbody>
 		</table>
 	</div>
 
 </div> <!-- /container -->
+
+<script type="text/x-paperclip" id="dot">
+<tr repeat.each="[:items:]" repeat.as="item">
+	<td>X</td>
+	{% for column in table._columns %}
+	<td>
+		<show when="[: item|len('${{column.propertyName}}') > 0 :]">
+			<a href="[: item|get('{{column.propertyName}}') :]">[:item|get('${{column.propertyName}}'):]</a>
+		</show>
+		<show when="[: item|len('${{column.propertyName}}') === 0 :]">
+			<span>[: item|get('{{column.propertyName}}') :]</span>
+		</show>
+	</td>
+    {% endfor %}
+</tr>
+</script>
 
 {% include "./modals/load-data.html" %}
 {% include "./modals/edit-column.html" %}
@@ -94,6 +100,8 @@
 <script src="/libs/ace-builds/src-min/ace.js"></script>
 <script src="/libs/store.js/store.min.js"></script>
 <script src="/libs/jquery-resizable-columns/dist/jquery.resizableColumns.min.js"></script>
+<script src="/libs/paperclip/dist/paperclip.min.js"></script>
+<script src="/libs/paperclip/dist/parser.min.js"></script>
 <script src="/assets/js/pollux.table.js"></script>
 {% endblock %}
 
