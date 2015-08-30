@@ -20,7 +20,9 @@ module.exports = function(config) {
     , create = require('../models/create-table.js')
     , postcol = require('../models/post-column.js')
     , table = require('../models/get-table.js')
-    , dump = require('../models/dump-table.js')
+    , docu = require('../models/get-document.js')
+    , docus = require('../models/get-documents.js')
+    , dump = require('../models/dump-query.js')
     , router = express.Router()
     , template = 'table.html'
     , authorityName = config.get('authorityName')
@@ -80,7 +82,7 @@ module.exports = function(config) {
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined) {
         return next();
       }
-      datamodel([mongo, table, dump])
+      datamodel([mongo, table, docus, dump])
       .apply(req, res, next);
   });
 
@@ -91,7 +93,7 @@ module.exports = function(config) {
       if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined || req.routeParams.star === undefined) {
         return next();
       }
-      datamodel([mongo])
+      datamodel([mongo, table, docu, dump])
       .apply(req, res, next);
   });
 

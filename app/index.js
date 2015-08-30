@@ -130,7 +130,7 @@ var path = require('path')
     }
 
     //
-    // Define reserved routes : /libs, /assets, /index
+    // Define reserved routes : /libs, /assets, /
     //
     //
     app.route('/assets/*').all(ecstatic({

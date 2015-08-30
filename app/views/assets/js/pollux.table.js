@@ -15,6 +15,13 @@ paperclip.modifiers.len = function (input, key) {
     return input.length;
   }
 };
+paperclip.modifiers.plus = function (input, nb) {
+  if (nb === undefined) {
+    nb = 1
+  }
+  return parseInt(input) + parseInt(nb);
+};
+
 
 $(document).ready(function() {
     Vue.config.debug = true;

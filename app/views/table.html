@@ -68,7 +68,7 @@
 
 <script type="text/x-paperclip" id="dot">
 <tr repeat.each="[:items:]" repeat.as="item">
-	<td>X</td>
+	<td>[: key|plus :]</td>
 	{% for column in table._columns %}
 	<td>
 		<show when="[: item|len('${{column.propertyName}}') > 0 :]">

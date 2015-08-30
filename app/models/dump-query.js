@@ -11,9 +11,11 @@ var path = require('path')
   , EU = require('eu')
   , LRU = require('lru-cache')
   , JBJ = require('jbj')
+  , CSV = require('csv-string')
   , async = require('async')
   , url =require('url')
   , Errors = require('../errors.js')
+  ,  jsonld = require('jsonld')
   ;
 
 module.exports = function(model) {
@@ -30,22 +32,55 @@ module.exports = function(model) {
         fill(req.routeParams.resourceName);
       }
   })
+  .declare('contentType', function(req, fill) {
+      if (req.query.alt === 'nquads') {
+        fill('text/plain');
+      }
+      else if (req.query.alt === 'csv') {
+        fill('text/plain');
+      }
+      else {
+        fill('application/json');
+      }
+  })
+  .append('outputing', function(req, fill) {
+      if (req.query.alt === 'nquads') {
+        fill(es.map(function (data, submit) {
+              jsonld.toRDF(data, {format: 'application/nquads'}, submit);
+        }))
+      }
+      else if (req.query.alt === 'csv') {
+        var c = 0;
+        fill(es.map(function (data, submit) {
+              c++;
+              /*
+              if( c === 1) {
+                submit(null,  CSV.stringify(['a', 'n'] + "\n" + CSV.stringify(['b', 'm'])))
+              }
+              else
+                */
+              {
+                delete data['@context'];
+                submit(null, CSV.stringify(data));
+              }
+        }))
+      }
+      else {
+        fill(JSONStream.stringify());
+      }
+  })
   .declare('baseURL', function(req, fill) {
       fill(String(req.config.get('baseURL')).replace(/\/+$/,''));
   })
-  .append('mongoCursor', function(req, fill) {
+ .append('mongoCursor', function(req, fill) {
       if (this.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
-      var q = {};
-      if (req.routeParams.resourceName === 'index') {
-        q = { _name: { $ne: "index" } }
-      }
-      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(q));
+      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery));
   })
   .send(function(res, next) {
       var self = this;
-      res.set('Content-Type', 'application/json');
+      res.set('Content-Type', this.contentType);
       res.on('finish', function() {
           self.mongoDatabaseHandle.close();
       });
@@ -167,7 +202,7 @@ module.exports = function(model) {
                 submit(null, data)
             });
       }))
-      .pipe(JSONStream.stringify())
+      .pipe(this.outputing)
       .pipe(res);
   });
 

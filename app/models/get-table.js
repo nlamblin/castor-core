@@ -4,8 +4,6 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('pollux:models:' + basename)
-  , MongoClient = require('mongodb').MongoClient
-  , JSONStream = require('JSONStream')
   , Errors = require('../errors.js')
   ;
 
