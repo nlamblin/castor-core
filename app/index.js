@@ -27,24 +27,6 @@ var path = require('path')
       "ignore" : config.get('filesToIgnore'),
       "watch" : false
     };
-    var p = config.get('dataPath');
-    fs.readdir(p, function (err, files) {
-        if (err) {
-          throw err;
-        }
-        files.map(function (file) {
-            return path.join(p, file);
-        }).filter(function (file) {
-            return fs.statSync(file).isDirectory();
-        }).forEach(function (file) {
-            var name = path.basename(file)
-            options['collectionName'] = name;
-            var ldr = new Loader(file, options);
-            ldr.sync(function(processed) {
-                console.info(kuler("Synnchronization done for `" + name+ "`", "green"));
-            });
-        });
-    });
 
     var app = express();
     //

@@ -29,7 +29,7 @@ $(document).ready(function() {
     var Faker = require('faker');
 
 
-    var html = document.getElementById("dot").innerHTML.replace(/\[:/g, '{{').replace(/:\]/g, '}}');
+    var html = document.getElementById("table-items-template").innerHTML.replace(/\[:/g, '{{').replace(/:\]/g, '}}');
     var template = paperclip.template(html);
 
     oboe(window.location.href.replace(/\/+$/,'') + '/*').done(function(items) {
@@ -176,12 +176,12 @@ $(document).ready(function() {
         $('#modal-editcolumn').modal('toggle');
         return false;
     });
-    $('#modal-editcolumn-action-save').click(function (e) {
+    $('#action-editcolumn-save').click(function (e) {
         EditColumnVue.save($(this).data("field"));
         $('#modal-editcolumn').modal('hide');
         return false;
     });
-    $('#modal-editcolumn-action-drop').click(function (e) {
+    $('#action-editcolumn-drop').click(function (e) {
         EditColumnVue.drop();
         $('#modal-editcolumn').modal('hide');
         return false;
@@ -193,13 +193,49 @@ $(document).ready(function() {
             url: url ,
             data: {},
             success: function(data) {
-              document.location.href= document.location.pathname;
+              document.location.href = url;
             }
         });
         return false;
     });
     $('#action-droptable').click(function() {
         alert('Not yet implemented');
+        return false;
+    });
+    $('#action-edittable').click(function() {
+        $('#modal-edittable').modal('toggle');
+        return false;
+    });
+    $('#action-edittable-drop').click(function() {
+        var url = document.location.pathname.replace(/\/+$/,'').concat('/');
+        var form = {};
+        form[document.location.pathname.replace(/^\/+/, '')] = true;
+        $.ajax({
+            type: "POST",
+            url: url ,
+            data: form,
+            success: function(data) {
+              document.location.href = "/";
+            }
+        });
+        return false;
+    });
+    $('#action-edittable-save').click(function() {
+        var url = document.location.pathname.replace(/\/+$/,'').concat('/');
+        var form = {
+          "name": $('#modal-edittable-input-name').val(),
+          "title": $('#modal-edittable-input-title').val(),
+          "description" : $('#modal-edittable-input-description').val()
+        };
+        $.ajax({
+            type: "POST",
+            url: url ,
+            data: form,
+            success: function(data) {
+              document.location.href= document.location.pathname;
+            }
+        });
+
         return false;
     });
     $('#action-newcolumn').click(function() {
@@ -214,7 +250,14 @@ $(document).ready(function() {
         });
         return false;
     });
-
+    $('#action-download-csv').click(function() {
+        document.location.href= document.location.pathname.replace(/\/+$/,'') + '/*/?alt=csv';
+        return false;
+    });
+    $('#action-download-nq').click(function() {
+        document.location.href= document.location.pathname.replace(/\/+$/,'') + '/*/?alt=nq';
+        return false;
+    });
 
 
     /*
@@ -223,7 +266,7 @@ $(document).ready(function() {
      });
      */
 
-
+    $('#modal-edittable-input-description').wysihtml5();
 
 });
 

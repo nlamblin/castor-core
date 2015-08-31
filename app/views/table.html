@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
 
 {% block head %}
-<title> {{ table.title }} | {{ site.title }} </title>
-<meta name="description" content="{{ site.description|e }}">
+<title> {{ table.title }} | d('n/a') | e </title>
+<meta name="description" content="{{ table.description | d('n/a') | e }}">
 <meta name="author" content="">
 {% endblock %}
 
@@ -24,18 +24,21 @@
 		<div id="navbar" class="navbar-collapse collapse">
 			<ul class="nav navbar-nav">
 				<li><a id="action-loaddata" href="" data-toggle="modal" data-target="#modal-loaddata">{{ __('Load data') }}</a></li>
+				<li><a id="action-edittable" href="" data-toggle="modal" data-target="#modal-edittable">{{ __('Edit Table') }}</a></li>
+				<li><a id="action-newtable" href="">{{ __('New table') }}</a></li>
+				<li><a id="action-newcolumn" href="">{{ __('New column') }}</a></li>
 				<li class="dropdown">
-					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ __('Table') }}<span class="caret"></span></a>
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ __('Download') }}<span class="caret"></span></a>
 					<ul class="dropdown-menu">
 						<li>
-							<a id="action-newtable" href="">{{ __('New table') }}</a>
+							<a id="action-download-csv" href="">{{ __('CSV file') }}</a>
 						</li>
 						<li>
-							<a id="action-droptable" href="">{{ __('Drop table') }}</a>
+							<a id="action-download-nq" href="">{{ __('N-Quads file') }}</a>
 						</li>
 					</ul>
 				</li>
-				<li><a id="action-newcolumn" href="">{{ __('New column') }}</a></li>
+
 			</ul>
 		</div><!--/.nav-collapse -->
 	</div>
@@ -43,8 +46,8 @@
 
 <div class="container-fuild">
 
-	<h1>{{ table.title|d(site.title) }}</h1>
-	<p>{{ table.title|d(site.description) }}</p>
+	<h1>{{ table.title|d('n/a') }}</h1>
+	<p>{{ table.description|d('n/a') }}</p>
 
 	<div id="table-items">
 		<table class="table table-bordered" data-resizable-columns-id="table-html">
@@ -66,30 +69,17 @@
 
 </div> <!-- /container -->
 
-<script type="text/x-paperclip" id="dot">
-<tr repeat.each="[:items:]" repeat.as="item">
-	<td>[: key|plus :]</td>
-	{% for column in table._columns %}
-	<td>
-		<show when="[: item|len('${{column.propertyName}}') > 0 :]">
-			<a href="[: item|get('{{column.propertyName}}') :]">[:item|get('${{column.propertyName}}'):]</a>
-		</show>
-		<show when="[: item|len('${{column.propertyName}}') === 0 :]">
-			<span>[: item|get('{{column.propertyName}}') :]</span>
-		</show>
-	</td>
-    {% endfor %}
-</tr>
-</script>
-
+{% include "./templates/table-items.html" %}
 {% include "./modals/load-data.html" %}
 {% include "./modals/edit-column.html" %}
+{% include "./modals/edit-table.html" %}
 
 {% endblock %}
 
 {% block styles %}
 <link href="/libs/jsoneditor/dist/jsoneditor.min.css" rel="stylesheet" type="text/css">
 <link href="/libs/jquery-resizable-columns/dist/jquery.resizableColumns.css" rel="stylesheet" type="text/css">
+<link href="/libs/bootstrap3-wysiwyg/dist/bootstrap3-wysihtml5.min.css" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block scripts %}
@@ -100,6 +90,7 @@
 <script src="/libs/ace-builds/src-min/ace.js"></script>
 <script src="/libs/store.js/store.min.js"></script>
 <script src="/libs/jquery-resizable-columns/dist/jquery.resizableColumns.min.js"></script>
+<script src="/libs/bootstrap3-wysiwyg/dist/bootstrap3-wysihtml5.all.min.js"></script>
 <script src="/libs/paperclip/dist/paperclip.min.js"></script>
 <script src="/libs/paperclip/dist/parser.min.js"></script>
 <script src="/assets/js/pollux.table.js"></script>

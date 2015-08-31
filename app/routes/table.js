@@ -9,6 +9,7 @@ var path = require('path')
   , datamodel = require('datamodel')
   , Errors = require('../errors.js')
   , bodyParser = require('body-parser')
+  , cors = require('cors')
   ;
 
 
@@ -17,7 +18,7 @@ module.exports = function(config) {
   var site = require('../models/site.js')
     , mongo = require('../models/mongo.js')
     , reduce = require('../models/reduce-table.js')
-    , create = require('../models/create-table.js')
+    , posttab = require('../models/post-table.js')
     , postcol = require('../models/post-column.js')
     , table = require('../models/get-table.js')
     , docu = require('../models/get-document.js')
@@ -77,6 +78,7 @@ module.exports = function(config) {
   //
   router.route(authorityName + '/:resourceName/:star')
 
+  .all(cors())
   .get(function(req, res, next) {
       debug('get /:resourceName/:star', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined) {
@@ -88,6 +90,7 @@ module.exports = function(config) {
 
   router.route(authorityName + '/:resourceName/:documentName/:star')
 
+  .all(cors())
   .get(function(req, res, next) {
       debug('get /:resourceName/:documentName/:star', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined || req.routeParams.star === undefined) {
@@ -124,7 +127,7 @@ module.exports = function(config) {
       if (req.routeParams.resourceName === undefined) {
         return next();
       }
-      datamodel([mongo, site, table])
+      datamodel([mongo, table])
       .apply(req)
       .then(function(locals) {
           debug('render', template);
@@ -132,12 +135,13 @@ module.exports = function(config) {
       })
       .catch(next);
   })
+  .post(bodyParser.urlencoded({ extended: true}))
   .post(function(req, res, next) {
       debug('post /:resourceName', req.routeParams);
       if (req.routeParams.resourceName === undefined) {
         return next();
       }
-      datamodel([mongo, create])
+      datamodel([mongo, posttab])
       .apply(req)
       .then(function(locals) {
           debug('redirect', authorityName + '/' + req.routeParams.resourceName);
@@ -157,7 +161,7 @@ module.exports = function(config) {
       res.send(req.routeParams.resourceName + '>' +req.routeParams.star + '>'+req.routeParams.columnName);
   })
   .all(bodyParser.urlencoded({ extended: true}))
- .post(function(req, res, next) {
+  .post(function(req, res, next) {
       debug('post /:resourceName/:star/:columnName', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined || req.routeParams.columnName === undefined) {
         return next();

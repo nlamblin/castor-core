@@ -12,12 +12,7 @@ module.exports = function(model) {
   if (model === undefined) {
     model = datamodel();
   }
-  model.declare('site', function(req, fill) {
-      fill({
-          title : req.config.get('title'),
-          description : req.config.get('description')
-      });
-  })
+  model
   .declare('url', function(req, fill) {
       fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
   })

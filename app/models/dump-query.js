@@ -15,7 +15,7 @@ var path = require('path')
   , async = require('async')
   , url =require('url')
   , Errors = require('../errors.js')
-  ,  jsonld = require('jsonld')
+  , jsonld = require('jsonld')
   ;
 
 module.exports = function(model) {
@@ -32,37 +32,48 @@ module.exports = function(model) {
         fill(req.routeParams.resourceName);
       }
   })
-  .declare('contentType', function(req, fill) {
-      if (req.query.alt === 'nquads') {
-        fill('text/plain');
+  .declare('documentName', function(req, fill) {
+      fill(req.routeParams.documentName);
+  })
+  .declare('extension', function(req, fill) {
+      if (req.query.alt) {
+        fill(req.query.alt);
       }
-      else if (req.query.alt === 'csv') {
-        fill('text/plain');
+      else {
+        fill('json')
+      }
+  })
+  .append('mimeType', function(req, fill) {
+      if (this.extension === 'nq') {
+        fill('application/n-quads');
+      }
+      else if (this.extension === 'csv') {
+        fill('text/csv');
+      }
+      else if (this.extension === 'raw') {
+        fill('application/json');
       }
       else {
         fill('application/json');
       }
   })
+  .append('fileName', function(req, fill) {
+      var d = new Date()
+      var s = d.toJSON().substring(0, 10).concat('-').concat(req.routeParams.resourceName);
+      if (this.documentName) {
+        s = s.concat('.').concat(this.documentName)
+      }
+      fill(s.concat('.').concat(this.extension));
+  })
   .append('outputing', function(req, fill) {
-      if (req.query.alt === 'nquads') {
+      if (this.extension === 'nq') {
         fill(es.map(function (data, submit) {
               jsonld.toRDF(data, {format: 'application/nquads'}, submit);
         }))
       }
-      else if (req.query.alt === 'csv') {
-        var c = 0;
+      else if (this.extension === 'csv') {
         fill(es.map(function (data, submit) {
-              c++;
-              /*
-              if( c === 1) {
-                submit(null,  CSV.stringify(['a', 'n'] + "\n" + CSV.stringify(['b', 'm'])))
-              }
-              else
-                */
-              {
-                delete data['@context'];
-                submit(null, CSV.stringify(data));
-              }
+              submit(null, CSV.stringify(data));
         }))
       }
       else {
@@ -72,7 +83,7 @@ module.exports = function(model) {
   .declare('baseURL', function(req, fill) {
       fill(String(req.config.get('baseURL')).replace(/\/+$/,''));
   })
- .append('mongoCursor', function(req, fill) {
+  .append('mongoCursor', function(req, fill) {
       if (this.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
@@ -80,11 +91,30 @@ module.exports = function(model) {
   })
   .send(function(res, next) {
       var self = this;
-      res.set('Content-Type', this.contentType);
+      res.set('Content-Type', this.mimeType);
       res.on('finish', function() {
           self.mongoDatabaseHandle.close();
       });
-      this.mongoCursor.stream()
+      if (this.mimeType !== 'application/json') {
+        res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+      }
+
+      if (this.mimeType === 'text/csv') {
+        res.write(CSV.stringify(self.table._columns.map(function(item) {
+                return item.propertyName;
+        })))
+      }
+
+      //
+      // Pipe Mongo cursor
+      //
+      var stream = this.mongoCursor.stream();
+      debug(this.extension, this.documentName)
+      if (this.extension === 'raw' && this.documentName) {
+        return stream.pipe(this.outputing).pipe(res);
+      }
+
+      stream
       //
       // Compute field with propertyText
       //

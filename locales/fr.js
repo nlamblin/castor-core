@@ -24,5 +24,12 @@
 	"Edit column": "Edit column",
 	"Comment": "Comment",
 	"Table": "Table",
-	"Drop table": "Drop table"
+	"Drop table": "Drop table",
+	"Download": "Download",
+	"CSV file": "CSV file",
+	"N-Quads file": "N-Quads file",
+	"Edit Table": "Edit Table",
+	"Title": "Title",
+	"Description": "Description",
+	"URL Name": "URL Name"
 }
