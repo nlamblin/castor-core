@@ -17,7 +17,6 @@ module.exports = function(model) {
       var property = {
         name: req.routeParams.columnName
       };
-      debug('req.body', req.body);
       if (req.body && req.body.propertyLabel) {
         property.scheme = req.body.propertyScheme;
         property.type = req.body.propertyType;

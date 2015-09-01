@@ -10,6 +10,7 @@ var path = require('path')
   , Errors = require('../errors.js')
   , bodyParser = require('body-parser')
   , cors = require('cors')
+  , check = require('../middlewares/check.js')
   ;
 
 
@@ -79,6 +80,7 @@ module.exports = function(config) {
   router.route(authorityName + '/:resourceName/:star')
 
   .all(cors())
+  .get(check.query({'?alt' : ['cvs', 'nq', 'json']}))
   .get(function(req, res, next) {
       debug('get /:resourceName/:star', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined) {
@@ -91,6 +93,7 @@ module.exports = function(config) {
   router.route(authorityName + '/:resourceName/:documentName/:star')
 
   .all(cors())
+  .get(check.query({'?alt' : ['cvs', 'nq', 'json', 'raw']}))
   .get(function(req, res, next) {
       debug('get /:resourceName/:documentName/:star', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined || req.routeParams.star === undefined) {
@@ -136,6 +139,7 @@ module.exports = function(config) {
       .catch(next);
   })
   .post(bodyParser.urlencoded({ extended: true}))
+  .post(check.body({ '?name': /\w+/, '?title': String, '?description': String}))
   .post(function(req, res, next) {
       debug('post /:resourceName', req.routeParams);
       if (req.routeParams.resourceName === undefined) {
@@ -144,8 +148,7 @@ module.exports = function(config) {
       datamodel([mongo, posttab])
       .apply(req)
       .then(function(locals) {
-          debug('redirect', authorityName + '/' + req.routeParams.resourceName);
-          return res.redirect(authorityName + '/' + req.routeParams.resourceName);
+          return res.send(204);
       })
       .catch(next);
   });
@@ -169,8 +172,7 @@ module.exports = function(config) {
       datamodel([mongo, postcol])
       .apply(req)
       .then(function(locals) {
-          debug('redirect', authorityName + '/' + req.routeParams.resourceName);
-          return res.redirect(authorityName + '/' + req.routeParams.resourceName);
+          return res.send(204);
       })
       .catch(next);
   });

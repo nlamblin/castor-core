@@ -161,16 +161,16 @@ module.exports = function(model) {
         query = {
           _name: self.property.previousName
         }
-        debug('drop table', query, operation);
-        self.mongoCollectionsIndexHandle.deleteOne(query).then(function(r1) {
-            debug('dropCollection', self.property.previousName);
-             self.mongoDatabaseHandle.dropCollection(self.property.previousName).then(function(r2) {
-                 debug('r2', r2);
-                 fill(null)
-             }).catch(function(e) {
-                 debug('e', e);
-                 fill(e)
-             });
+        self.mongoCollectionsIndexHandle.deleteOne(query).then(function(r) {
+            self.mongoDatabaseHandle.listCollections({name: self.property.previousName}).next().then(function(collinfo) {
+                self.mongoDatabaseHandle.dropCollection(self.property.previousName).catch(function(e) {
+                    console.warn(e.toString(), self.property.previousName);
+                });
+                fill(r);
+            }).catch(function(e) {
+                // nothing to do
+                fill(null);
+            });
         }).catch(fill);
       }
       else if (self.property && self.property.name === self.property.previousName) {
@@ -185,7 +185,7 @@ module.exports = function(model) {
         debug('update table', query, operation);
         self.mongoCollectionsIndexHandle.updateOne(query, operation).then(fill).catch(fill);
       }
-      else if (self.property && self.property.name !== self.property.previousName) {
+      else if (self.property && self.property.name !== self.property.previousName  && self.property.previousName !== 'index') {
         query = {
           _name: self.property.previousName
         };
@@ -198,11 +198,19 @@ module.exports = function(model) {
         }
         debug('rename table', query, operation);
         self.mongoCollectionsIndexHandle.updateOne(query, operation).then(function(r) {
-
-            self.mongoDatabaseHandle.renameCollection(self.property.previousName, self.property.name).then(fill).catch(fill);
+            self.mongoDatabaseHandle.listCollections({name: self.property.previousName}).next().then(function(collinfo) {
+                self.mongoDatabaseHandle.renameCollection(self.property.previousName, self.property.name).catch(function(e) {
+                    console.warn(e.toString(), self.property.previousName);
+                });
+                fill(r);
+            })
+            .catch(function(e) {
+                // nothing to do
+                fill(null);
+            });
         }).catch(fill);
       }
-          else {
+      else {
         debug('add table', query, operation);
         self.mongoCollectionsIndexHandle.insertOne(self.doc).then(fill).catch(fill);
       }

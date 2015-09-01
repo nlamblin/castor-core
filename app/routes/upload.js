@@ -82,7 +82,7 @@ module.exports = function(config) {
       // TODO : check if resourceName already exists
 
       if (resourceName === 'index') {
-        return next(new Errors.ForbiddenParameter('`index` is read only'));
+        return next(new Errors.Forbidden('`index` is read only'));
       }
       if (req.body.loader === undefined || loaders[req.body.loader] === undefined) {
         return next(new Errors.InvalidParameters('Unknown loader.'));

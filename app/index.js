@@ -18,16 +18,6 @@ var path = require('path')
 
   module.exports = function(config, online) {
 
-    var options = {
-      "connexionURI" : config.get('connexionURI'),
-      "concurrency" : config.get('concurrency'),
-      "delay" : config.get('delay'),
-      "maxFileSize" : config.get('maxFileSize'),
-      "writeConcern" : config.get('writeConcern'),
-      "ignore" : config.get('filesToIgnore'),
-      "watch" : false
-    };
-
     var app = express();
     //
     // is it behind a proxy,
@@ -150,19 +140,13 @@ var path = require('path')
     app.use(require('./routes/upload.js')(config));
     app.use(require('./routes/files.js')(config));
 
-    // app.route("/:authority" +  "/:resource").all(require('./routes/resource-display.js')(config));
-    // app.route("/:authority" +  "/:resource.n3").all(require('./routes/resource-display-n3.js')(config));
-
-
 
     //
     // catch 404 and forward to error handler
     //
     //
     app.use(function(req, res, next) {
-        var err = new Errors.PageNotFound('Not Found');
-        err.status = 404;
-        next(err);
+        next(new Errors.PageNotFound('Not Found'));
     });
 
 
@@ -170,21 +154,23 @@ var path = require('path')
     // error handler
     //
     //
-    if (app.get('env') === 'development') {
-      app.use(function(err, req, res, next) {
-          res.status(err.status || 500);
-          res.render('error.html', {
-              name: err.name,
-              message: err.message,
-              error: err
-          });
-      });
-    }
     app.use(function(err, req, res, next) {
-        res.status(err.status || 500);
+        if (err instanceof Errors.PageNotFound) {
+          res.status(404);
+        }
+        else if (err instanceof Errors.InvalidParameters) {
+          res.status(400);
+        }
+        else if (err instanceof Errors.Forbidden) {
+          res.status(403);
+        }
+        else {
+          res.status(500);
+        }
         res.render('error.html', {
             name: err.name,
-            message: err.message
+            message: err.message,
+            error: app.get('env') === 'development' ? err : undefined
         });
     });
 

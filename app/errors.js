@@ -8,5 +8,5 @@ module.exports.IndexNotFound = require('custom-error')('IndexNotFound');
 module.exports.PageNotFound = require('custom-error')('PageNotFound');
 module.exports.TableNotFound = require('custom-error')('TableNotFound');
 module.exports.InvalidParameters = require('custom-error')('InvalidParameters');
-module.exports.ForbiddenParameter = require('custom-error')('ForbiddenParameter');
+module.exports.Forbidden = require('custom-error')('Forbidden');
 

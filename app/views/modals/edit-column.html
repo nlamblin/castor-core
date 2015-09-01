@@ -10,12 +10,12 @@
       Onec purus dui, vehicula in egestas in, lobortis et sem. Mauris neque quam, pharetra in lacinia vel, tempor vitae tellus. Sed eu augue eget neque euismod euismod. Praesent cursus tincidunt interdum.
       </p>
       <div class="form-group">
-        <label class="control-label" for="modal-editcolumn-input-label">{{ __('Label') }}</label>
-        <input class="form-control" id="modal-editcolumn-input-label" placeholder="" type="text" v-model="propertyLabel">
+        <label class="control-label" for="modal-editcolumn-input-name">{{ __('URL Name') }}</label>
+        <input class="form-control" id="modal-editcolumn-input-name" placeholder="" type="text" pattern="\w+" v-model="propertyName">
       </div>
       <div class="form-group">
-        <label class="control-label" for="modal-editcolumn-input-name">{{ __('Name') }}</label>
-        <input class="form-control" id="modal-editcolumn-input-name" placeholder="" type="text" v-model="propertyName">
+        <label class="control-label" for="modal-editcolumn-input-label">{{ __('Label') }}</label>
+        <input class="form-control" id="modal-editcolumn-input-label" placeholder="" type="text" v-model="propertyLabel">
       </div>
       <div class="form-group">
         <label class="control-label" for="modal-editcolumn-input-scheme">{{ __('Scheme') }}</label>

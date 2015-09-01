@@ -46,8 +46,8 @@
 
 <div class="container-fuild">
 
-	<h1>{{ table.title|d('n/a') }}</h1>
-	<p>{{ table.description|d('n/a') }}</p>
+	<h1>{{ table.title|d('n/a')|e }}</h1>
+	<div>{{ table.description|d('n/a') }}</div>
 
 	<div id="table-items">
 		<table class="table table-bordered" data-resizable-columns-id="table-html">

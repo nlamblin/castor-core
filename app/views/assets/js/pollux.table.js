@@ -209,7 +209,7 @@ $(document).ready(function() {
     $('#action-edittable-drop').click(function() {
         var url = document.location.pathname.replace(/\/+$/,'').concat('/');
         var form = {};
-        form[document.location.pathname.replace(/^\/+/, '')] = true;
+        form[document.location.pathname.replace(/^\/+/, '').replace(/\/$/, '')] = true;
         $.ajax({
             type: "POST",
             url: url ,
@@ -229,10 +229,10 @@ $(document).ready(function() {
         };
         $.ajax({
             type: "POST",
-            url: url ,
+            url: url,
             data: form,
             success: function(data) {
-              document.location.href= document.location.pathname;
+              document.location.href = "/";
             }
         });
 
