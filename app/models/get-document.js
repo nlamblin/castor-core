@@ -7,7 +7,7 @@ var path = require('path')
   , debug = require('debug')('pollux:models:' + basename)
   , MongoClient = require('mongodb').MongoClient
   , JSONStream = require('JSONStream')
-  , Errors = require('../errors.js')
+  , Errors = require('../helpers/errors.js')
   ;
 
 module.exports = function(model) {

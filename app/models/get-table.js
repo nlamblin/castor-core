@@ -4,7 +4,7 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('pollux:models:' + basename)
-  , Errors = require('../errors.js')
+  , Errors = require('../helpers/errors.js')
   ;
 
 module.exports = function(model) {

@@ -10,7 +10,7 @@ var path = require('path')
   , bodyParser = require('body-parser')
   , crypto = require('crypto')
   , JFUM = require('jfum')
-  , Errors = require('../errors.js')
+  , Errors = require('../helpers/errors.js')
   , Loader = require('castor-load')
  ;
 
@@ -18,7 +18,7 @@ module.exports = function(config) {
   var jfum = new JFUM({
       minFileSize: 1,
       maxFileSize: config.get('maxFileSize'),
-      acceptFileTypes: /\.(csv|xml|txt)$/i
+      acceptFileTypes: /\.(csv|xml|txt|xls|xlsx)$/i
   });
   var options = {
     "connexionURI" : config.get('connexionURI'),
@@ -41,8 +41,13 @@ module.exports = function(config) {
       }
       else {
         for (var i = 0; i < req.jfum.files.length; i++) {
-          req.jfum.files[i].token = crypto.createHash('sha1').update(req.jfum.files[i].path).digest('hex');
-          delete req.jfum.files[i]["path"];
+          if (req.jfum.files[i].path) {
+            req.jfum.files[i].token = crypto.createHash('sha1').update(req.jfum.files[i].path).digest('hex');
+            delete req.jfum.files[i]["path"];
+          }
+          else {
+             return next(new Errors.InvalidParameters('Unknown file.'));
+           }
         }
         res.json(req.jfum.files);
       }
@@ -75,11 +80,18 @@ module.exports = function(config) {
               pattern: '**/*.csv',
               options: {},
               module: 'castor-load-csv'
+            },
+            'xls' : {
+              pattern: '**/*.xls',
+              options: {},
+              module: 'castor-load-excel'
             }
+
           };
 
       // TODO : check if req.body is valid
       // TODO : check if resourceName already exists
+      // TODO : check if loader is knowned
 
       if (resourceName === 'index') {
         return next(new Errors.Forbidden('`index` is read only'));
@@ -110,7 +122,10 @@ module.exports = function(config) {
                 debug('file', file);
                 options['collectionName'] = resourceName;
                 var ldr = new Loader(__dirname, options);
-                ldr.use(loader.pattern, require(loader.module)(loader.options));
+                ldr.use('**/*.xml', require('castor-load-xml')({}));
+                ldr.use('**/*.csv', require('castor-load-csv')({}));
+                ldr.use('**/*.xls', require('castor-load-excel')({}));
+                ldr.use('**/*.xlsx', require('castor-load-excel')({}));
                 ldr.use('**/*', require('../loaders/wid.js')());
                 ldr.use('**/*', require('../loaders/extend.js')(common));
                 ldr.use('**/*', require('../loaders/name.js')());
@@ -121,7 +136,10 @@ module.exports = function(config) {
       else if (req.body.type === 'text') {
         options['collectionName'] = resourceName;
         ldr = new Loader(__dirname, options);
-        ldr.use(loader.pattern, require(loader.module)(loader.options));
+        ldr.use('**/*.xml', require('castor-load-xml')({}));
+        ldr.use('**/*.csv', require('castor-load-csv')({}));
+        ldr.use('**/*.xls', require('castor-load-excel')({}));
+        ldr.use('**/*.xlsx', require('castor-load-excel')({}));
         ldr.use('**/*', require('../loaders/wid.js')());
         ldr.use('**/*', require('../loaders/extend.js')(common));
         ldr.use('**/*', require('../loaders/name.js')());
@@ -138,7 +156,10 @@ module.exports = function(config) {
       else if (req.body.type === 'uri') {
         options['collectionName'] = resourceName;
         ldr = new Loader(__dirname, options);
-        ldr.use(loader.pattern, require(loader.module)(loader.options));
+        ldr.use('**/*.xml', require('castor-load-xml')({}));
+        ldr.use('**/*.csv', require('castor-load-csv')({}));
+        ldr.use('**/*.xls', require('castor-load-excel')({}));
+        ldr.use('**/*.xlsx', require('castor-load-excel')({}));
         ldr.use('**/*', require('../loaders/wid.js')());
         ldr.use('**/*', require('../loaders/extend.js')(common));
         ldr.use('**/*', require('../loaders/name.js')());

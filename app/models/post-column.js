@@ -7,7 +7,7 @@ var path = require('path')
   , datamodel = require('datamodel')
   , faker = require('faker')
   , assert = require('assert')
-  , Errors = require('../errors.js')
+  , Errors = require('../helpers/errors.js')
   ;
 
 module.exports = function(model) {

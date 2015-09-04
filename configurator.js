@@ -48,6 +48,27 @@ Configurator.prototype.load = function load(appname, customArgvParser) {
   require('rc')(appname, this.config, customArgvParser);
 };
 
+Configurator.prototype.merge = function merge(obj) {
+  var self = this
+  Object.keys(obj).forEach(function(key) {
+    var o = self.get(key) || {};
+    if (typeof obj[key] === 'object') {
+      if (Array.isArray(obj[key])) {
+        o = obj[key].concat(o);
+      }
+      else {
+        extend(true, o, obj[key]);
+      }
+    }
+    else {
+      o = obj[key];
+    }
+    self.set(key, o);
+  });
+};
+
+
+
 Configurator.prototype.expose = function expose() {
   var conf = require('clone')(this.conf);
   delete conf.dataPath;

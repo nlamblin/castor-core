@@ -13,7 +13,7 @@ var path = require('path')
   , JBJ = require('jbj')
   , async = require('async')
   , url =require('url')
-  , Errors = require('../errors.js')
+  , Errors = require('../helpers/errors.js')
   ;
 
 module.exports = function(model) {

@@ -4,7 +4,7 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('dotcase:middlewares:' + basename)
   , schema = require('js-schema')
-  , Errors = require('../errors.js')
+  , Errors = require('../helpers/errors.js')
   , util = require('util')
   ;
 

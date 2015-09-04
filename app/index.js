@@ -10,178 +10,349 @@ var path = require('path')
   , nunjucks = require('nunjucks')
   , browserify = require('browserify-middleware')
   , Loader = require('castor-load')
+  , Computer = require('./lib/compute.js')
   , kuler = require('kuler')
   , ecstatic = require('ecstatic')
   , I18n = require('i18n-2')
-  , Errors = require('./errors.js')
+  , Errors = require('./helpers/errors.js')
+  , Hook = require('./helpers/hook.js')
   ;
 
-  module.exports = function(config, online) {
+module.exports = function(config, online) {
 
-    var app = express();
-    //
-    // is it behind a proxy,
-    //
-    if (config.get('trustProxy') === true) {
-      app.enable('trust proxy');
-    }
+  //
+  // Find & Detect view
+  //
+  var viewPath;
+  try {
+    viewPath = require('./helpers/view.js')(config);
+  }
+  catch(e) {
+    return online(e);
+  }
 
-    //
-    // Middlewares :
-    // add middlewares to Express
-    //
-    app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
-    app.use(require('serve-favicon')(__dirname + '/views/favicon.ico'));
-    app.use(require('cookie-parser')(__dirname));
-    app.use(require('express-session')({
-          secret: __dirname,
-          cookie: {
-            maxAge: 60000,
-            secure: true
-          },
-          resave: false,
-          saveUninitialized: true
+
+
+  //
+  //  create an heart & set heartrate
+  //
+  var heart, pulse;
+  try {
+    heart = require('./helpers/heart.js')(config.get('heartrate'));
+    pulse = heart.newPulse();
+  }
+  catch(e) {
+    return online(e);
+  }
+
+
+
+  //
+  // HOT folder
+  //
+  var ldropts = {
+    // "dateConfig" : dateConfig,
+    "connexionURI" : config.get('connexionURI'),
+    "collectionName": config.get('collectionName'),
+    "concurrency" : config.get('concurrency'),
+    "delay" : config.get('delay'),
+    "maxFileSize" : config.get('maxFileSize'),
+    "writeConcern" : config.get('writeConcern'),
+    "ignore" : config.get('filesToIgnore')
+  }
+  var ldr = new Loader(config.get('dataPath'), ldropts);
+
+  if (fs.existsSync(config.get('dataPath'))) {
+    ldr.use('**/*', require('./loaders/prepend.js')());
+    var loaders = new Hook('loaders', config.get('hooks'));
+    loaders.from(viewPath, __dirname, config.get('hooksPath'))
+    loaders.over(config.get('loaders'))
+    loaders.apply(function(hash, func, item) {
+        ldr.use(item.pattern || '**/*', func(item.options , config));
+    });
+    ldr.use('**/*', require('./loaders/document.js')({
+      stylesheet: config.get('documentFields')
     }));
-
-
-    //
-    // Add some vars in req
-    //
-    app.use(function (req, res, next) {
-        req.config = config;
-        next();
-    });
-
-    app.use(function (req, res, next) {
-        req.routeParams = {};
-        next();
-    });
-
-
-    //
-    // Define I18N
-    //
-    I18n.expressBind(app, {
-        locales: ['en', 'fr']
-    });
-    app.use(require('./middlewares/i18n.js')());
-
-    //
-    // Define the view template engine
-    //
-    //
-    var env = nunjucks.configure(path.resolve(__dirname, "./views/"), {
-        autoescape: false,
-        watch: false,
-        express: app
-    });
-
-    //
-    // "Tags" for nunjucks
-    //
-    //
-    //require('nunjucks-markdown').register(env, config.get('markdown'));
-
-    //
-    // "Filters" for nunjucks
-    //
-    //
-    env.addFilter('nl2br', require('./filters/nl2br.js')(config));
-    env.addFilter('json', require('./filters/json.js')(config));
-
-
-    //
-    // Set JS modules for the browser
-    //
-    //
-    var modules = [ 'vue', 'qs', 'oboe', 'faker'];
-    if (Array.isArray(modules) && modules.length > 0) {
-      app.get('/libs.js', browserify(modules, {
-            debug: false
-      }));
-    }
-
-    //
-    // Define reserved routes : /libs, /assets, /
-    //
-    //
-    app.route('/assets/*').all(ecstatic({
-          root          : path.resolve(__dirname, './views/assets'),
-          baseDir       : '/assets',
-          cache         : 3600,
-          showDir       : true,
-          autoIndex     : true,
-          humanReadable : true,
-          si            : false,
-          defaultExt    : 'html',
-          gzip          : false
-    }));
-    app.route('/libs/*').all(ecstatic({
-          root          : path.resolve(__dirname, './views/libs'),
-          baseDir       : '/libs',
-          cache         : 3600,
-          showDir       : true,
-          autoIndex     : true,
-          humanReadable : true,
-          si            : false,
-          defaultExt    : 'html',
-          gzip          : false
-    }));
-    app.route('/').all(function(req, res) {
-        res.redirect('index');
-    });
-
-
-    //
-    // Defines Dynamics routes
-    //
-    app.use(require('./routes/table.js')(config));
-    app.use(require('./routes/config.js')(config));
-    app.use(require('./routes/upload.js')(config));
-    app.use(require('./routes/files.js')(config));
-
-
-    //
-    // catch 404 and forward to error handler
-    //
-    //
-    app.use(function(req, res, next) {
-        next(new Errors.PageNotFound('Not Found'));
-    });
-
-
-    //
-    // error handler
-    //
-    //
-    app.use(function(err, req, res, next) {
-        if (err instanceof Errors.PageNotFound) {
-          res.status(404);
-        }
-        else if (err instanceof Errors.InvalidParameters) {
-          res.status(400);
-        }
-        else if (err instanceof Errors.Forbidden) {
-          res.status(403);
+    ldr.use('**/*', require('./loaders/wid.js')());
+    ldr.sync(function(err) {
+        if (err instanceof Error) {
+          console.error(kuler(err.message, 'red'));
         }
         else {
-          res.status(500);
+          console.info(kuler('Files and Database are synchronised.', 'green'));
         }
-        res.render('error.html', {
-            name: err.name,
-            message: err.message,
-            error: app.get('env') === 'development' ? err : undefined
-        });
     });
-
-
-    //
-    // Create HTTP server
-    //
-    //
-    var server = require('http').createServer(app)
-    server.listen(config.get('port'), function() {
-        online(null, server);
-    });
-
+    config.set('collectionName', ldr.options.collectionName);
   }
+
+
+  //
+  // Add Mongo indexes
+  //
+
+
+  // (...)
+
+
+  //
+  // Define Computer
+  //
+  var cptlock;
+  var cptopts = {
+    "port": config.get('port'),
+    "connexionURI" : config.get('connexionURI'),
+    "collectionName": config.get('collectionName'),
+    "concurrency" : config.get('concurrency')
+  }
+  var cpt = new Computer(config.get('corpusFields'), cptopts) ;
+
+  cpt.use('count', require('./operators/count.js'));
+  cpt.use('catalog', require('./operators/catalog.js'));
+  cpt.use('distinct', require('./operators/distinct.js'));
+  cpt.use('ventilate', require('./operators/ventilate.js'));
+  cpt.use('total', require('./operators/total.js'));
+  cpt.use('graph', require('./operators/graph.js'));
+  cpt.use('groupby', require('./operators/groupby.js'));
+  cpt.use('merge', require('./operators/merge.js'));
+  var operators = new Hook('operators', config.get('hooks'))
+  operators.from(viewPath, __dirname, config.get('hooksPath'))
+  operators.over(config.get('operators'))
+  operators.apply(function(hash, func) {
+      cpt.use(hash, func);
+  });
+  var cptfunc = function(err, doc) {
+    if (cptlock === undefined || cptlock === false) {
+      cptlock = true;
+      heart.onceOnBeat(2, function() {
+          cptlock = false; // évite d'oublier un evenement pendant le calcul
+          cpt.run(function(err) {
+              if (err instanceof Error) {
+                console.error(kuler(err.message, 'red'));
+              }
+              else {
+                console.info(kuler('Corpus fields computed.', 'green'));
+              }
+          });
+      });
+    }
+  };
+  ldr.on('watching', cptfunc);
+  ldr.on('changed', cptfunc);
+  ldr.on('cancelled', cptfunc);
+  ldr.on('dropped', cptfunc);
+  ldr.on('added', cptfunc);
+
+
+  //
+  // WEB Server
+  //
+  var app = express();
+
+
+
+  //
+  // is it behind a proxy,
+  //
+  if (config.get('trustProxy') === true) {
+    app.enable('trust proxy');
+  }
+
+
+
+  //
+  // Add middlewares to Express
+  //
+  app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
+  app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
+  app.use(require('cookie-parser')(__dirname));
+  app.use(require('express-session')({
+        secret: __dirname,
+        cookie: {
+          maxAge: 60000,
+          secure: true
+        },
+        resave: false,
+        saveUninitialized: true
+  }));
+  var middlewares = new Hook('middlewares', config.get('hooks'))
+  middlewares.from(viewPath, __dirname, config.get('hooksPath'))
+  middlewares.over(config.get('middlewares'))
+  middlewares.apply(function(hash, func, item) {
+      app.use(item.path || hash, func(item.options || config, config));
+  });
+
+
+
+  //
+  // Add some vars in req
+  //
+  app.use(function (req, res, next) {
+      req.config = config;
+      next();
+  });
+  app.use(function (req, res, next) {
+      req.routeParams = {};
+      next();
+  });
+
+
+
+  //
+  // Define I18N
+  //
+  I18n.expressBind(app, {
+      locales: ['en', 'fr']
+  });
+  app.use(require('./middlewares/i18n.js')());
+
+
+
+  //
+  // Define the view template engine
+  //
+  //
+  var env = nunjucks.configure(viewPath, {
+      autoescape: false,
+      watch: false,
+      express: app
+  });
+
+
+
+  //
+  // "Tags" for nunjucks
+  //
+  //
+  require('nunjucks-markdown').register(env, config.get('markdown'));
+
+
+
+  //
+  // "Filters" for nunjucks
+  //
+  //
+  env.addFilter('nl2br', require('./filters/nl2br.js')(config));
+  env.addFilter('json', require('./filters/json.js')(config));
+  env.addFilter('hash', require('./filters/hash.js')(config));
+  env.addFilter('stack', require('./filters/stack.js')(config));
+  env.addFilter('flatten', require('./filters/flatten.js')(config));
+  env.addFilter('add2Array', require('./filters/add2Array.js')(config));
+  env.addFilter('objectPath', require('./filters/objectPath.js')(config));
+  env.addFilter('markdown', require('./filters/markdown.js')(config.get('markdown')));
+
+  var filters = new Hook('filters', config.get('hooks'))
+  filters.from(viewPath, __dirname, config.get('hooksPath'))
+  filters.over(config.get('filters'))
+  filters.apply(function(hash, func) {
+      env.addFilter(hash, func(config));
+  });
+
+  var asynchronousFilters = new Hook('filters', config.get('hooks'))
+  asynchronousFilters.from(viewPath, __dirname, config.get('hooksPath'))
+  asynchronousFilters.over(config.get('asynchronousFilters'))
+  asynchronousFilters.apply(function(hash, func) {
+      env.addFilter(hash, func(config), true);
+  });
+
+
+
+  //
+  // Set JS modules for the browser
+  //
+  //
+  var modules = [ 'vue', 'qs', 'oboe', 'faker'];
+  // var modules = config.get('browserifyModules');
+  if (Array.isArray(modules) && modules.length > 0) {
+    app.get('/libs.js', browserify(modules, {
+          debug: false
+    }));
+  }
+
+
+
+  //
+  // Define reserved routes : /libs, /assets, /
+  //
+  //
+  app.route('/assets/*').all(ecstatic({
+        root          : path.resolve(viewPath, './assets'),
+        baseDir       : '/assets',
+        cache         : 3600,
+        showDir       : true,
+        autoIndex     : true,
+        humanReadable : true,
+        si            : false,
+        defaultExt    : 'html',
+        gzip          : false
+  }));
+  app.route('/libs/*').all(ecstatic({
+        root          : path.resolve(viewPath, './libs'),
+        baseDir       : '/libs',
+        cache         : 3600,
+        showDir       : true,
+        autoIndex     : true,
+        humanReadable : true,
+        si            : false,
+        defaultExt    : 'html',
+        gzip          : false
+  }));
+  app.route('/').all(function(req, res) {
+      res.redirect('index');
+  });
+
+
+
+  //
+  // Defines Dynamics routes
+  //
+  app.use(require('./routes/page.js')(config));
+  app.use(require('./routes/table.js')(config));
+  app.use(require('./routes/config.js')(config));
+  app.use(require('./routes/upload.js')(config));
+  app.use(require('./routes/files.js')(config));
+
+
+
+  //
+  // catch 404 and forward to error handler
+  //
+  app.use(function(req, res, next) {
+      next(new Errors.PageNotFound('Not Found'));
+  });
+
+
+
+  //
+  // Route Errors handler
+  //
+  app.use(function(err, req, res, next) {
+      if (err instanceof Errors.PageNotFound) {
+        res.status(404);
+      }
+      else if (err instanceof Errors.InvalidParameters) {
+        res.status(400);
+      }
+      else if (err instanceof Errors.Forbidden) {
+        res.status(403);
+      }
+      else {
+        res.status(500);
+      }
+      res.render('error.html', {
+          name: err.name,
+          message: err.message,
+          error: app.get('env') === 'development' ? err : undefined
+      });
+  });
+
+
+  //
+  // Create HTTP server
+  //
+  //
+  var server = require('http').createServer(app)
+  server.listen(config.get('port'), function() {
+      online(null, server);
+  });
+
+}

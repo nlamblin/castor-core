@@ -14,7 +14,7 @@ var path = require('path')
   , CSV = require('csv-string')
   , async = require('async')
   , url =require('url')
-  , Errors = require('../errors.js')
+  , Errors = require('../helpers/errors.js')
   , jsonld = require('jsonld')
   ;
 
