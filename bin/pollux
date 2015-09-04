@@ -6,7 +6,7 @@ var kuler = require('kuler')
 require('../starter.js')(function(config, start) {
     start(function(err, server) {
         if (err instanceof Error) {
-          console.error(kuler("Unable to init the server. Try the debug mode with --debug.", "red"));
+          console.error(kuler("Unable to init the server.", "red"), Error.toString());
           process.exit(3);
           return;
         }

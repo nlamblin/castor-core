@@ -31,5 +31,11 @@
 	"Edit Table": "Edit Table",
 	"Title": "Title",
 	"Description": "Description",
-	"URL Name": "URL Name"
+	"URL Name": "URL Name",
+	"The web server is returning an internal error.": "The web server is returning an internal error.",
+	"Try to create a first table.": "Try to create a first table.",
+	"Back home": "Back home",
+	"Tips": "Tips",
+	"Create it.": "Create it.",
+	"Try Again": "Try Again"
 }

@@ -24,11 +24,11 @@ module.exports = function(config) {
   //
   // Define route parameters
   //
-  router.param(':name', function(req, res, next, value) {
+  router.param('name', function(req, res, next, value) {
       req.templateName = value;
       next();
   });
-  router.param(':format', function(req, res, next, value) {
+  router.param('format', function(req, res, next, value) {
       if (supportedFormats[value]) {
         req.templateName = req.templateName + '.' + value;
         req.templateMimetype = supportedFormats[value];

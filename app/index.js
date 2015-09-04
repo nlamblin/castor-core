@@ -10,7 +10,7 @@ var path = require('path')
   , nunjucks = require('nunjucks')
   , browserify = require('browserify-middleware')
   , Loader = require('castor-load')
-  , Computer = require('./lib/compute.js')
+  , Computer = require('./helpers/compute.js')
   , kuler = require('kuler')
   , ecstatic = require('ecstatic')
   , I18n = require('i18n-2')
@@ -53,7 +53,7 @@ module.exports = function(config, online) {
   var ldropts = {
     // "dateConfig" : dateConfig,
     "connexionURI" : config.get('connexionURI'),
-    "collectionName": config.get('collectionName'),
+    "collectionName": config.get('hotFolderName'),
     "concurrency" : config.get('concurrency'),
     "delay" : config.get('delay'),
     "maxFileSize" : config.get('maxFileSize'),
@@ -63,6 +63,7 @@ module.exports = function(config, online) {
   var ldr = new Loader(config.get('dataPath'), ldropts);
 
   if (fs.existsSync(config.get('dataPath'))) {
+    debug('hot folder', config.get('dataPath'));
     ldr.use('**/*', require('./loaders/prepend.js')());
     var loaders = new Hook('loaders', config.get('hooks'));
     loaders.from(viewPath, __dirname, config.get('hooksPath'))
@@ -123,7 +124,7 @@ module.exports = function(config, online) {
   var cptfunc = function(err, doc) {
     if (cptlock === undefined || cptlock === false) {
       cptlock = true;
-      heart.onceOnBeat(2, function() {
+      heart.createEvent(2, {repeat: 1}, function() {
           cptlock = false; // évite d'oublier un evenement pendant le calcul
           cpt.run(function(err) {
               if (err instanceof Error) {
@@ -141,7 +142,6 @@ module.exports = function(config, online) {
   ldr.on('cancelled', cptfunc);
   ldr.on('dropped', cptfunc);
   ldr.on('added', cptfunc);
-
 
   //
   // WEB Server

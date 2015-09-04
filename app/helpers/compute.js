@@ -9,7 +9,7 @@ var path = require('path')
   , util = require('util')
   , events = require('events')
   , JBJ = require('jbj')
-  , pmongo = require('promised-mongo')
+  , MongoClient = require('mongodb').MongoClient
   ;
 
 function request(urlObj, callback) {
@@ -46,8 +46,6 @@ function Compute(schema, options) {
   self.options.concurrency = options.concurrency || 1;
   self.options.port = options.port || 80;
 
-  self.coll1 = pmongo(self.options.connexionURI).collection(self.options.collectionName);
-  self.coll2 = pmongo(self.options.connexionURI).collection(self.options.collectionName + '_corpus');
   self.schema = schema;
   self.bank = {};
 
@@ -79,39 +77,6 @@ function Compute(schema, options) {
     }
   }
 
-  /*
-  function internal(urlObj, callback) {
-    var ope = self.bank[path.basename(urlObj.host)];
-    var field = querystring.parse(urlObj.query).field;
-    var fields = Array.isArray(field) ? field : new Array(field);
-    var map = ope.map;
-    var reduce = ope.reduce;
-    var opts = {
-      out: {
-        inline:1
-      },
-      query: {},
-      scope: {
-        exp : fields
-      }
-    };
-    console.log('compute', urlObj, opts);
-    self.coll1.mapReduce(map, reduce, opts).then(function(coll) {
-      if (coll.find) {
-        coll.find().toArray(function(err, res) {
-          callback(null, res);
-        });
-      }
-      else {
-        callback(new Error('M/R have no result'));
-      }
-    }).catch(function(err) {
-      callback(err);
-    });
-  }
-  JBJ.register('compute:', internal);
-  */
-
   JBJ.register('local:', local);
   JBJ.register('http:', request);
   JBJ.register('https:', request);
@@ -132,6 +97,12 @@ Compute.prototype.run = function (cb)
 {
   var self = this;
   debug('run', self.schema);
+  if (typeof self.schema !== 'object' || self.schema === null || self.schema === undefined) {
+    return cb(new Error('Invalid JBJ schema'));
+  }
+  if (Object.keys(self.schema).length === 0) {
+    return cb();
+  }
   JBJ.render(self.schema, {}, function(err, fields) {
     debug('jbj', err, fields);
     if (err) {
@@ -139,7 +110,13 @@ Compute.prototype.run = function (cb)
     }
     else {
       fields.computedDate = new Date();
-      self.coll2.insert(fields, {w:1}, cb);
+      MongoClient.connect(self.options.connexionURI).then(function(db) {
+        db.collection(self.options.collectionName + '_corpus').then(function(coll) {
+            coll.insert(fields, {w:1}, cb);
+            return;
+        }).catch(cb);
+    }).catch(cb);
+
     }
   });
 };

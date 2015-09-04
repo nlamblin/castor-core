@@ -54,6 +54,7 @@ module.exports = function(warmup) {
   var config = new Configurator();
   config.fix('connexionURI',         'mongodb://localhost:27017/pollux/');
   config.fix('collectionsIndexName', 'px_index');
+  config.fix('hotFolderName',        'hotfolder');
   config.fix('debug',                false);
   config.fix('trustProxy',           false);
   config.fix('port',                 '3000');
@@ -79,7 +80,12 @@ module.exports = function(warmup) {
   config.fix('filters',              {});
   config.fix('asynchronousFilters',  {});
   config.fix('routes',               {});
+  config.fix('loaders',              {});
+  config.fix('middlewares',          []);
+  config.fix('operators',            {});
   config.fix('browserifyModules',    []);
+  config.fix('corpusFields',         {});
+  config.fix('documentFields',       {});
   config.load('pollux', argv);
 
 
