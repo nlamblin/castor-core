@@ -7,7 +7,7 @@ var path = require('path')
   , objectPath = require('object-path')
   ;
 
-
+// WARNING: this seems to be overriden by lib/compute.js
 function request(urlObj, callback) {
   var options = {
     url: urlObj
