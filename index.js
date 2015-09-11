@@ -4,18 +4,19 @@
 // for all which not use debug
 console.log = require('debug')('console:log');
 
-console.error = (function() {
-    var error = console.error;
-    var humanErrors = [{a:'failed to connect to', b:'Unable to connect to MongoDB. Is it started ?'}];
-    return function() {
-      var args = arguments;
-      for (var i = 0; i < args.length; i++) {
-        var msg = humanErrors.reduce(function(prev, cur) {
-            return args[i].indexOf(cur.a) !== -1 ? cur.b : prev;
-        }, null);
-        error.call(console, msg !== null ? kuler(msg, 'red') : args[i]);
-      }
-    }
+(function () {
+  var error = console.error;
+  var humanErrors = {
+    'failed to connect to': 'Unable to connect to MongoDB. Is it started ?'
+  };
+
+  console.error = function() {
+    var args = Array.prototype.map.call(arguments, function (arg) {
+      var msg = humanErrors[arg.toLowerCase()];
+      return msg ? kuler(msg, 'red') : arg;
+    });
+    error.apply(console, args);
+  };
 })();
 
 var path = require('path')
