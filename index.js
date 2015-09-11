@@ -37,6 +37,7 @@ var path = require('path')
   , hook = require('./helpers/hook.js')
   , pmongo = require('promised-mongo')
   , extend = require('extend')
+  , readline = require('readline')
   ;
 
   //
@@ -84,6 +85,7 @@ var path = require('path')
   // config.fix('files:csv:separator', undefined); // auto
   // config.fix('files:csv:encoding', 'utf8');
 
+var development = process.env.NODE_ENV !== 'production';
 
 function serve () {
 
@@ -110,6 +112,19 @@ function serve () {
     dateConfig = fs.statSync(confile).mtime;
   }
 
+  //
+  // Load file :
+  // Compute load log file name. It would be removed at next synchronization
+  //
+  function removeFile (file, cb) {
+    fs.exists(file, function removeExistingFile (exists) {
+      if (exists) {
+        fs.unlink(file, cb);
+      }
+    });
+  }
+  var loadLogFile   = path.normalize(dataPath) + '_load.json';
+  var errorsLogFile = path.normalize(dataPath) + '_errors.json';
   //
   // View path :
   // Find and Check the directory's templates
@@ -168,11 +183,34 @@ function serve () {
     ldr.use('**/*', require('./loaders/append.js')());
     if (config.get('turnoffSync') === false) {
       ldr.sync(function(err) {
+          if (development) {
+            process.stdout.write("\n");
+          }
           if (err instanceof Error) {
             console.error(kuler(err.message, 'red'));
           }
           else {
-            console.info(kuler('Files and Database are synchronised.', 'green'));
+            if (development) {
+              // moveCursor below last display
+              var nbFiles = Object.keys(nbSavedByFile).length;
+              readline.moveCursor(process.stdout, 0, nbFiles - onSaved.previousFileNb - 1);
+              readline.cursorTo(process.stdout, 0);
+              process.stdout.write('\n');
+            }
+            var nbSaved = 0;
+            for(var filename in nbSavedByFile) {
+              nbSaved += nbSavedByFile[filename];
+            }
+            console.info(kuler('Files and Database are synchronised. (' + nbSaved + ' saved documents)' , 'green'));
+
+            var loadLog = "";
+            for (filename in nbSavedByFile) {
+              loadLog += filename + " : " + nbSavedByFile[filename] + "\n";
+            }
+            loadLog += "Total    : " + nbSaved + " documents\n";
+            loadLog += Date() + "\n";
+            loadLog += "---------------------------------\n";
+            fs.appendFile(loadLogFile, loadLog);
           }
       });
     }
@@ -256,6 +294,48 @@ function serve () {
     ldr.on('cancelled', cptfunc);
     ldr.on('dropped', cptfunc);
     ldr.on('added', cptfunc);
+    ldr.on('browseOver', function (found) {
+      nbSavedByFile = {};
+      onSaved.previousFileNb = 0;
+      removeFile(loadLogFile);
+      removeFile(errorsLogFile);
+    });
+    var onSaved = function onSaved(doc) {
+      if (nbSavedByFile[doc.filename]) {
+        nbSavedByFile[doc.filename] = nbSavedByFile[doc.filename]+1;
+      }
+      else {
+        nbSavedByFile[doc.filename] = 1;
+      }
+      // if (development && 0 === nbSavedByFile[doc.filename] % 10) {
+      if (development) {
+        if (nbSavedByFile[doc.filename] === 1) {
+          process.stdout.write('\n');
+        }
+        var files = Object.keys(nbSavedByFile);
+        var fileNb = files.indexOf(doc.filename);
+        var moveY = fileNb - onSaved.previousFileNb;
+        readline.moveCursor(process.stdout, 0, moveY);
+        readline.clearLine(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
+        process.stdout.write(kuler('Saved from : ', 'olive') +
+          kuler(doc.filename.substr(1) + ': ', 'limegreen') +
+          nbSavedByFile[doc.filename]);
+        onSaved.previousFileNb = fileNb;
+      }
+    };
+    var nbSavedByFile = {};
+    onSaved.previousFileNb = 0;
+    ldr.on('saved', onSaved);
+    ldr.on('loadError', function (err, location, number) {
+      if (development) {
+        console.error('\n' +
+          kuler('Error : ' + err, 'red'),
+          'in file', kuler(location, 'red'),
+          'document #'+ kuler(number,'red'));
+      }
+      fs.appendFile(errorsLogFile, location+" #"+number+": "+err+"\n");
+    });
   }
 
   //

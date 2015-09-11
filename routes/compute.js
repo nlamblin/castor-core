@@ -186,6 +186,10 @@ module.exports = function(config, computer) {
   .append('headers', function(req, fill) {
     var headers = {};
     headers['Content-Type'] = rdr.transpose(req.params.format);
+    if (req.params.format === 'json') {
+      headers['Access-Control-Allow-Origin']  = '*';
+      headers['Access-Control-Allow-Headers'] = 'X-Requested-With'; // TODO: check it's useful
+    }
     fill(headers);
   })
   .append('mongoCollection', function(req, fill) {

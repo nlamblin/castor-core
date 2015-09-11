@@ -52,7 +52,7 @@ module.exports = function(config) {
     fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
   })
   .declare('selector', function(req, fill) {
-    fill({});
+    fill({ state: { $nin: [ "deleted", "hidden" ] } });
   })
   .declare('parameters', function(req, fill) {
     var schema = {
@@ -135,6 +135,10 @@ module.exports = function(config) {
     headers['Content-Type'] = rdr.transpose(req.params.format);
     if (req.params.format === 'zip') {
       headers['Content-Disposition'] = 'attachment; filename="export.zip"';
+    }
+    else if (req.params.format === 'json') {
+      headers['Access-Control-Allow-Origin']  = '*';
+      headers['Access-Control-Allow-Headers'] = 'X-Requested-With'; // TODO: check it's useful
     }
     fill(headers);
   })
