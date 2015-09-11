@@ -53,7 +53,7 @@ module.exports = function(config, online) {
   var ldropts = {
     // "dateConfig" : dateConfig,
     "connexionURI" : config.get('connexionURI'),
-    "collectionName": config.get('hotFolderName'),
+    "collectionName": config.get('collectionName'),
     "concurrency" : config.get('concurrency'),
     "delay" : config.get('delay'),
     "maxFileSize" : config.get('maxFileSize'),
@@ -310,6 +310,7 @@ module.exports = function(config, online) {
   app.use(require('./routes/config.js')(config));
   app.use(require('./routes/upload.js')(config));
   app.use(require('./routes/files.js')(config));
+  app.use(require('./routes/apiv1.js')(config));
 
 
 

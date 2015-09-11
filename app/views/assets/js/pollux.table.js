@@ -258,6 +258,11 @@ $(document).ready(function() {
         document.location.href= document.location.pathname.replace(/\/+$/,'') + '/*/?alt=nq';
         return false;
     });
+    $('#action-download-json').click(function() {
+        document.location.href= document.location.pathname.replace(/\/+$/,'') + '/*/?alt=json';
+        return false;
+    });
+
 
 
     /*

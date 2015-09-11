@@ -37,5 +37,6 @@
 	"Back home": "Back home",
 	"Tips": "Tips",
 	"Create it.": "Create it.",
-	"Try Again": "Try Again"
+	"Try Again": "Try Again",
+	"JSON LD file": "JSON LD file"
 }

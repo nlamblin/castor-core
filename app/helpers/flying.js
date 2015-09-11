@@ -8,8 +8,8 @@ var path = require('path')
   , async = require('async')
   , JBJ = require('jbj')
   , merge = require('merge')
-  , pmongo = require('promised-mongo')
-  ;
+  , MongoClient = require('mongodb').MongoClient
+ ;
 
 function Flying(schema, options) {
 
@@ -23,8 +23,7 @@ function Flying(schema, options) {
   self.options.collectionName = options.collectionName || '';
   self.options.connexionURI = options.connexionURI || process.env.MONGO_URL;
   self.options.concurrency = options.concurrency || 1;
-
-  self.coll = pmongo(self.options.connexionURI).collection(self.options.collectionName + '_corpus');
+  self.collname = self.options.collectionName + '_corpus';
   self.schema = schema;
 
 }
@@ -42,26 +41,33 @@ Flying.prototype.affix = function (keys, data, callback)
     callback(data);
   }
   else {
-    self.coll.find().sort({$natural: -1}).limit(1).toArray().then(function(res) {
-      var corpusFields = res[0];
-      if (Array.isArray(data)) {
-        async.map(data, function(item, cb) {
-          self.process(keys, item, corpusFields, cb);
-        }, function(err, ret) {
-          callback(ret);
+    MongoClient.connect(self.options.connexionURI).then(function(db) {
+        db.collection(self.collname, {strict:true}, function(err, coll) {
+            if (err) {
+              return callback(err);
+            }
+            coll.find().sort({$natural: -1}).limit(1).toArray().then(function(res) {
+                var corpusFields = res[0];
+                if (Array.isArray(data)) {
+                  async.map(data, function(item, cb) {
+                      self.process(keys, item, corpusFields, cb);
+                    }, function(err, ret) {
+                      callback(ret);
+                  });
+                }
+                else if (typeof data === 'object') {
+                  self.process(keys, data, corpusFields, function(err, ret) {
+                      callback(ret);
+                  });
+                }
+                else {
+                  callback(data);
+                }
+            }).catch(function(err) {
+                callback();
+            });
         });
-      }
-      else if (typeof data === 'object') {
-        self.process(keys, data, corpusFields, function(err, ret) {
-          callback(ret);
-        });
-      }
-      else {
-        callback(data);
-      }
-    }).catch(function(err) {
-      callback();
-    });
+    }).catch(callback);
   }
 };
 

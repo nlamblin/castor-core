@@ -80,7 +80,7 @@ module.exports = function(config) {
   router.route(authorityName + '/:resourceName/:star')
 
   .all(cors())
-  .get(check.query({'?alt' : ['cvs', 'nq', 'json']}))
+  .get(check.query({'?alt' : ['csv', 'nq', 'json']}))
   .get(function(req, res, next) {
       debug('get /:resourceName/:star', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined) {

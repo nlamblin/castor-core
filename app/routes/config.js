@@ -12,6 +12,11 @@ var path = require('path')
 module.exports = function(config) {
   var router = express.Router()
 
+  router.route('/-/config.js(on|)')
+  .all(function (req, res) { 
+      res.jsonp(config.expose()); 
+  });
+
   router.route('/-/config')
   .all(bodyParser.urlencoded({ extended: false }))
   .get(function(req, res) {

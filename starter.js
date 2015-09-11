@@ -54,13 +54,13 @@ module.exports = function(warmup) {
   var config = new Configurator();
   config.fix('connexionURI',         'mongodb://localhost:27017/pollux/');
   config.fix('collectionsIndexName', 'px_index');
-  config.fix('hotFolderName',        'hotfolder');
+  config.fix('collectionName',       'hotfolder');
   config.fix('debug',                false);
   config.fix('trustProxy',           false);
   config.fix('port',                 '3000');
   config.fix('logFormat',            'combined');
-  config.fix('title',                'Pollux on air.');
-  config.fix('description',          'Are you ready to publish & link your data ?');
+  config.fix('title',                'Change title');
+  config.fix('description',          'Change description');
   config.fix('itemsPerPage',         30);
   config.fix('concurrency',          os.cpus().length);
   config.fix('writeConcern',         1);
@@ -82,6 +82,7 @@ module.exports = function(warmup) {
   config.fix('routes',               {});
   config.fix('loaders',              {});
   config.fix('middlewares',          []);
+  config.fix('resources',            {}); // for apiv1
   config.fix('operators',            {});
   config.fix('browserifyModules',    []);
   config.fix('corpusFields',         {});
