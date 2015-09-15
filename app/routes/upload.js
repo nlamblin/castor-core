@@ -18,7 +18,7 @@ module.exports = function(config) {
   var jfum = new JFUM({
       minFileSize: 1,
       maxFileSize: config.get('maxFileSize'),
-      acceptFileTypes: /\.(csv|xml|txt|xls|xlsx)$/i
+      acceptFileTypes: /\.(csv|xml|txt|xls|xlsx|nq|n3|nt)$/i
   });
   var options = {
     "connexionURI" : config.get('connexionURI'),
@@ -69,38 +69,13 @@ module.exports = function(config) {
       var ldr
         , referer = url.parse(req.get('Referer'))
         , resourceName = path.basename(referer.pathname)
-        , loader = {}
-        , loaders = {
-            'xml' : {
-              pattern: '**/*.xml',
-              options: {},
-              module: 'castor-load-xml'
-            },
-            'csv' : {
-              pattern: '**/*.csv',
-              options: {},
-              module: 'castor-load-csv'
-            },
-            'xls' : {
-              pattern: '**/*.xls',
-              options: {},
-              module: 'castor-load-excel'
-            }
-
-          };
+        ;
 
       // TODO : check if req.body is valid
       // TODO : check if resourceName already exists
-      // TODO : check if loader is knowned
 
       if (resourceName === 'index') {
         return next(new Errors.Forbidden('`index` is read only'));
-      }
-      if (req.body.loader === undefined || loaders[req.body.loader] === undefined) {
-        return next(new Errors.InvalidParameters('Unknown loader.'));
-      }
-      else {
-        loader = loaders[req.body.loader];
       }
       var common = {
         resourceName :  resourceName,
@@ -126,6 +101,9 @@ module.exports = function(config) {
                 ldr.use('**/*.csv', require('castor-load-csv')({}));
                 ldr.use('**/*.xls', require('castor-load-excel')({}));
                 ldr.use('**/*.xlsx', require('castor-load-excel')({}));
+                ldr.use('**/*.nq', require('castor-load-nq')({}));
+                ldr.use('**/*.nt', require('castor-load-nq')({}));
+                ldr.use('**/*.n3', require('castor-load-nq')({}));
                 ldr.use('**/*', require('../loaders/wid.js')());
                 ldr.use('**/*', require('../loaders/extend.js')(common));
                 ldr.use('**/*', require('../loaders/name.js')());
@@ -140,6 +118,9 @@ module.exports = function(config) {
         ldr.use('**/*.csv', require('castor-load-csv')({}));
         ldr.use('**/*.xls', require('castor-load-excel')({}));
         ldr.use('**/*.xlsx', require('castor-load-excel')({}));
+        ldr.use('**/*.nq', require('castor-load-nq')({}));
+        ldr.use('**/*.nt', require('castor-load-nq')({}));
+        ldr.use('**/*.n3', require('castor-load-nq')({}));
         ldr.use('**/*', require('../loaders/wid.js')());
         ldr.use('**/*', require('../loaders/extend.js')(common));
         ldr.use('**/*', require('../loaders/name.js')());
@@ -160,6 +141,9 @@ module.exports = function(config) {
         ldr.use('**/*.csv', require('castor-load-csv')({}));
         ldr.use('**/*.xls', require('castor-load-excel')({}));
         ldr.use('**/*.xlsx', require('castor-load-excel')({}));
+        ldr.use('**/*.nq', require('castor-load-nq')({}));
+        ldr.use('**/*.nt', require('castor-load-nq')({}));
+        ldr.use('**/*.n3', require('castor-load-nq')({}));
         ldr.use('**/*', require('../loaders/wid.js')());
         ldr.use('**/*', require('../loaders/extend.js')(common));
         ldr.use('**/*', require('../loaders/name.js')());

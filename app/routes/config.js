@@ -12,12 +12,12 @@ var path = require('path')
 module.exports = function(config) {
   var router = express.Router()
 
-  router.route('/-/config.js(on|)')
-  .all(function (req, res) { 
-      res.jsonp(config.expose()); 
+  router.route('/-/v3/config.js(on|)')
+  .all(function (req, res) {
+      res.jsonp(config.expose());
   });
 
-  router.route('/-/config')
+  router.route('/-/v3/config')
   .all(bodyParser.urlencoded({ extended: false }))
   .get(function(req, res) {
       var form = formatik.parse(req.query, {

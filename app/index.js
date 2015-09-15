@@ -310,7 +310,7 @@ module.exports = function(config, online) {
   app.use(require('./routes/config.js')(config));
   app.use(require('./routes/upload.js')(config));
   app.use(require('./routes/files.js')(config));
-  app.use(require('./routes/apiv1.js')(config));
+  app.use(require('./routes/apiv2.js')(config));
 
 
 
