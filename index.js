@@ -125,8 +125,8 @@ function serve () {
       }
     });
   }
-  var loadLogFile   = path.normalize(dataPath) + '_load.json';
-  var errorsLogFile = path.normalize(dataPath) + '_errors.json';
+  var loadLogFile   = path.normalize(dataPath) + '_load.log';
+  var errorsLogFile = path.normalize(dataPath) + '_errors.log';
   //
   // View path :
   // Find and Check the directory's templates
