@@ -31,7 +31,7 @@ module.exports = function(config) {
   };
   var router = express.Router()
 
-  router.route('/-/upload')
+  router.route('/-/v3/upload')
   .all(bodyParser.urlencoded({ extended: false }))
   .options(jfum.optionsHandler.bind(jfum))
   .post(jfum.postHandler.bind(jfum), function(req, res, next) {
@@ -53,7 +53,7 @@ module.exports = function(config) {
       }
   });
 
-  router.route('/-/echo/:basename.:extension')
+  router.route('/-/v3/echo/:basename.:extension')
   .get(function(req, res, next) {
       if (req.query.plain) {
         res.send(req.query.plain);
@@ -63,7 +63,7 @@ module.exports = function(config) {
       }
   });
 
-  router.route('/-/load')
+  router.route('/-/v3/load')
   .all(bodyParser.urlencoded({ extended: true}))
   .post(function(req, res, next) {
       var ldr
@@ -104,7 +104,7 @@ module.exports = function(config) {
                 ldr.use('**/*.nq', require('castor-load-nq')({}));
                 ldr.use('**/*.nt', require('castor-load-nq')({}));
                 ldr.use('**/*.n3', require('castor-load-nq')({}));
-                ldr.use('**/*', require('../loaders/wid.js')());
+                ldr.use('**/*', require('../loaders/xid.js')());
                 ldr.use('**/*', require('../loaders/extend.js')(common));
                 ldr.use('**/*', require('../loaders/name.js')());
                 ldr.push(file);
@@ -121,14 +121,14 @@ module.exports = function(config) {
         ldr.use('**/*.nq', require('castor-load-nq')({}));
         ldr.use('**/*.nt', require('castor-load-nq')({}));
         ldr.use('**/*.n3', require('castor-load-nq')({}));
-        ldr.use('**/*', require('../loaders/wid.js')());
+        ldr.use('**/*', require('../loaders/xid.js')());
         ldr.use('**/*', require('../loaders/extend.js')(common));
         ldr.use('**/*', require('../loaders/name.js')());
         ldr.push(url.format({
               protocol: "http",
               hostname: "127.0.0.1",
               port: config.get('port'),
-              pathname: "/-/echo/keyboard." + req.body.loader,
+              pathname: "/-/v3/echo/keyboard." + req.body.loader,
               query: {
                 plain : req.body.text
               }
@@ -144,7 +144,7 @@ module.exports = function(config) {
         ldr.use('**/*.nq', require('castor-load-nq')({}));
         ldr.use('**/*.nt', require('castor-load-nq')({}));
         ldr.use('**/*.n3', require('castor-load-nq')({}));
-        ldr.use('**/*', require('../loaders/wid.js')());
+        ldr.use('**/*', require('../loaders/xid.js')());
         ldr.use('**/*', require('../loaders/extend.js')(common));
         ldr.use('**/*', require('../loaders/name.js')());
         ldr.push(req.body.uri);

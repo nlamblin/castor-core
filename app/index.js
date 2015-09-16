@@ -74,7 +74,7 @@ module.exports = function(config, online) {
     ldr.use('**/*', require('./loaders/document.js')({
       stylesheet: config.get('documentFields')
     }));
-    ldr.use('**/*', require('./loaders/wid.js')());
+    ldr.use('**/*', require('./loaders/xid.js')());
     ldr.sync(function(err) {
         if (err instanceof Error) {
           console.error(kuler(err.message, 'red'));

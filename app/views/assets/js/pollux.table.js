@@ -161,7 +161,7 @@ $(document).ready(function() {
         }
         $.ajax({
             type: "POST",
-            url: "/-/load",
+            url: "/-/v3/load",
             data: formData,
             success: function(data) {
               document.location.href= document.location.pathname;

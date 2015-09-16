@@ -38,5 +38,14 @@
 	"Tips": "Tips",
 	"Create it.": "Create it.",
 	"Try Again": "Try Again",
-	"JSON LD file": "JSON LD file"
+	"JSON LD file": "JSON LD file",
+	"Try to start (or retstart) Mongo.": "Try to start (or retstart) Mongo.",
+	"Extracted": "Extracted",
+	"Computed": "Computed",
+	"Linked": "Linked",
+	" is a value": " is a value",
+	"is Computed": "is Computed",
+	"is Linked": "is Linked",
+	"is a Link": "is a Link",
+	"Try to create a new table.": "Try to create a new table."
 }

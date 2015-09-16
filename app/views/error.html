@@ -45,26 +45,29 @@
 
       <!-- Jumbotron -->
       <div class="jumbotron">
-        <h1><span class="glyphicon glyphicon-fire red"></span> <small>{{message}}</small></h1>
-		<p class="lead">{{ __('The web server is returning an internal error.') }}</p>
-		<a href="/" class="btn btn-default">{{ __('Back home') }}</a>
+        <h1><span class="glyphicon glyphicon-fire red"></span> <small>{{ __('The web server is returning an internal error.') }}</small></h1>
+		{% if error %}
+		<p class="lead">{{message}}</p>
+		{% endif %}
 	  </div>
 
 
-	  <div class="alert alert-info alert-dismissible fade in" role="alert">
+	  <div class="jumbotron alert alert-info alert-dismissible fade in" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-        <h4> {{ __('Tips') }}</h4>
-		<p>
+		<h1><span class="glyphicon glyphicon-info-sign blue"></span> <small>{{ __('Tips') }}</small></h1>
 		{% if name == "TableNotFound"%}
-			{{ __('Try to create a new table.') }}
-				<a id="action-newtable" href="">{{ __('Create it.') }}</a>
+			<p class="lead"> {{ __('Try to create a new table.') }}</p>
+			<a id="action-newtable" href="" class="btn btn-success">{{ __('Create it.') }}</a>
         {% elif name == "IndexNotFound" or name == "CollectionNotFound" %}
-			{{ __('Try to create a first table.') }}
-			<a id="action-newtable" href="">{{ __('Create it.') }}</a>
+			<p class="lead"> {{ __('Try to create a first table.') }}</p>
+			<a id="action-newtable" href="" class="btn btn-success">{{ __('Create it.') }}</a>
+        {% elif name == "MongoError" %}
+			<p class="lead"> {{ __('Try to start (or retstart) Mongo.') }}</p>
+			<a href="javascript:document.location.reload(true);" class="btn btn-success">{{ __('Try Again') }}</a>
 		{% else %}
 			<a href="javascript:document.location.reload(true);" class="btn btn-success">{{ __('Try Again') }}</a>
         {% endif %}
-		</p>
+		<a href="/" class="btn btn-default">{{ __('Back home') }}</a>
       </div>
 
 

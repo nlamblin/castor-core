@@ -17,14 +17,21 @@ module.exports = function(model) {
       var property = {
         name: req.routeParams.columnName
       };
-      if (req.body && req.body.propertyLabel) {
+      if (req.body && req.body.propertyLabel && req.routeParams.columnName === 'name') {
         property.scheme = req.body.propertyScheme;
         property.type = req.body.propertyType;
         property.comment = req.body.propertyComment;
         property.label = req.body.propertyLabel;
         property.value = req.body.propertyValue;
       }
-      else if (req.body && req.body[req.routeParams.columnName] == 'true') {
+      else if (req.body && req.body.propertyLabel && req.routeParams.columnName !== 'name') {
+        property.scheme = req.body.propertyScheme;
+        property.type = req.body.propertyType;
+        property.comment = req.body.propertyComment;
+        property.label = req.body.propertyLabel;
+        property.value = req.body.propertyValue;
+      }
+      else if (req.body && req.body[req.routeParams.columnName] == 'true' &&  req.routeParams.columnName !== 'name') {
         property.name = false;
         req.body.previousName = req.routeParams.columnName;
       }
