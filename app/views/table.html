@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block head %}
-<title> {{ table.title }} | d('n/a') | e </title>
+<title> {{ table.title| d('n/a') | e }}  </title>
 <meta name="description" content="{{ table.description | d('n/a') | e }}">
 <meta name="author" content="">
 {% endblock %}

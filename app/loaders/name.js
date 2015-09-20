@@ -9,7 +9,7 @@ module.exports = function(options) {
       input._name = input._name.concat(input.resourceName)
     }
     if (input.wid) {
-      input._name = input._name.concat("/").concat(input.wid)
+      input._name = input._name.concat("/").concat(input.nid)
     }
     submit(null, input)
   }

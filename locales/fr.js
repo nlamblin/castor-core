@@ -47,5 +47,6 @@
 	"is Computed": "is Computed",
 	"is Linked": "is Linked",
 	"is a Link": "is a Link",
-	"Try to create a new table.": "Try to create a new table."
+	"Try to create a new table.": "Try to create a new table.",
+	"Text link": "Text link"
 }

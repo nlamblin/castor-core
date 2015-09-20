@@ -57,27 +57,35 @@ $(document).ready(function() {
         },
         ready: function() {
           var JSONEditorOptions = { mode: "code" };
-          var JSONEditorContainer = document.getElementById("modal-editcolumn-jsoneditor");
-          this.JSONEditorHandle = new JSONEditor(JSONEditorContainer, JSONEditorOptions);
+          var JSONEditorContainerValue = document.getElementById("modal-editcolumn-jsoneditor-value");
+          this.JSONEditorHandleValue = new JSONEditor(JSONEditorContainerValue, JSONEditorOptions);
+          var JSONEditorContainerLink= document.getElementById("modal-editcolumn-jsoneditor-link");
+          this.JSONEditorHandleLink = new JSONEditor(JSONEditorContainerLink, JSONEditorOptions);
         },
         filters: {
         },
         methods: {
           setField: function (column) {
             var self = this;
-            self.propertyLabel = column.propertyLabel;
-            self.previousLabel = column.propertyLabel;
-            self.propertyValue = column.propertyValue;
-            self.previousValue = column.propertyValue;
-            self.propertyName = column.propertyName;
-            self.previousName = column.propertyName;
-            self.propertyScheme = column.propertyScheme;
-            self.previousScheme = column.propertyScheme;
-            self.propertyType= column.propertyType;
-            self.previousType = column.propertyType;
-            self.propertyComment = column.propertyComment;
-            self.previousComment = column.propertyComment;
-            self.JSONEditorHandle.set(self.propertyValue);
+            console.log('column', column);
+            self.propertyLabel = column.propertyLabel || '';
+            self.previousLabel = column.propertyLabel || '';
+            self.propertyValue = column.propertyValue || {};
+            self.previousValue = column.propertyValue || {};
+            self.propertyName = column.propertyName || '';
+            self.previousName = column.propertyName || '';
+            self.propertyScheme = column.propertyScheme || '';
+            self.previousScheme = column.propertyScheme || '';
+            self.propertyType= column.propertyType || '';
+            self.previousType = column.propertyType || '';
+            self.propertyComment = column.propertyComment || '';
+            self.previousComment = column.propertyComment || '';
+            self.propertyText = column.propertyText || {};
+            self.previousText = column.propertyText || {};
+            console.log('v', self.propertyValue);
+            console.log('t', self.propertyText);
+            self.JSONEditorHandleValue.set(self.propertyValue);
+            self.JSONEditorHandleLink.set(self.propertyText);
           },
           drop: function() {
             var url = document.location.pathname.replace(/\/+$/,'') + '/*/' + this.propertyName + '/';
@@ -93,7 +101,9 @@ $(document).ready(function() {
             });
           },
           save : function() {
-            this.propertyValue = this.JSONEditorHandle.get();
+            this.propertyValue = this.JSONEditorHandleValue.get();
+            this.propertyText = this.JSONEditorHandleLink.get();
+            this.propertyType = $("#modal-editcolumn-tab-list li.active").data('type')
             var url = document.location.pathname.replace(/\/+$/,'') + '/*/' + this.propertyName + '/';
             $.ajax({
                 type: "POST",
@@ -103,10 +113,14 @@ $(document).ready(function() {
                   "previousValue" : this.previousValue,
                   "previousName" : this.previousName,
                   "previousLabel" : this.previousLabel,
+                  "previousComment" : this.previousComment,
+                  "previousText" : this.previousText,
                   "propertyScheme": this.propertyScheme,
                   "propertyValue" : this.propertyValue,
                   "propertyName" : this.propertyName,
-                  "propertyLabel" : this.propertyLabel
+                  "propertyLabel" : this.propertyLabel,
+                  "propertyComment" : this.propertyComment,
+                  "propertyText" : this.propertyText,
                 },
                 success: function(data) {
                   document.location.href= document.location.pathname;

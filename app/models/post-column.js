@@ -14,20 +14,26 @@ module.exports = function(model) {
 
   model
   .declare('property', function(req, fill) {
+      var types = {
+        "value" : undefined,
+        "link" : "http://www.w3.org/TR/xmlschema-2/#anyURI"
+      };
       var property = {
         name: req.routeParams.columnName
       };
       if (req.body && req.body.propertyLabel && req.routeParams.columnName === 'name') {
         property.scheme = req.body.propertyScheme;
-        property.type = req.body.propertyType;
+        property.type = types[req.body.propertyType];
         property.comment = req.body.propertyComment;
+        property.text = req.body.propertyText;
         property.label = req.body.propertyLabel;
         property.value = req.body.propertyValue;
       }
       else if (req.body && req.body.propertyLabel && req.routeParams.columnName !== 'name') {
         property.scheme = req.body.propertyScheme;
-        property.type = req.body.propertyType;
+        property.type = types[req.body.propertyType];
         property.comment = req.body.propertyComment;
+        property.text = req.body.propertyText;
         property.label = req.body.propertyLabel;
         property.value = req.body.propertyValue;
       }
@@ -64,6 +70,7 @@ module.exports = function(model) {
                 "propertyScheme": self.property.scheme,
                 "propertyType": self.property.type,
                 "propertyValue" : self.property.value,
+                "propertyText" : self.property.text,
                 "propertyName" : self.property.name,
                 "propertyLabel" : self.property.label,
                 "propertyComment" : self.property.comment

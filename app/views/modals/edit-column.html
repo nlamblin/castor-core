@@ -18,38 +18,25 @@
         <input class="form-control" id="modal-editcolumn-input-scheme" placeholder="" type="url"  v-model="propertyScheme">
       </div>
       <ul id="modal-editcolumn-tab-list" role="tablist" class="nav nav-tabs">
-        <li role="presentation" class="active" data-type="typ1">
-          <a href="#modal-editcolumn-tab-typ1" aria-controls="#modal-editcolumn-tab-uri" role="tab" data-toggle="tab">{{ __(' is a value') }}</a>
+        <li role="presentation" class="active" data-type="value">
+          <a href="#modal-editcolumn-tab-value" aria-controls="#modal-editcolumn-tab-uri" role="tab" data-toggle="tab">{{ __(' is a value') }}</a>
         </li>
-        <li role="presentation"  data-type="typ2">
-          <a href="#modal-editcolumn-tab-typ2" aria-controls="#modal-editcolumn-tab-file" role="tab" data-toggle="tab">{{ __('is Computed') }}</a>
-        </li>
-        <li role="presentation"  data-type="typ3">
-          <a href="#modal-editcolumn-tab-typ3"  aria-controls="#modal-editcolumn-tab-text" role="tab" data-toggle="tab">{{ __('is Linked') }}</a>
-        </li>
-        <li role="presentation"  data-type="typ4">
-          <a href="#modal-editcolumn-tab-typ4"  aria-controls="#modal-editcolumn-tab-text" role="tab" data-toggle="tab">{{ __('is a Link') }}</a>
+        <li role="presentation"  data-type="link">
+          <a href="#modal-editcolumn-tab-link"  aria-controls="#modal-editcolumn-tab-text" role="tab" data-toggle="tab">{{ __('is a Link') }}</a>
         </li>
       </ul>
       <div class="panel panel-default">
         <div class="panel-body">
           <div class="tab-content">
-            <div role="tabpanel" class="tab-pane active" id="modal-editcolumn-tab-typ1">
+            <div role="tabpanel" class="tab-pane active" id="modal-editcolumn-tab-value">
               <div class="form-group">
-                <label class="control-label" for="modal-editcolumn-input-value">{{ __('Value') }}</label>
-                <div id="modal-editcolumn-jsoneditor" style="width:100%;height:15em;">
-                </div>
-                <style> .jsoneditor .menu {display: none;} </style>
+                <div id="modal-editcolumn-jsoneditor-value" style="width:100%;height:12em;"> </div>
               </div>
             </div>
-            <div role="tabpanel" class="tab-pane" id="modal-editcolumn-tab-typ2">
-                ???
-            </div>
-            <div role="tabpanel" class="tab-pane" id="modal-editcolumn-tab-typ3">
-                !!!
-            </div>
-            <div role="tabpanel" class="tab-pane" id="modal-editcolumn-tab-typ4">
-                !!!
+            <div role="tabpanel" class="tab-pane" id="modal-editcolumn-tab-link">
+              <div class="form-group">
+                <div id="modal-editcolumn-jsoneditor-link" style="width:100%;height:12em;"> </div>
+              </div>
             </div>
           </div>
         </div>
@@ -62,7 +49,7 @@
         <label class="control-label" for="modal-editcolumn-input-scheme">{{ __('Comment') }}</label>
         <input class="form-control" id="modal-editcolumn-input-scheme" placeholder="" type="text"  v-model="propertyComment">
       </div>
-          <div class="modal-footer">
+      <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">{{ __('Cancel') }}</button>
         <button id="action-editcolumn-drop" type="button" class="btn btn-warning">{{ __('Drop') }}</button>
         <button id="action-editcolumn-save" type="button" class="btn btn-primary">{{ __('Save') }}</button>
@@ -70,4 +57,4 @@
     </div>
   </div>
 </div>
-</div>
+<style> .jsoneditor .menu {display: none;} </style>
