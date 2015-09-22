@@ -74,7 +74,11 @@ var path = require('path')
 
 (function checkMongodb() {
   var db = pmongo(config.get('connexionURI'));
-  db.stats().catch(function(e) {
+  db.stats()
+  .then(function () {
+    db.close();
+  })
+  .catch(function(e) {
     console.info(kuler('Unable to connect to MongoDB. Is it started ?', 'red'));
     process.exit(1);
   });
