@@ -4,21 +4,6 @@
 // for all which not use debug
 console.log = require('debug')('console:log');
 
-(function () {
-  var error = console.error;
-  var humanErrors = {
-    'failed to connect to': 'Unable to connect to MongoDB. Is it started ?'
-  };
-
-  console.error = function() {
-    var args = Array.prototype.map.call(arguments, function (arg) {
-      var msg = humanErrors[arg.toLowerCase()];
-      return msg ? kuler(msg, 'red') : arg;
-    });
-    error.apply(console, args);
-  };
-})();
-
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:' + basename)
@@ -86,6 +71,14 @@ var path = require('path')
   // config.fix('upload',               {});
   // config.fix('files:csv:separator', undefined); // auto
   // config.fix('files:csv:encoding', 'utf8');
+
+(function checkMongodb() {
+  var db = pmongo(config.get('connexionURI'));
+  db.stats().catch(function(e) {
+    console.info(kuler('Unable to connect to MongoDB. Is it started ?', 'red'));
+    process.exit(1);
+  });
+})();
 
 var development = process.env.NODE_ENV !== 'production';
 
