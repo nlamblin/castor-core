@@ -3,7 +3,7 @@
 
 var path = require('path')
   , basename = path.basename(__filename, '.js')
-  , debug = require('debug')('pollux:routes:' + basename)
+  , debug = require('debug')('castor:routes:' + basename)
   , datamodel = require('datamodel')
   , express =  require('express')
   ;

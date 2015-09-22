@@ -1,7 +1,7 @@
 'use strict';
 var path = require('path')
   , basename = path.basename(__filename, '.js')
-  , debug = require('debug')('pollux:helpers:' + basename)
+  , debug = require('debug')('castor:helpers:' + basename)
   , util = require('util')
   , heartbeats = require('heartbeats')
   ;

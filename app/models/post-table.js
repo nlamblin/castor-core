@@ -3,7 +3,7 @@
 
 var path = require('path')
   , basename = path.basename(__filename, '.js')
-  , debug = require('debug')('pollux:models:' + basename)
+  , debug = require('debug')('castor:models:' + basename)
   , datamodel = require('datamodel')
   , faker = require('faker')
   , assert = require('assert')

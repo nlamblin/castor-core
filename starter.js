@@ -1,7 +1,7 @@
 "use strict";
 var path = require('path')
   , basename = path.basename(__filename, '.js')
-  , debug = require('debug')('pollux:' + basename)
+  , debug = require('debug')('castor:' + basename)
   , minimist = require('minimist')
   , portfinder = require('portfinder')
   , kuler = require('kuler')

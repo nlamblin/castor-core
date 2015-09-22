@@ -3,7 +3,7 @@
 
 var path = require('path')
   , basename = path.basename(__filename, '.js')
-  , debug = require('debug')('pollux:' + basename)
+  , debug = require('debug')('castor:' + basename)
   , fs = require('fs')
   , kuler = require('kuler')
   , express = require('express')
