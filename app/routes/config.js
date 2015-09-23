@@ -13,9 +13,19 @@ module.exports = function(config) {
   var router = express.Router()
 
   router.route('/-/v3/config.js(on|)')
-  .all(function (req, res) {
+  .get(function (req, res) {
+      res.set('Content-Type', 'text/javascript');
       res.jsonp(config.expose());
   });
+
+  router.route('/config.js(on|)')
+  .get(function(req, res) {
+      console.warn('Depretacted route, use /-/v3/config.js');
+      res.set('Content-Type', 'text/javascript');
+      res.jsonp(config.expose());
+  });
+
+
 
   router.route('/-/v3/config')
   .all(bodyParser.urlencoded({ extended: false }))

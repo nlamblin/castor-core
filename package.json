@@ -1,21 +1,24 @@
 {
-  "name": "pollux",
-  "version": "0.0.1",
+  "name": "castor-core",
+  "version": "3.0.0",
   "author": "Nicolas Thouvenin <nthouvenin@gmail.com>",
   "contributors": [],
   "description": "",
   "keywords": [],
-  "homepage": "http://github.com/touv/pollux",
-  "main": "starter.js",
-  "bin": {
-    "pollux": "./bin/pollux"
+  "homepage": "http://github.com/castorjs/castor-core",
+  "scripts": {
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/touv/pollux.git"
+    "url": "https://github.com/castorjs/castor-core.git"
+  },
+  "main": "starter.js",
+  "bin": {
+    "castor": "./bin/castor"
   },
   "bugs": {
-    "url": "https://github.com/touv/pollux/issues"
+    "url": "https://github.com/castorjs/castor-core/issues"
   },
   "dependencies": {
     "JSONStream": "^1.0.4",
@@ -38,7 +41,7 @@
     "express": "^4.13.1",
     "express-session": "^1.11.3",
     "extend": "^3.0.0",
-    "faker": "^3.0.0",
+    "faker": "^3.0.1",
     "flat": "^1.6.0",
     "formatik": "^1.2.0",
     "heartbeats": "^3.1.3",

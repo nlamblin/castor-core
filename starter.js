@@ -38,7 +38,7 @@ module.exports = function(warmup) {
   }
 
   if (argv.version) {
-    console.info(require('../package.json').version);
+    console.info(require('./package.json').version);
     process.exit(0);
   }
 
@@ -68,7 +68,6 @@ module.exports = function(warmup) {
   config.fix('authorityName',        ''); // ex: /1234
   config.fix('maxFileSize',          10485760); // 10 Mo
   config.fix('heartrate',            5000);
-  config.fix('turnoffUpload',        false);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);
   config.fix('tempPath',             os.tmpdir());
   config.fix('dataPath',             path.normalize(path.resolve(process.cwd(), path.normalize(argv._[0] || "./data"))));

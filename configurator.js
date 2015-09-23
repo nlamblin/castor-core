@@ -70,13 +70,13 @@ Configurator.prototype.merge = function merge(obj) {
 
 
 Configurator.prototype.expose = function expose() {
-  var conf = require('clone')(this.conf);
-  delete conf.dataPath;
-  delete conf.collectionName;
-  delete conf.connexionURI;
-  delete conf._;
-  delete conf.configs;
-  delete conf.$0;
+  var conf = require('clone')(this.config);
+  var tohide = ['dataPath', 'viewPath', 'collectionName', 'connexionURI', 'configs', 'config', '$0', '_', 'browserifyModules', 'collectionsIndexName', 'tempPath', 'theme', 'h', 'd', 'debug', 'help', 'version', 'v', 'verbose', 'V'];
+  tohide.forEach(function(n) {
+      if (conf[n] !== undefined) {
+        delete conf[n];
+      }
+  });
   return conf;
 };
 

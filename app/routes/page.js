@@ -10,6 +10,7 @@ var path = require('path')
 
 module.exports = function(config) {
 
+  var page = require('../models/page.js');
   var supportedFormats = {
     "html" : "text/html",
     "txt" : "text/plain",
@@ -47,32 +48,7 @@ module.exports = function(config) {
         return next();
       }
 
-      datamodel()
-      .declare('site', function(req, fill) {
-          fill({
-              title : config.get('title'),
-              description : config.get('description')
-          });
-      })
-      .declare('page', function(req, fill) {
-          fill({
-              title : config.get('pages:' + req.params.name + ':title'),
-              description : config.get('pages:' + req.params.name + ':description'),
-              types : ['text/html', 'text/plain']
-          });
-      })
-      .declare('user', function(req, fill) {
-          fill(req.user ? req.user : {});
-      })
-      .declare('config', function(req, fill) {
-          fill(config.get());
-      })
-      .declare('url', function(req, fill) {
-          fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));
-      })
-      .declare('parameters', function(req, fill) {
-          fill(req.query);
-      })
+      datamodel([page])
       .apply(req)
       .then(function(locals) {
           res.set('Content-Type', req.templateMimetype);

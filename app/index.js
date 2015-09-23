@@ -20,6 +20,21 @@ var path = require('path')
 
 module.exports = function(config, online) {
 
+  if (online === undefined || typeof online !== 'function') {
+    online = function(err, server) {
+      if (err instanceof Error) {
+        console.error(kuler("Unable to init the server.", "red"), err.toString());
+        process.exit(3);
+        return;
+      }
+      var pack = config.get('package');
+      if (pack) {
+        console.info(kuler('App    :', 'olive'), kuler(pack.name + ' ' + pack.version, 'limegreen'));
+      }
+      console.info(kuler("Server is listening on " + config.get('baseURL') + "/", "green"));
+    }
+  }
+
   //
   // Find & Detect view
   //
@@ -30,7 +45,6 @@ module.exports = function(config, online) {
   catch(e) {
     return online(e);
   }
-
 
 
   //
@@ -50,42 +64,47 @@ module.exports = function(config, online) {
   //
   // HOT folder
   //
-  var ldropts = {
-    // "dateConfig" : dateConfig,
-    "connexionURI" : config.get('connexionURI'),
-    "collectionName": config.get('collectionName'),
-    "concurrency" : config.get('concurrency'),
-    "delay" : config.get('delay'),
-    "maxFileSize" : config.get('maxFileSize'),
-    "writeConcern" : config.get('writeConcern'),
-    "ignore" : config.get('filesToIgnore')
-  }
-  var ldr = new Loader(config.get('dataPath'), ldropts);
+  var ldr, ldropts;
+  try {
+    ldropts = {
+      // "dateConfig" : dateConfig,
+      "connexionURI" : config.get('connexionURI'),
+      "collectionName": config.get('collectionName'),
+      "concurrency" : config.get('concurrency'),
+      "delay" : config.get('delay'),
+      "maxFileSize" : config.get('maxFileSize'),
+      "writeConcern" : config.get('writeConcern'),
+      "ignore" : config.get('filesToIgnore')
+    }
+    ldr = new Loader(config.get('dataPath'), ldropts);
 
-  if (fs.existsSync(config.get('dataPath'))) {
-    debug('hot folder', config.get('dataPath'));
-    ldr.use('**/*', require('./loaders/prepend.js')());
-    var loaders = new Hook('loaders', config.get('hooks'));
-    loaders.from(viewPath, __dirname, config.get('hooksPath'))
-    loaders.over(config.get('loaders'))
-    loaders.apply(function(hash, func, item) {
-        ldr.use(item.pattern || '**/*', func(item.options , config));
-    });
-    ldr.use('**/*', require('./loaders/document.js')({
-      stylesheet: config.get('documentFields')
-    }));
-    ldr.use('**/*', require('./loaders/xid.js')());
-    ldr.sync(function(err) {
-        if (err instanceof Error) {
-          console.error(kuler(err.message, 'red'));
-        }
-        else {
-          console.info(kuler('Files and Database are synchronised.', 'green'));
-        }
-    });
-    config.set('collectionName', ldr.options.collectionName);
+    if (fs.existsSync(config.get('dataPath'))) {
+      debug('hot folder', config.get('dataPath'));
+      ldr.use('**/*', require('./loaders/prepend.js')());
+      var loaders = new Hook('loaders', config.get('hooks'));
+      loaders.from(viewPath, __dirname, config.get('hooksPath'))
+      loaders.over(config.get('loaders'))
+      loaders.apply(function(hash, func, item) {
+          ldr.use(item.pattern || '**/*', func(item.options , config));
+      });
+      ldr.use('**/*', require('./loaders/document.js')({
+            stylesheet: config.get('documentFields')
+      }));
+      ldr.use('**/*', require('./loaders/xid.js')());
+      ldr.sync(function(err) {
+          if (err instanceof Error) {
+            console.error(kuler(err.message, 'red'));
+          }
+          else {
+            console.info(kuler('Files and Database are synchronised.', 'green'));
+          }
+      });
+      config.set('collectionName', ldr.options.collectionName);
+    }
   }
-
+  catch(e) {
+    return online(e);
+  }
 
   //
   // Add Mongo indexes
@@ -98,51 +117,55 @@ module.exports = function(config, online) {
   //
   // Define Computer
   //
-  var cptlock;
-  var cptopts = {
-    "port": config.get('port'),
-    "connexionURI" : config.get('connexionURI'),
-    "collectionName": config.get('collectionName'),
-    "concurrency" : config.get('concurrency')
-  }
-  var cpt = new Computer(config.get('corpusFields'), cptopts) ;
-
-  cpt.use('count', require('./operators/count.js'));
-  cpt.use('catalog', require('./operators/catalog.js'));
-  cpt.use('distinct', require('./operators/distinct.js'));
-  cpt.use('ventilate', require('./operators/ventilate.js'));
-  cpt.use('total', require('./operators/total.js'));
-  cpt.use('graph', require('./operators/graph.js'));
-  cpt.use('groupby', require('./operators/groupby.js'));
-  cpt.use('merge', require('./operators/merge.js'));
-  var operators = new Hook('operators', config.get('hooks'))
-  operators.from(viewPath, __dirname, config.get('hooksPath'))
-  operators.over(config.get('operators'))
-  operators.apply(function(hash, func) {
-      cpt.use(hash, func);
-  });
-  var cptfunc = function(err, doc) {
-    if (cptlock === undefined || cptlock === false) {
-      cptlock = true;
-      heart.createEvent(2, {repeat: 1}, function() {
-          cptlock = false; // évite d'oublier un evenement pendant le calcul
-          cpt.run(function(err) {
-              if (err instanceof Error) {
-                console.error(kuler(err.message, 'red'));
-              }
-              else {
-                console.info(kuler('Corpus fields computed.', 'green'));
-              }
-          });
-      });
+  var cpt, cptlock, cptopts;
+  try {
+    cptopts = {
+      "port": config.get('port'),
+      "connexionURI" : config.get('connexionURI'),
+      "collectionName": config.get('collectionName'),
+      "concurrency" : config.get('concurrency')
     }
-  };
-  ldr.on('watching', cptfunc);
-  ldr.on('changed', cptfunc);
-  ldr.on('cancelled', cptfunc);
-  ldr.on('dropped', cptfunc);
-  ldr.on('added', cptfunc);
+    cpt = new Computer(config.get('corpusFields'), cptopts) ;
 
+    cpt.use('count', require('./operators/count.js'));
+    cpt.use('catalog', require('./operators/catalog.js'));
+    cpt.use('distinct', require('./operators/distinct.js'));
+    cpt.use('ventilate', require('./operators/ventilate.js'));
+    cpt.use('total', require('./operators/total.js'));
+    cpt.use('graph', require('./operators/graph.js'));
+    cpt.use('groupby', require('./operators/groupby.js'));
+    cpt.use('merge', require('./operators/merge.js'));
+    var operators = new Hook('operators', config.get('hooks'))
+    operators.from(viewPath, __dirname, config.get('hooksPath'))
+    operators.over(config.get('operators'))
+    operators.apply(function(hash, func) {
+        cpt.use(hash, func);
+    });
+    var cptfunc = function(err, doc) {
+      if (cptlock === undefined || cptlock === false) {
+        cptlock = true;
+        heart.createEvent(2, {repeat: 1}, function() {
+            cptlock = false; // évite d'oublier un evenement pendant le calcul
+            cpt.run(function(err) {
+                if (err instanceof Error) {
+                  console.error(kuler(err.message, 'red'));
+                }
+                else {
+                  console.info(kuler('Corpus fields computed.', 'green'));
+                }
+            });
+        });
+      }
+    };
+    ldr.on('watching', cptfunc);
+    ldr.on('changed', cptfunc);
+    ldr.on('cancelled', cptfunc);
+    ldr.on('dropped', cptfunc);
+    ldr.on('added', cptfunc);
+  }
+  catch(e) {
+    return online(e);
+  }
   //
   // WEB Server
   //
@@ -162,25 +185,29 @@ module.exports = function(config, online) {
   //
   // Add middlewares to Express
   //
-  app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
-  app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
-  app.use(require('cookie-parser')(__dirname));
-  app.use(require('express-session')({
-        secret: __dirname,
-        cookie: {
-          maxAge: 60000,
-          secure: true
-        },
-        resave: false,
-        saveUninitialized: true
-  }));
-  var middlewares = new Hook('middlewares', config.get('hooks'))
-  middlewares.from(viewPath, __dirname, config.get('hooksPath'))
-  middlewares.over(config.get('middlewares'))
-  middlewares.apply(function(hash, func, item) {
-      app.use(item.path || hash, func(item.options || config, config));
-  });
-
+  try {
+    app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
+    app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
+    app.use(require('cookie-parser')(__dirname));
+    app.use(require('express-session')({
+          secret: __dirname,
+          cookie: {
+            maxAge: 60000,
+            secure: true
+          },
+          resave: false,
+          saveUninitialized: true
+    }));
+    var middlewares = new Hook('middlewares', config.get('hooks'))
+    middlewares.from(viewPath, __dirname, config.get('hooksPath'))
+    middlewares.over(config.get('middlewares'))
+    middlewares.apply(function(hash, func, item) {
+        app.use(item.path || hash, func(item.options || config, config));
+    });
+  }
+  catch(e) {
+    return online(e);
+  }
 
 
   //
@@ -260,12 +287,16 @@ module.exports = function(config, online) {
   // Set JS modules for the browser
   //
   //
-  var modules = [ 'vue', 'qs', 'oboe', 'faker'];
-  // var modules = config.get('browserifyModules');
+  var modules = config.get('browserifyModules');
   if (Array.isArray(modules) && modules.length > 0) {
     app.get('/libs.js', browserify(modules, {
-          debug: false
+          debug: true
     }));
+    app.get('/bundle.js', function(req, res) {
+        console.warn('Depretacted route, use /libs.js');
+        res.redirect(301, '/libs.js');
+    });
+
   }
 
 
@@ -305,12 +336,12 @@ module.exports = function(config, online) {
   //
   // Defines Dynamics routes
   //
+  app.use(require('./routes/config.js')(config));
+  app.use(require('./routes/apiv2.js')(config));
   app.use(require('./routes/page.js')(config));
   app.use(require('./routes/table.js')(config));
-  app.use(require('./routes/config.js')(config));
   app.use(require('./routes/upload.js')(config));
   app.use(require('./routes/files.js')(config));
-  app.use(require('./routes/apiv2.js')(config));
 
 
 
@@ -339,6 +370,7 @@ module.exports = function(config, online) {
       else {
         res.status(500);
       }
+      console.error(kuler("ERROR", "red"), err.toString());
       res.render('error.html', {
           name: err.name,
           message: err.message,

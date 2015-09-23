@@ -16,7 +16,7 @@ var path = require('path')
 
 module.exports = function(config) {
 
-  var site = require('../models/site.js')
+  var page = require('../models/page.js')
     , mongo = require('../models/mongo.js')
     , reduce = require('../models/reduce-table.js')
     , posttab = require('../models/post-table.js')
@@ -26,7 +26,6 @@ module.exports = function(config) {
     , docus = require('../models/get-documents.js')
     , dump = require('../models/dump-query.js')
     , router = express.Router()
-    , template = 'table.html'
     , authorityName = config.get('authorityName')
     ;
 
@@ -130,11 +129,10 @@ module.exports = function(config) {
       if (req.routeParams.resourceName === undefined) {
         return next();
       }
-      datamodel([mongo, table])
+      datamodel([page, mongo, table])
       .apply(req)
       .then(function(locals) {
-          debug('render', template);
-          return res.render(template, locals);
+          return res.render("index.html", locals);
       })
       .catch(next);
   })
