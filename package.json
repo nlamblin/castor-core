@@ -4,11 +4,6 @@
   "author": "Nicolas Thouvenin <nthouvenin@gmail.com>",
   "contributors": [],
   "description": "",
-  "keywords": [],
-  "homepage": "http://github.com/castorjs/castor-core",
-  "scripts": {
-    "test": "mocha"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/castorjs/castor-core.git"
