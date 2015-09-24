@@ -354,7 +354,7 @@ module.exports = function(config, online) {
         gzip          : false
   }));
   app.route('/').all(function(req, res) {
-      res.redirect('index');
+      res.redirect(config.get('rootURL'));
   });
 
   //
