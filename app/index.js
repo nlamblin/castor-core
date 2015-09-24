@@ -288,6 +288,7 @@ module.exports = function(config, online) {
   //
   //
   var modules = config.get('browserifyModules');
+  debug('modules', modules);
   if (Array.isArray(modules) && modules.length > 0) {
     app.get('/libs.js', browserify(modules, {
           debug: true
@@ -296,7 +297,14 @@ module.exports = function(config, online) {
         console.warn('Depretacted route, use /libs.js');
         res.redirect(301, '/libs.js');
     });
-
+  }
+  else {
+    app.get('/libs.js', function(req, res, next) {
+        next(new Errors.PageNotFound('Not Found'));
+    });
+    app.get('/bundle.js', function(req, res, next) {
+        next(new Errors.PageNotFound('Not Found'));
+    });
   }
 
 
