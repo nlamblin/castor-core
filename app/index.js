@@ -19,7 +19,9 @@ var path = require('path')
   ;
 
 module.exports = function(config, online) {
-
+  //
+  // Default errors tracing
+  //
   if (online === undefined || typeof online !== 'function') {
     online = function(err, server) {
       if (err instanceof Error) {
@@ -33,6 +35,22 @@ module.exports = function(config, online) {
       }
       console.info(kuler("Server is listening on " + config.get('baseURL') + "/", "green"));
     }
+  }
+
+  //
+  // Load conf file attached to dataPath
+  //
+  var dateConfig;
+  try {
+    var confile = path.normalize(config.get('dataPath')) + '.json';
+    if (fs.existsSync(confile)) {
+      console.info(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
+      config.merge(require(confile));
+      dateConfig = fs.statSync(confile).mtime;
+    }
+  }
+  catch(e) {
+    return online(e);
   }
 
   //
