@@ -135,6 +135,7 @@ module.exports = function(config, online) {
     cpt.use('graph', require('./operators/graph.js'));
     cpt.use('groupby', require('./operators/groupby.js'));
     cpt.use('merge', require('./operators/merge.js'));
+
     var operators = new Hook('operators', config.get('hooks'))
     operators.from(viewPath, __dirname, config.get('hooksPath'))
     operators.over(config.get('operators'))
@@ -288,7 +289,6 @@ module.exports = function(config, online) {
   //
   //
   var modules = config.get('browserifyModules');
-  debug('modules', modules);
   if (Array.isArray(modules) && modules.length > 0) {
     app.get('/libs.js', browserify(modules, {
           debug: true
@@ -339,6 +339,17 @@ module.exports = function(config, online) {
       res.redirect('index');
   });
 
+  //
+  // Defines customs routes
+  //
+
+  var routes = new Hook('routes', config.get('hooks'))
+  routes.from(viewPath, __dirname, config.get('hooksPath'))
+  routes.over(config.get('routes'))
+  routes.apply(function(hash, func, item) {
+      var method =  item.method || 'all';
+      app.route(item.path || hash)[method](func(item.options || config));
+  });
 
 
   //
