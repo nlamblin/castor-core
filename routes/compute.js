@@ -214,7 +214,7 @@ module.exports = function(config, computer) {
     if (first.indexOf(ret) === -1 || (beatoffset > 2 && lock !== true) ) {
       pulse.beat();
       lock = true;
-      opts.out = { merge : ret };
+      opts.out = { replace : ret };
       debug('processing Map/Reduce, opts:', opts);
       db.collection(self.parameters.resource).mapReduce(map, reduce, opts).then(function(newcoll) {
         lock = false;
