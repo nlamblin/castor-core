@@ -19,10 +19,10 @@ var path = require('path')
   ;
 
 module.exports = function(config, computer) {
-  var db   = pmongo(config.get('connexionURI'))
+  var db   = pmongo(config.get('connectionURI'))
     , rdr = new Render()
     , flyopts = {
-        "connexionURI" : config.get('connexionURI'),
+        "connectionURI" : config.get('connectionURI'),
         "collectionName": config.get('collectionName'),
         "concurrency" : config.get('concurrency')
       }

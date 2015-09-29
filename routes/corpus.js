@@ -1,3 +1,4 @@
+/*jshint node:true, laxcomma:true */
 'use strict';
 
 var path = require('path')
@@ -11,10 +12,10 @@ var path = require('path')
   ;
 
 module.exports = function(config) {
-  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName') + '_corpus')
+  var coll = pmongo(config.get('connectionURI')).collection(config.get('collectionName') + '_corpus')
       , rdr = new Render()
       , flyopts = {
-          "connexionURI" : config.get('connexionURI'),
+          "connectionURI" : config.get('connectionURI'),
           "collectionName": config.get('collectionName'),
           "concurrency" : config.get('concurrency')
         }
@@ -164,7 +165,7 @@ module.exports = function(config) {
       sel.text = {
         $regex : this.parameters.search.value,
         $options : 'i'
-      }
+      };
     }
     fill(sel);
   })
@@ -193,12 +194,12 @@ module.exports = function(config) {
     if (self.parameters.flying) {
       func = function(r) {
         fly.affix(self.parameters.flying, self.parameters.firstOnly && Array.isArray(r) ? r[0] : r, fill);
-      }
+      };
     }
     else {
       func = function(r) {
         fill(self.parameters.firstOnly && Array.isArray(r) ? r[0] : r);
-      }
+      };
     }
     coll.find(self.mongoQuery, self.mongoOptions).sort(self.mongoSort).skip(self.parameters.startIndex).limit(self.parameters.itemsPerPage).toArray().then(func).catch(fill);
   })
@@ -208,4 +209,4 @@ module.exports = function(config) {
   }
 )
 .takeout();
-}
+};

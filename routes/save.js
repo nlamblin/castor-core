@@ -9,7 +9,7 @@ var path = require('path')
   ;
 
 module.exports = function(config) {
-  var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'));
+  var coll = pmongo(config.get('connectionURI')).collection(config.get('collectionName'));
 
   return function (req, res, next) {
 

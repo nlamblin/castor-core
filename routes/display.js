@@ -1,3 +1,4 @@
+/*jshint node:true,laxcomma:true*/
 'use strict';
 
 var path = require('path')
@@ -12,10 +13,10 @@ var path = require('path')
   ;
 
 module.exports = function(config) {
-  var db = pmongo(config.get('connexionURI'))
+  var db = pmongo(config.get('connectionURI'))
     , rdr = new Render()
     , flyopts = {
-        "connexionURI" : config.get('connexionURI'),
+        "connectionURI" : config.get('connectionURI'),
         "collectionName": config.get('collectionName'),
         "concurrency" : config.get('concurrency')
       }
@@ -124,7 +125,7 @@ module.exports = function(config) {
     if (self.parameters.flying) {
       func = function(r) {
         fly.affix(self.parameters.flying, r, fill);
-      }
+      };
     }
     db.collection(self.mongoCollection).findOne(self.selector).then(func).catch(fill);
   })
@@ -133,4 +134,4 @@ module.exports = function(config) {
     rdr.run(res, this, next);
   })
   .takeout();
-}
+};

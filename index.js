@@ -30,7 +30,7 @@ var path = require('path')
   //
   // Fix required config parameters
   //
-  config.fix('connexionURI',         'mongodb://localhost:27017/castor/');
+  config.fix('connectionURI',        config.get('connexionURI') || 'mongodb://localhost:27017/castor/');
   config.fix('collectionName',       undefined); // auto
   config.fix('hooks',                 []);
   config.fix('hooksPath',            undefined);
@@ -73,7 +73,7 @@ var path = require('path')
   // config.fix('files:csv:encoding', 'utf8');
 
 (function checkMongodb() {
-  var db = pmongo(config.get('connexionURI'));
+  var db = pmongo(config.get('connectionURI'));
   db.stats()
   .then(function () {
     db.close();
@@ -153,7 +153,7 @@ function serve () {
   // add some statements when loading files to MongoDB
   //
   var ldropts = {
-    "connexionURI" : config.get('connexionURI'),
+    "connexionURI" : config.get('connectionURI'),
     "collectionName": config.get('collectionName'),
     "concurrency" : config.get('concurrency'),
     "delay" : config.get('delay'),
@@ -225,7 +225,7 @@ function serve () {
   // add some indexes
   //
   if (config.get('turnoffIndexes') === false) {
-    var coll = pmongo(config.get('connexionURI')).collection(config.get('collectionName'))
+    var coll = pmongo(config.get('connectionURI')).collection(config.get('collectionName'))
       , usfs = config.get('documentFields')
       , idx = Object.keys(usfs)
               .filter(function(i) { return (i !== '$text') && (usfs[i].noindex !== true); })
@@ -250,7 +250,7 @@ function serve () {
   var cptlock
     , cptopts = {
         "port": config.get('port'),
-        "connexionURI" : config.get('connexionURI'),
+        "connectionURI" : config.get('connectionURI'),
         "collectionName": config.get('collectionName'),
         "concurrency" : config.get('concurrency')
       }
@@ -342,9 +342,9 @@ function serve () {
   //
   var rsclock
     , rscopts = {
-        "connexionURI" : config.get('connexionURI'),
+        "connectionURI" : config.get('connectionURI'),
         "collectionName": config.get('collectionName'),
-        "concurrency" : config.get('concurrency')
+        "concurrency"   : config.get('concurrency')
       }
     , resources = config.get('resources')
     , corpusHandles = {}

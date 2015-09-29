@@ -113,6 +113,7 @@ Configuration.prototype.expose = function expose(obj) {
   delete conf.dataPath;
   delete conf.collectionName;
   delete conf.connexionURI;
+  delete conf.connectionURI;
   delete conf._;
   delete conf.c;
   delete conf.config;
