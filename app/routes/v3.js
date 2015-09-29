@@ -10,7 +10,6 @@ var path = require('path')
 
 module.exports = function(config) {
 
-  var page = require('../models/page.js');
   var supportedFormats = {
     "html" : "text/html",
     "txt" : "text/plain",
@@ -36,26 +35,21 @@ module.exports = function(config) {
       }
       next();
   });
+  router.param('resourceName', function(req, res, next, value) {
+      req.routeParams.resourceName = value;
+      next();
+  });
+  router.param('columnName', function(req, res, next, value) {
+      req.routeParams.columnName = value;
+      next();
+  });
 
 
-  //
-  // Define routes
-  //
+  require('./v3/upload.js')(config, router);
+  require('./v3/load.js')(config, router);
+  require('./v3/echo.js')(config, router);
+  require('./v3/setcol.js')(config, router);
+  require('./v3/settab.js')(config, router);
 
-  router.route('/:name.:format')
-  .get(function(req, res, next) {
-      if (req.templateMimetype === undefined) {
-        return next();
-      }
-
-      datamodel([page])
-      .apply(req)
-      .then(function(locals) {
-          res.set('Content-Type', req.templateMimetype);
-          res.render(req.templateName, locals, next);
-          return;
-      })
-      .catch(next);
-  })
   return router;
 };

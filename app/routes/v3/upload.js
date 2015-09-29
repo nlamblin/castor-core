@@ -10,11 +10,11 @@ var path = require('path')
   , bodyParser = require('body-parser')
   , crypto = require('crypto')
   , JFUM = require('jfum')
-  , Errors = require('../helpers/errors.js')
+  , Errors = require('../../helpers/errors.js')
   , Loader = require('castor-load')
  ;
 
-module.exports = function(config) {
+module.exports = function(config, router) {
   var jfum = new JFUM({
       minFileSize: 1,
       maxFileSize: config.get('maxFileSize'),
@@ -29,7 +29,6 @@ module.exports = function(config) {
     "ignore" : config.get('filesToIgnore'),
     "watch" : false
   };
-  var router = express.Router()
 
   router.route('/-/v3/upload')
   .all(bodyParser.urlencoded({ extended: false }))

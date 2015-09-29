@@ -19,8 +19,6 @@ module.exports = function(config) {
   var page = require('../models/page.js')
     , mongo = require('../models/mongo.js')
     , reduce = require('../models/reduce-table.js')
-    , posttab = require('../models/post-table.js')
-    , postcol = require('../models/post-column.js')
     , table = require('../models/get-table.js')
     , docu = require('../models/get-document.js')
     , docus = require('../models/get-documents.js')
@@ -119,11 +117,7 @@ module.exports = function(config) {
 
 
 
-  //
-  // Route /resourcename
-  //
   router.route(authorityName + '/:resourceName')
-
   .get(function(req, res, next) {
       debug('get /:resourceName', req.routeParams);
       if (req.routeParams.resourceName === undefined) {
@@ -133,44 +127,6 @@ module.exports = function(config) {
       .apply(req)
       .then(function(locals) {
           return res.render("index.html", locals);
-      })
-      .catch(next);
-  })
-  .post(bodyParser.urlencoded({ extended: true}))
-  .post(check.body({ '?name': /\w+/, '?title': String, '?description': String}))
-  .post(function(req, res, next) {
-      debug('post /:resourceName', req.routeParams);
-      if (req.routeParams.resourceName === undefined) {
-        return next();
-      }
-      datamodel([mongo, posttab])
-      .apply(req)
-      .then(function(locals) {
-          return res.send(204);
-      })
-      .catch(next);
-  });
-
-
-  router.route(authorityName + '/:resourceName/:star/:columnName')
-
-  .get(function(req, res, next) {
-      debug('get /:resourceName/:star/:columnName', req.routeParams);
-      if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined || req.routeParams.columnName === undefined) {
-        return next();
-      }
-      res.send(req.routeParams.resourceName + '>' +req.routeParams.star + '>'+req.routeParams.columnName);
-  })
-  .all(bodyParser.urlencoded({ extended: true}))
-  .post(function(req, res, next) {
-      debug('post /:resourceName/:star/:columnName', req.routeParams);
-      if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined || req.routeParams.columnName === undefined) {
-        return next();
-      }
-      datamodel([mongo, postcol])
-      .apply(req)
-      .then(function(locals) {
-          return res.send(204);
       })
       .catch(next);
   });

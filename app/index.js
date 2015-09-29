@@ -374,11 +374,10 @@ module.exports = function(config, online) {
   // Defines Dynamics routes
   //
   app.use(require('./routes/config.js')(config));
-  app.use(require('./routes/apiv2.js')(config));
+  app.use(require('./routes/v2.js')(config, cpt));
+  app.use(require('./routes/v3.js')(config, cpt));
   app.use(require('./routes/page.js')(config));
   app.use(require('./routes/table.js')(config));
-  app.use(require('./routes/upload.js')(config));
-  app.use(require('./routes/files.js')(config));
 
 
 
