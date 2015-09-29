@@ -12,9 +12,9 @@ var path = require('path')
 
 module.exports = function(config, router) {
 
-  var page = require('../models/page.js')
-    , mongo = require('../models/mongo.js')
-    , posttab = require('../models/post-table.js')
+  var page = require('../../models/page.js')
+    , mongo = require('../../models/mongo.js')
+    , posttab = require('../../models/post-table.js')
     ;
 
 

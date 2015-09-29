@@ -11,9 +11,9 @@ var path = require('path')
 
 module.exports = function(config, router) {
 
-  var page = require('../models/page.js')
-    , mongo = require('../models/mongo.js')
-    , postcol = require('../models/post-column.js')
+  var page = require('../../models/page.js')
+    , mongo = require('../../models/mongo.js')
+    , postcol = require('../../models/post-column.js')
     ;
 
 

@@ -108,7 +108,7 @@ module.exports = function(config, online) {
       ldr.use('**/*', require('./loaders/document.js')({
             stylesheet: config.get('documentFields')
       }));
-      ldr.use('**/*', require('./loaders/xid.js')());
+      ldr.use('**/*', require('./loaders/wid.js')());
       ldr.sync(function(err) {
           if (err instanceof Error) {
             console.error(kuler(err.message, 'red'));
@@ -373,11 +373,11 @@ module.exports = function(config, online) {
   //
   // Defines Dynamics routes
   //
-  app.use(require('./routes/config.js')(config));
-  app.use(require('./routes/v2.js')(config, cpt));
-  app.use(require('./routes/v3.js')(config, cpt));
-  app.use(require('./routes/page.js')(config));
-  app.use(require('./routes/table.js')(config));
+  app.use(require('./routes/config.js')(config, ldr, cpt));
+  app.use(require('./routes/v2.js')(config, ldr, cpt));
+  app.use(require('./routes/v3.js')(config, ldr, cpt));
+  app.use(require('./routes/page.js')(config, ldr, cpt));
+  app.use(require('./routes/table.js')(config, ldr, cpt));
 
 
 

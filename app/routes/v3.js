@@ -48,6 +48,7 @@ module.exports = function(config) {
   require('./v3/upload.js')(config, router);
   require('./v3/load.js')(config, router);
   require('./v3/echo.js')(config, router);
+  require('./v3/generate.js')(config, router);
   require('./v3/setcol.js')(config, router);
   require('./v3/settab.js')(config, router);
 

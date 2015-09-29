@@ -64,7 +64,7 @@ module.exports = function(config, router) {
                 ldr.use('**/*.nq', require('castor-load-nq')({}));
                 ldr.use('**/*.nt', require('castor-load-nq')({}));
                 ldr.use('**/*.n3', require('castor-load-nq')({}));
-                ldr.use('**/*', require('../loaders/xid.js')());
+                ldr.use('**/*', require('../loaders/wid.js')());
                 ldr.use('**/*', require('../loaders/extend.js')(common));
                 ldr.use('**/*', require('../loaders/name.js')());
                 ldr.push(file);
@@ -81,7 +81,7 @@ module.exports = function(config, router) {
         ldr.use('**/*.nq', require('castor-load-nq')({}));
         ldr.use('**/*.nt', require('castor-load-nq')({}));
         ldr.use('**/*.n3', require('castor-load-nq')({}));
-        ldr.use('**/*', require('../loaders/xid.js')());
+        ldr.use('**/*', require('../loaders/wid.js')());
         ldr.use('**/*', require('../loaders/extend.js')(common));
         ldr.use('**/*', require('../loaders/name.js')());
         ldr.push(url.format({
@@ -104,7 +104,7 @@ module.exports = function(config, router) {
         ldr.use('**/*.nq', require('castor-load-nq')({}));
         ldr.use('**/*.nt', require('castor-load-nq')({}));
         ldr.use('**/*.n3', require('castor-load-nq')({}));
-        ldr.use('**/*', require('../loaders/xid.js')());
+        ldr.use('**/*', require('../loaders/wid.js')());
         ldr.use('**/*', require('../loaders/extend.js')(common));
         ldr.use('**/*', require('../loaders/name.js')());
         ldr.push(req.body.uri);

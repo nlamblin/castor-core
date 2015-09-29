@@ -6,9 +6,10 @@ var path = require('path')
   , debug = require('debug')('castor:routes:' + basename)
   , datamodel = require('datamodel')
   , express =  require('express')
+  , bodyParser = require('body-parser')
   ;
 
-module.exports = function(config, cpt) {
+module.exports = function(config, ldr, cpt) {
 
   var router = express.Router();
 
