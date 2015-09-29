@@ -437,11 +437,14 @@ function serve () {
       app.route(item.path || hash)[method](func(item.options || config));
     });
     app.route('/browse.:format').all(require('./routes/browse.js')(config));
+    app.route('/-/v2/browse.:format').all(require('./routes/browse.js')(config));
     app.route('/corpus.:format').all(require('./routes/corpus.js')(config));
     if (config.get('turnoffComputer') === false) {
       app.route('/compute.:format').all(require('./routes/compute.js')(config, cpt));
+      app.route('/-/v2/compute.:format').all(require('./routes/compute.js')(config, cpt));
     }
     app.route('/display/:doc.:format').all(require('./routes/display.js')(config));
+    app.route('/-/v2/display/:doc.:format').all(require('./routes/display.js')(config));
     app.route('/dump/:doc.:format').all(require('./routes/dump.js')(config));
     app.route('/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save.js')(config));
     app.route('/drop/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/drop.js')(config));
