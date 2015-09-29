@@ -19,10 +19,9 @@ module.exports = function(config, router) {
 
 
   //   router.route(authorityName + '/:resourceName/:star/:columnName')
-  router.route('/-/v3/setcol/:columnName')
+  router.route('/-/v3/setcol/:resourceName/:columnName')
   .post(bodyParser.urlencoded({ extended: true}))
   .post(function(req, res, next) {
-      debug('post /:resourceName/:star/:columnName', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined || req.routeParams.columnName === undefined) {
         return next();
       }
