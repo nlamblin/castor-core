@@ -73,17 +73,17 @@ var path = require('path')
   // config.fix('files:csv:separator', undefined); // auto
   // config.fix('files:csv:encoding', 'utf8');
 
-(function checkMongodb() {
-  var db = pmongo(config.get('connectionURI'));
-  db.stats()
-  .then(function () {
-    db.close();
-  })
-  .catch(function(e) {
-    console.info(kuler('Unable to connect to MongoDB. Is it started ?', 'red'));
-    process.exit(1);
-  });
-})();
+// (function checkMongodb() {
+//   var db = pmongo(config.get('connectionURI'));
+//   db.stats()
+//   .then(function () {
+//     db.close();
+//   })
+//   .catch(function(e) {
+//     console.info(kuler('Unable to connect to MongoDB. Is it started ?', 'red'));
+//     process.exit(1);
+//   });
+// })();
 
 var development = process.env.NODE_ENV !== 'production';
 
@@ -226,7 +226,7 @@ function serve () {
   // add some indexes
   //
   if (config.get('turnoffIndexes') === false) {
-    var coll = pmongo(config.get('connectionURI')).collection(config.get('collectionName'))
+    var coll = db.connect(config.get('connectionURI')).collection(config.get('collectionName'))
       , usfs = config.get('documentFields')
       , idx = Object.keys(usfs)
               .filter(function(i) { return (i !== '$text') && (usfs[i].noindex !== true); })
