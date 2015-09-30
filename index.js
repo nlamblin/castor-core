@@ -25,6 +25,7 @@ var path = require('path')
   , pmongo = require('promised-mongo')
   , extend = require('extend')
   , readline = require('readline')
+  , db = require("./lib/mongo.js") 
   ;
 
   //
