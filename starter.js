@@ -52,7 +52,7 @@ module.exports = function(warmup) {
   //
   var Configurator = require('./configurator.js');
   var config = new Configurator();
-  config.fix('connexionURI',         'mongodb://localhost:27017/pollux/');
+  config.fix('connexionURI',         'mongodb://localhost:27017/castor/');
   config.fix('collectionsIndexName', 'px_index');
   config.fix('collectionName',       'hotfolder');
   config.fix('debug',                false);
@@ -66,7 +66,7 @@ module.exports = function(warmup) {
   config.fix('writeConcern',         1);
   config.fix('rootURL',             "index");
   config.fix('delay',                250);
-  config.fix('authorityName',        ''); // ex: /1234
+  config.fix('prefixURL',            ''); // ex: /1234
   config.fix('maxFileSize',          10485760); // 10 Mo
   config.fix('heartrate',            5000);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);
@@ -107,6 +107,7 @@ module.exports = function(warmup) {
             if (!config.has('baseURL')) {
               config.set('baseURL', 'http://127.0.0.1:' + config.get('port'));
             }
+            config.set('Errors', require('./app/helpers/errors.js'));
             app(config, takeoff);
         })
       }

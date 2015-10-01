@@ -14,7 +14,7 @@ var path = require('path')
   ;
 
 
-module.exports = function(config) {
+module.exports = function(router, config) {
 
   var page = require('../models/page.js')
     , mongo = require('../models/mongo.js')
@@ -23,8 +23,7 @@ module.exports = function(config) {
     , docu = require('../models/get-document.js')
     , docus = require('../models/get-documents.js')
     , dump = require('../models/dump-query.js')
-    , router = express.Router()
-    , authorityName = config.get('authorityName')
+    , prefixURL = config.get('prefixURL')
     ;
 
   //
@@ -74,7 +73,7 @@ module.exports = function(config) {
   //
   // documents (L)isted
   //
-  router.route(authorityName + '/:resourceName/:star')
+  router.route(prefixURL + '/:resourceName/:star')
 
   .all(cors())
   .get(check.query({'?alt' : ['csv', 'nq', 'json']}))
@@ -87,7 +86,7 @@ module.exports = function(config) {
       .apply(req, res, next);
   });
 
-  router.route(authorityName + '/:resourceName/:documentName/:star')
+  router.route(prefixURL + '/:resourceName/:documentName/:star')
 
   .all(cors())
   .get(check.query({'?alt' : ['cvs', 'nq', 'json', 'raw']}))
@@ -104,7 +103,7 @@ module.exports = function(config) {
   //
   // documents list title
   //
-  router.route(authorityName + '/:resourceName/:dollar')
+  router.route(prefixURL + '/:resourceName/:dollar')
 
   .get(function(req, res, next) {
       debug('get /:resourceName/:dollar', req.routeParams);
@@ -117,7 +116,7 @@ module.exports = function(config) {
 
 
 
-  router.route(authorityName + '/:resourceName')
+  router.route(prefixURL + '/:resourceName')
   .get(function(req, res, next) {
       debug('get /:resourceName', req.routeParams);
       if (req.routeParams.resourceName === undefined) {

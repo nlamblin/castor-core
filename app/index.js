@@ -14,11 +14,13 @@ var path = require('path')
   , kuler = require('kuler')
   , ecstatic = require('ecstatic')
   , I18n = require('i18n-2')
-  , Errors = require('./helpers/errors.js')
   , Hook = require('./helpers/hook.js')
   ;
 
 module.exports = function(config, online) {
+  var Errors = config.get('Errors');
+
+
   //
   // Default errors tracing
   //
@@ -358,28 +360,24 @@ module.exports = function(config, online) {
   });
 
   //
-  // Defines customs routes
+  // Mandatory route
   //
 
+  var pageRouter = express.Router();
+  require('./routes/page.js')(pageRouter)
+  app.use(pageRouter);
+
+  //
+  // Optionals routes
+  //
   var routes = new Hook('routes', config.get('hooks'))
   routes.from(viewPath, __dirname, config.get('hooksPath'))
   routes.over(config.get('routes'))
   routes.apply(function(hash, func, item) {
-      var method =  item.method || 'all';
-      app.route(item.path || hash)[method](func(item.options || config));
+      var router = express.Router();
+      func(router, config)
+      app.use(router);
   });
-
-
-  //
-  // Defines Dynamics routes
-  //
-  app.use(require('./routes/config.js')(config, ldr, cpt));
-  app.use(require('./routes/v2.js')(config, ldr, cpt));
-  app.use(require('./routes/v3.js')(config, ldr, cpt));
-  app.use(require('./routes/page.js')(config, ldr, cpt));
-  app.use(require('./routes/table.js')(config, ldr, cpt));
-
-
 
   //
   // catch 404 and forward to error handler

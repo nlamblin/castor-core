@@ -8,7 +8,7 @@ var path = require('path')
   , express =  require('express')
   ;
 
-module.exports = function(config) {
+module.exports = function(router) {
 
   var page = require('../models/page.js');
   var supportedFormats = {
@@ -19,8 +19,6 @@ module.exports = function(config) {
     "json" : "application/json",
     "xml" : "text/xml"
   }
-
-  var router = express.Router();
 
   //
   // Define route parameters
@@ -52,10 +50,10 @@ module.exports = function(config) {
       .apply(req)
       .then(function(locals) {
           res.set('Content-Type', req.templateMimetype);
-          res.render(req.templateName, locals, next);
+          res.render(req.templateName, locals);
           return;
       })
       .catch(next);
   })
-  return router;
+
 };

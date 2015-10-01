@@ -4,25 +4,23 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:routes:' + basename)
-  , express = require('express')
   , formatik = require('formatik')
   , bodyParser = require('body-parser')
   ;
 
-module.exports = function(config) {
-  var router = express.Router()
+module.exports = function(router) {
 
   router.route('/-/v3/config.js(on|)')
   .get(function (req, res) {
       res.set('Content-Type', 'text/javascript');
-      res.jsonp(config.expose());
+      res.jsonp(req.config.expose());
   });
 
   router.route('/config.js(on|)')
   .get(function(req, res) {
       console.warn('Depretacted route, use /-/v3/config.js');
       res.set('Content-Type', 'text/javascript');
-      res.jsonp(config.expose());
+      res.jsonp(req.config.expose());
   });
 
 
@@ -39,7 +37,7 @@ module.exports = function(config) {
       }, 'fr');
       if (form.isValid()) {
         var fields = form.mget('value');
-        res.json(config.get(fields.key))
+        res.json(req.config.get(fields.key))
       }
       else {
         res.status(400).send('Bad Request').end();
@@ -61,7 +59,7 @@ module.exports = function(config) {
 
       if (form.isValid()) {
         var fields = form.mget('value');
-        config.set(fields.key, fields.val);
+        req.config.set(fields.key, fields.val);
         res.status(200).send('OK').end();
       }
       else {
@@ -69,5 +67,4 @@ module.exports = function(config) {
       }
 
   });
-  return router;
 }

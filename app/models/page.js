@@ -30,7 +30,7 @@ module.exports = function(model) {
       fill(req.user ? req.user : {});
   })
   .declare('config', function(req, fill) {
-      fill(req.config.get());
+      fill(req.config.expose());
   })
   .declare('url', function(req, fill) {
       fill(require('url').parse(req.protocol + '://' + req.get('host') + req.originalUrl));

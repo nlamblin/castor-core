@@ -16,7 +16,7 @@ module.exports = function(model) {
       this.mongoCollectionsIndexHandle.findOne({
           "_name" : req.routeParams.resourceName
       }).then(function(doc) {
-          if (!doc) {
+          if (doc === null) {
             fill(new Errors.TableNotFound('The table does not exist.'));
           }
           else if (!doc['_columns']) {
