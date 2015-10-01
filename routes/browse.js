@@ -9,11 +9,11 @@ var path = require('path')
   , extend = require('extend')
   , Render = require('castor-render')
   , Flying = require('../lib/flying.js')
-  , pmongo = require('promised-mongo')
+  , mongolib = require('../lib/mongo.js')
   ;
 
 module.exports = function(config) {
-  var db = pmongo(config.get('connectionURI'))
+  var db = mongolib.connect(config.get('connectionURI'))
     , rdr = new Render()
     , flyopts = {
         "connectionURI" : config.get('connectionURI'),

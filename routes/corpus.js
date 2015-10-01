@@ -8,11 +8,11 @@ var path = require('path')
   , datamodel = require('datamodel')
   , Render = require('castor-render')
   , Flying = require('../lib/flying.js')
-  , pmongo = require('promised-mongo')
+  , mongolib = require('../lib/mongo.js')
   ;
 
 module.exports = function(config) {
-  var coll = pmongo(config.get('connectionURI')).collection(config.get('collectionName') + '_corpus')
+  var coll = mongolib.connect(config.get('connectionURI')).collection(config.get('collectionName') + '_corpus')
       , rdr = new Render()
       , flyopts = {
           "connectionURI" : config.get('connectionURI'),

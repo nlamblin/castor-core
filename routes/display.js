@@ -9,11 +9,12 @@ var path = require('path')
   , Render = require('castor-render')
   , Flying = require('../lib/flying.js')
   , extend = require('extend')
-  , pmongo = require('promised-mongo')
+  , mongolib  = require('../lib/mongo.js')
   ;
 
 module.exports = function(config) {
-  var db = pmongo(config.get('connectionURI'))
+
+  var db = mongolib.connect(config.get('connectionURI'))
     , rdr = new Render()
     , flyopts = {
         "connectionURI" : config.get('connectionURI'),
@@ -22,7 +23,6 @@ module.exports = function(config) {
       }
     , fly = new Flying(config.get('flyingFields'), flyopts)
     ;
-
   return datamodel()
   .declare('template', function(req, fill) {
     fill(basename + '.html');

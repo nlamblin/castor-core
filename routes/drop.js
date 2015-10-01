@@ -5,11 +5,11 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:routes:' + basename)
   , util = require('util')
-  , pmongo = require('promised-mongo')
+  , mongolib = require('../lib/mongo.js')
   ;
 
 module.exports = function(config) {
-  var coll = pmongo(config.get('connectionURI')).collection(config.get('collectionName'));
+  var coll = mongolib.connect(config.get('connectionURI')).collection(config.get('collectionName'));
 
   return function (req, res, next) {
 
