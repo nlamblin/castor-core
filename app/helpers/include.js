@@ -33,7 +33,12 @@ module.exports = function(basedirs, modname, req) {
       return m;
     }
     catch (e) {
-      return undefined;
+      if (e.code && e.code === 'MODULE_NOT_FOUND') {
+        return undefined;
+      }
+      else {
+        throw e;
+      }
     }
   }, undefined);
 
