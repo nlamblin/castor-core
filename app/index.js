@@ -33,9 +33,9 @@ module.exports = function(config, online) {
       }
       var pack = config.get('package');
       if (pack) {
-        console.info(kuler('App    :', 'olive'), kuler(pack.name + ' ' + pack.version, 'limegreen'));
+        console.info(kuler('App detected.', 'olive'), kuler(pack.name + ' ' + pack.version, 'limegreen'));
       }
-      console.info(kuler("Server is listening on " + config.get('baseURL') + "/", "green"));
+      console.info(kuler('Server is listening.', 'olive'),  kuler(config.get('baseURL') + "/", "limegreen"));
     }
   }
 
@@ -46,7 +46,7 @@ module.exports = function(config, online) {
   try {
     var confile = path.normalize(config.get('dataPath')) + '.json';
     if (fs.existsSync(confile)) {
-      console.info(kuler('Configuration :', 'olive'), kuler(confile, 'limegreen'));
+      console.info(kuler('Load configuration file.', 'olive'), kuler(confile, 'limegreen'));
       config.merge(require(confile));
       dateConfig = fs.statSync(confile).mtime;
     }
@@ -61,6 +61,7 @@ module.exports = function(config, online) {
   var viewPath;
   try {
     viewPath = require('./helpers/view.js')(config);
+    console.info(kuler('Set view directory. ', 'olive'), kuler(viewPath, 'limegreen'));
   }
   catch(e) {
     return online(e);
@@ -99,7 +100,7 @@ module.exports = function(config, online) {
     ldr = new Loader(config.get('dataPath'), ldropts);
 
     if (fs.existsSync(config.get('dataPath'))) {
-      debug('hot folder', config.get('dataPath'));
+      console.info(kuler('Watching hot directory. ', 'olive'), kuler(config.get('dataPath'), 'limegreen'));
       ldr.use('**/*', require('./loaders/prepend.js')());
       var loaders = new Hook('loaders', config.get('hooks'));
       loaders.from(viewPath, __dirname, config.get('hooksPath'))
@@ -116,7 +117,7 @@ module.exports = function(config, online) {
             console.error(kuler(err.message, 'red'));
           }
           else {
-            console.info(kuler('Files and Database are synchronised.', 'green'));
+            console.info(kuler('Files and Database are synchronised.', 'olive'));
           }
       });
       config.set('collectionName', ldr.options.collectionName);
@@ -172,7 +173,7 @@ module.exports = function(config, online) {
                   console.error(kuler(err.message, 'red'));
                 }
                 else {
-                  console.info(kuler('Corpus fields computed.', 'green'));
+                  console.info(kuler('Corpus fields computed.', 'olive'));
                 }
             });
         });
