@@ -33,22 +33,14 @@ module.exports = function(config) {
     ;
 
   if (Array.isArray(themeconf.browserifyModules)) {
+    var browserifyDirs = [
+      path.join(themepath, 'node_modules')
+    ];
+
     themeconf.browserifyModules = themeconf.browserifyModules.map(function(modulename) {
         var modulefile, moduledesc = {};
-        try {
-          modulefile = require.resolve(modulename);
-          moduledesc[modulefile] = {expose : modulename};
-        }
-        catch (e) {
-          var modulename2 = path.join(themepath, 'node_modules', modulename);
-          try {
-            modulefile = require.resolve(modulename2);
-            moduledesc[modulename2] = {expose : modulename};
-          }
-          catch (e) {
-            // ignore module
-          }
-        }
+        modulefile = include(browserifyDirs, modulename, false);
+        moduledesc[modulefile] = {expose : modulename};
         return moduledesc;
       }
     );

@@ -46,6 +46,7 @@ module.exports = function(basedirs, modname, req) {
     throw new Errors.BadConfig(util.format('Unknown (or Missing or Error in) Module `%s` (%s)', modname, basedirs.join(', ')));
   }
   else {
+    debug('Module found.', module)
     if (req) {
       return require(module);
     }
