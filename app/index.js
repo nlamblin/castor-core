@@ -81,6 +81,25 @@ module.exports = function(config, online) {
   }
 
 
+  //
+  // Models
+  //
+  var mdl = {}, mdlopts;
+  mdl.page = require('./models/page.js')
+  mdl.mongo = require('./models/mongo.js')
+  mdl.reduce = require('./models/reduce-table.js')
+  mdl.table = require('./models/get-table.js')
+  mdl.docu = require('./models/get-document.js')
+  mdl.docus = require('./models/get-documents.js')
+  mdl.dump = require('./models/dump-query.js')
+
+  var models = new Hook('models');
+  models.from(viewPath, __dirname)
+  models.over(config.get('models'))
+  models.apply(function(hash, func, item) {
+      mdl[hash] = func;
+  });
+
 
   //
   // HOT folder
@@ -368,7 +387,7 @@ module.exports = function(config, online) {
   //
 
   var pageRouter = express.Router();
-  require('./routes/page.js')(pageRouter)
+  require('./routes/page.js')(pageRouter, mdl, config)
   app.use(pageRouter);
 
   //
@@ -379,7 +398,7 @@ module.exports = function(config, online) {
   routes.over(config.get('routes'))
   routes.apply(function(hash, func, item) {
       var router = express.Router();
-      func(router, config)
+      func(router, mdl, config)
       app.use(router);
   });
 

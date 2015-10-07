@@ -14,13 +14,65 @@ module.exports = function(model) {
   .declare('mongoDatabaseHandle', function(req, fill) {
       MongoClient.connect(req.config.get('connexionURI')).then(fill).catch(fill);
   })
+  .declare('indexDescription', function(req, fill) {
+      var index = {
+        "_name": "index",
+        "_columns" : [
+          //
+          // Mandatory Column for the reduce system
+          //
+          {
+            "propertyScheme": "http://schema.org/name",
+            "propertyValue" : {
+              "get" : "title"
+            },
+            "propertyName" : "name",
+            "propertyLabel" : "Name",
+            "propertyComment" : "A mandatory column for \"dollar\" URLs"
+          },
+          //
+          // Recommended Column to expose existing table
+          //
+          {
+            "propertyScheme": "http://schema.org/url",
+            "propertyType": "http://www.w3.org/TR/xmlschema-2/#anyURI",
+            "propertyValue" : {
+              "get": ["baseURL", "_name"],
+              "join": "/"
+            },
+            "propertyText" : {
+              "get" : "_name",
+            },
+              "propertyName" : "url",
+              "propertyLabel" : "URL",
+              "propertyComment" : ""
+            }
+          ],
+          //
+          // Table metadata
+          //
+          "title": req.config.get('title'),
+          "description": req.config.get('description')
+        };
+        fill(index);
+    })
   .prepend('mongoCollectionsIndexHandle', function(req, fill) {
-      if (this.mongoDatabaseHandle instanceof Error) {
+      var self = this;
+      if (self.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
-      this.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'), {strict:true}, function(err, coll) {
+      self.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'), {strict:true}, function(err, coll) {
           if (err) {
-            fill(new Errors.CollectionNotFound('`' + req.config.get('collectionsIndexName') +'` missing.'))
+            self.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'), function(err, newcoll) {
+                newcoll.insertOne(self.indexDescription).then(function() {
+                    self.mongoDatabaseHandle.createIndex(req.config.get('collectionsIndexName'),
+                      {_name:1},
+                      {unique:true, background:false, w:1}
+                    ).then(function() {
+                        fill(newcoll);
+                    }).catch(fill);
+                }).catch(fill);
+            });
           }
           else {
             fill(coll);

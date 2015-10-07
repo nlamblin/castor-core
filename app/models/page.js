@@ -4,13 +4,12 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
-  , datamodel = require('datamodel')
   ;
 
 
 module.exports = function(model) {
   if (model === undefined) {
-    model = datamodel();
+    model = require('datamodel')();
   }
   model
   .declare('site', function(req, fill) {

@@ -1,16 +1,15 @@
-
 /*jshint node:true, laxcomma:true */
 'use strict';
 
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
-  , MongoClient = require('mongodb').MongoClient
-  , JSONStream = require('JSONStream')
-  , Errors = require('../helpers/errors.js')
   ;
 
 module.exports = function(model) {
+  if (model === undefined) {
+    model = require('datamodel')();
+  }
   model
     .declare('mongoQuery', function(req, fill) {
         var q = {};

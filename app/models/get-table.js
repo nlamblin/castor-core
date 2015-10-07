@@ -4,23 +4,26 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
-  , Errors = require('../helpers/errors.js')
   ;
 
 module.exports = function(model) {
   model
   .append('table', function(req, fill) {
-      if (this.mongoCollectionsIndexHandle instanceof Error) {
+      var Errors = req.config.get('Errors');
+      var self = this;
+      if (self.mongoCollectionsIndexHandle instanceof Error) {
         return fill();
       }
-      this.mongoCollectionsIndexHandle.findOne({
+      self.mongoCollectionsIndexHandle.findOne({
           "_name" : req.routeParams.resourceName
       }).then(function(doc) {
-          if (doc === null) {
-            fill(new Errors.TableNotFound('The table does not exist.'));
+          if (doc === null && req.routeParams.resourceName === 'index') {
+            self.mongoCollectionsIndexHandle.insertOne(self.indexDescription).then(function() {
+                fill(self.indexDescription._columns);
+            }).catch(fill);
           }
-          else if (!doc['_columns']) {
-            fill(new Error.PropertyNotFound('`_columns` is missing.'));
+          else if (doc === null && req.routeParams.resourceName !== 'index') {
+            fill(new Errors.TableNotFound('The table does not exist.'));
           }
           else {
             fill(doc);

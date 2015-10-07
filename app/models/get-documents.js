@@ -4,22 +4,14 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
-  , datamodel = require('datamodel')
-  , MongoClient = require('mongodb').MongoClient
-  , JSONStream = require('JSONStream')
-  , es = require('event-stream')
-  , EU = require('eu')
-  , LRU = require('lru-cache')
-  , JBJ = require('jbj')
-  , async = require('async')
-  , url =require('url')
-  , Errors = require('../helpers/errors.js')
   ;
 
 module.exports = function(model) {
-
+  if (model === undefined) {
+    model = require('datamodel')();
+  }
   model
- .declare('mongoQuery', function(req, fill) {
+  .declare('mongoQuery', function(req, fill) {
       var q = {};
       if (req.routeParams.resourceName === 'index') {
         q = { _name: { $ne: "index" } }

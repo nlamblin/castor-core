@@ -8,9 +8,8 @@ var path = require('path')
   , express =  require('express')
   ;
 
-module.exports = function(router) {
+module.exports = function(router, models, config) {
 
-  var page = require('../models/page.js');
   var supportedFormats = {
     "html" : "text/html",
     "txt" : "text/plain",
@@ -46,7 +45,7 @@ module.exports = function(router) {
         return next();
       }
 
-      datamodel([page])
+      datamodel([models.page])
       .apply(req)
       .then(function(locals) {
           res.set('Content-Type', req.templateMimetype);

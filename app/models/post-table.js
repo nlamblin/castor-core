@@ -43,49 +43,7 @@ module.exports = function(model) {
       debug('property', property);
       fill(property);
   })
-  .declare('index', function(req, fill) {
-      var index = {
-        "_name": "index",
-        "_columns" : [
-          //
-          // Mandatory Column for the reduce system
-          //
-          {
-            "propertyScheme": "http://schema.org/name",
-            "propertyValue" : {
-              "get" : "title"
-            },
-            "propertyName" : "name",
-            "propertyLabel" : "Name",
-            "propertyComment" : "A mandatory column for \"dollar\" URLs"
-          },
-          //
-          // Recommended Column to expose existing table
-          //
-          {
-            "propertyScheme": "http://schema.org/url",
-            "propertyType": "http://www.w3.org/TR/xmlschema-2/#anyURI",
-            "propertyValue" : {
-              "get": ["baseURL", "_name"],
-              "join": "/"
-            },
-            "propertyText" : {
-              "get" : "_name",
-            },
-              "propertyName" : "url",
-              "propertyLabel" : "URL",
-              "propertyComment" : ""
-            }
-          ],
-          //
-          // Table metadata
-          //
-          "title": req.config.get('title'),
-          "description": req.config.get('description')
-        };
-        fill(index);
-    })
-  .declare('doc', function(req, fill) {
+   .declare('doc', function(req, fill) {
       fill({
           "_name": req.routeParams.resourceName,
           "_columns" : [
@@ -146,18 +104,7 @@ module.exports = function(model) {
         return fill([]);
       }
 
-      if (self.mongoCollectionsIndexHandle instanceof Error) {
-        self.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'), function(err, newcoll) {
-            self.mongoCollectionsIndexHandle = err ? err : newcoll;
-            newcoll.insertMany([self.index, self.doc]).then(function() {
-                self.mongoDatabaseHandle.createIndex(req.config.get('collectionsIndexName'),
-                  {_name:1},
-                  {unique:true, background:false, w:1}
-                ).then(fill).catch(fill);
-            }).catch(fill);
-        });
-      }
-      else if (self.property && self.property.name === false && self.property.previousName !== 'index') {
+      if (self.property && self.property.name === false && self.property.previousName !== 'index') {
         query = {
           _name: self.property.previousName
         }

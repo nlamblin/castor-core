@@ -135,9 +135,11 @@ module.exports = function(model) {
                 if (err) {
                   return submit(err);
                 }
-                self.table._columns.forEach(function(item, index) {
-                    data['$' + item.propertyName] = results[index];
-                });
+                if (Array.isArray(self.table._columns)) {
+                  self.table._columns.forEach(function(item, index) {
+                      data['$' + item.propertyName] = results[index];
+                  });
+                }
                 submit(null, data);
             });
       }))
@@ -161,9 +163,11 @@ module.exports = function(model) {
                 if (err) {
                   return submit(err);
                 }
-                self.table._columns.forEach(function(item, index) {
-                    data[item.propertyName] = results[index];
-                });
+                if (Array.isArray(self.table._columns)) {
+                  self.table._columns.forEach(function(item, index) {
+                      data[item.propertyName] = results[index];
+                  });
+                }
                 submit(null, data);
             });
       }))
@@ -174,19 +178,21 @@ module.exports = function(model) {
             var doc = {}
             doc['@id'] = self.baseURL.concat("/").concat(data['_name']);
             doc['@context'] = {}
-            self.table._columns.forEach(function(item, index) {
-                doc['@context'][item.propertyName] = {};
-                doc['@context'][item.propertyName]['@id'] = item.propertyScheme;
-                if (item.propertyType) {
-                  doc['@context'][item.propertyName]['@type'] = item.propertyType;
-                }
-                if (item.propertyText) {
-                  doc['$' + item.propertyName] = data['$' + item.propertyName];
-                }
-                if (item.propertyValue) {
-                  doc[item.propertyName] = data[item.propertyName];
-                }
-            });
+            if (Array.isArray(self.table._columns)) {
+              self.table._columns.forEach(function(item, index) {
+                  doc['@context'][item.propertyName] = {};
+                  doc['@context'][item.propertyName]['@id'] = item.propertyScheme;
+                  if (item.propertyType) {
+                    doc['@context'][item.propertyName]['@type'] = item.propertyType;
+                  }
+                  if (item.propertyText) {
+                    doc['$' + item.propertyName] = data['$' + item.propertyName];
+                  }
+                  if (item.propertyValue) {
+                    doc[item.propertyName] = data[item.propertyName];
+                  }
+              });
+            }
             submit(null, doc);
       }))
       //
