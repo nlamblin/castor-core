@@ -9,7 +9,7 @@ var path = require('path')
   , datamodel = require('datamodel')
   , Render = require('castor-render')
   , Flying = require('../lib/flying.js')
-  , pmongo = require('promised-mongo')
+  , mongolib = require('../lib/mongo.js')
   , struct = require('object-path')
   , extend = require('extend')
   , heart = require('../helpers/heart.js')()
@@ -19,7 +19,7 @@ var path = require('path')
   ;
 
 module.exports = function(config, computer) {
-  var db   = pmongo(config.get('connectionURI'))
+  var db   = mongolib.connect(config.get('connectionURI'))
     , rdr = new Render()
     , flyopts = {
         "connectionURI" : config.get('connectionURI'),
