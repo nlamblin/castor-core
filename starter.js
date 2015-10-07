@@ -72,8 +72,6 @@ module.exports = function(warmup) {
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);
   config.fix('tempPath',             os.tmpdir());
   config.fix('dataPath',             path.normalize(path.resolve(process.cwd(), path.normalize(argv._[0] || "./data"))));
-  config.fix('hooks',                 []);
-  config.fix('hooksPath',            undefined);
   config.fix('viewPath',             path.resolve(__dirname, './app/views/'));
   config.fix('middlewares',          {});
   config.fix('markdown',             undefined);
