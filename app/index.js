@@ -102,8 +102,9 @@ module.exports = function(config, online) {
     if (fs.existsSync(config.get('dataPath'))) {
       console.info(kuler('Watching hot directory. ', 'olive'), kuler(config.get('dataPath'), 'limegreen'));
       ldr.use('**/*', require('./loaders/prepend.js')());
-      var loaders = new Hook('loaders', config.get('hooks'));
-      loaders.from(viewPath, __dirname, config.get('hooksPath'))
+
+      var loaders = new Hook('loaders');
+      loaders.from(viewPath, __dirname)
       loaders.over(config.get('loaders'))
       loaders.apply(function(hash, func, item) {
           ldr.use(item.pattern || '**/*', func(item.options , config));
@@ -157,8 +158,8 @@ module.exports = function(config, online) {
     cpt.use('groupby', require('./operators/groupby.js'));
     cpt.use('merge', require('./operators/merge.js'));
 
-    var operators = new Hook('operators', config.get('hooks'))
-    operators.from(viewPath, __dirname, config.get('hooksPath'))
+    var operators = new Hook('operators')
+    operators.from(viewPath, __dirname)
     operators.over(config.get('operators'))
     operators.apply(function(hash, func) {
         cpt.use(hash, func);
@@ -188,6 +189,8 @@ module.exports = function(config, online) {
   catch(e) {
     return online(e);
   }
+
+
   //
   // WEB Server
   //
@@ -220,8 +223,8 @@ module.exports = function(config, online) {
           resave: false,
           saveUninitialized: true
     }));
-    var middlewares = new Hook('middlewares', config.get('hooks'))
-    middlewares.from(viewPath, __dirname, config.get('hooksPath'))
+    var middlewares = new Hook('middlewares')
+    middlewares.from(viewPath, __dirname)
     middlewares.over(config.get('middlewares'))
     middlewares.apply(function(hash, func, item) {
         app.use(item.path || hash, func(item.options || config, config));
@@ -289,15 +292,15 @@ module.exports = function(config, online) {
   env.addFilter('objectPath', require('./filters/objectPath.js')(config));
   env.addFilter('markdown', require('./filters/markdown.js')(config.get('markdown')));
 
-  var filters = new Hook('filters', config.get('hooks'))
-  filters.from(viewPath, __dirname, config.get('hooksPath'))
+  var filters = new Hook('filters')
+  filters.from(viewPath, __dirname)
   filters.over(config.get('filters'))
   filters.apply(function(hash, func) {
       env.addFilter(hash, func(config));
   });
 
-  var asynchronousFilters = new Hook('filters', config.get('hooks'))
-  asynchronousFilters.from(viewPath, __dirname, config.get('hooksPath'))
+  var asynchronousFilters = new Hook('filters')
+  asynchronousFilters.from(viewPath, __dirname)
   asynchronousFilters.over(config.get('asynchronousFilters'))
   asynchronousFilters.apply(function(hash, func) {
       env.addFilter(hash, func(config), true);
@@ -371,8 +374,8 @@ module.exports = function(config, online) {
   //
   // Optionals routes
   //
-  var routes = new Hook('routes', config.get('hooks'))
-  routes.from(viewPath, __dirname, config.get('hooksPath'))
+  var routes = new Hook('routes')
+  routes.from(viewPath, __dirname)
   routes.over(config.get('routes'))
   routes.apply(function(hash, func, item) {
       var router = express.Router();
