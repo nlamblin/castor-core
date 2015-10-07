@@ -18,6 +18,14 @@ var path = require('path')
   ;
 
 module.exports = function(config, online) {
+
+  var core = {
+    config : config,
+    models : {},
+    computer : undefined
+  };
+
+
   var Errors = config.get('Errors');
 
 
@@ -84,20 +92,19 @@ module.exports = function(config, online) {
   //
   // Models
   //
-  var mdl = {}, mdlopts;
-  mdl.page = require('./models/page.js')
-  mdl.mongo = require('./models/mongo.js')
-  mdl.reduce = require('./models/reduce-table.js')
-  mdl.table = require('./models/get-table.js')
-  mdl.docu = require('./models/get-document.js')
-  mdl.docus = require('./models/get-documents.js')
-  mdl.dump = require('./models/dump-query.js')
+  core.models.page = require('./models/page.js')
+  core.models.mongo = require('./models/mongo.js')
+  core.models.reduce = require('./models/reduce-table.js')
+  core.models.table = require('./models/get-table.js')
+  core.models.docu = require('./models/get-document.js')
+  core.models.docus = require('./models/get-documents.js')
+  core.models.dump = require('./models/dump-query.js')
 
   var models = new Hook('models');
   models.from(viewPath, __dirname)
   models.over(config.get('models'))
   models.apply(function(hash, func, item) {
-      mdl[hash] = func;
+      core.models[hash] = func;
   });
 
 
@@ -158,7 +165,7 @@ module.exports = function(config, online) {
   //
   // Define Computer
   //
-  var cpt, cptlock, cptopts;
+  var cptlock, cptopts;
   try {
     cptopts = {
       "port": config.get('port'),
@@ -166,29 +173,29 @@ module.exports = function(config, online) {
       "collectionName": config.get('collectionName'),
       "concurrency" : config.get('concurrency')
     }
-    cpt = new Computer(config.get('corpusFields'), cptopts) ;
+    core.computer = new Computer(config.get('corpusFields'), cptopts) ;
 
-    cpt.use('count', require('./operators/count.js'));
-    cpt.use('catalog', require('./operators/catalog.js'));
-    cpt.use('distinct', require('./operators/distinct.js'));
-    cpt.use('ventilate', require('./operators/ventilate.js'));
-    cpt.use('total', require('./operators/total.js'));
-    cpt.use('graph', require('./operators/graph.js'));
-    cpt.use('groupby', require('./operators/groupby.js'));
-    cpt.use('merge', require('./operators/merge.js'));
+    core.computer.use('count', require('./operators/count.js'));
+    core.computer.use('catalog', require('./operators/catalog.js'));
+    core.computer.use('distinct', require('./operators/distinct.js'));
+    core.computer.use('ventilate', require('./operators/ventilate.js'));
+    core.computer.use('total', require('./operators/total.js'));
+    core.computer.use('graph', require('./operators/graph.js'));
+    core.computer.use('groupby', require('./operators/groupby.js'));
+    core.computer.use('merge', require('./operators/merge.js'));
 
     var operators = new Hook('operators')
     operators.from(viewPath, __dirname)
     operators.over(config.get('operators'))
     operators.apply(function(hash, func) {
-        cpt.use(hash, func);
+        core.computer.use(hash, func);
     });
     var cptfunc = function(err, doc) {
       if (cptlock === undefined || cptlock === false) {
         cptlock = true;
         heart.createEvent(2, {repeat: 1}, function() {
             cptlock = false; // évite d'oublier un evenement pendant le calcul
-            cpt.run(function(err) {
+            core.computer.run(function(err) {
                 if (err instanceof Error) {
                   console.error(kuler(err.message, 'red'));
                 }
@@ -387,7 +394,7 @@ module.exports = function(config, online) {
   //
 
   var pageRouter = express.Router();
-  require('./routes/page.js')(pageRouter, mdl, config)
+  require('./routes/page.js')(pageRouter, core)
   app.use(pageRouter);
 
   //
@@ -398,7 +405,7 @@ module.exports = function(config, online) {
   routes.over(config.get('routes'))
   routes.apply(function(hash, func, item) {
       var router = express.Router();
-      func(router, mdl, config)
+      func(router, core)
       app.use(router);
   });
 

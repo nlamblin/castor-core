@@ -14,9 +14,9 @@ var path = require('path')
   ;
 
 
-module.exports = function(router, models, config) {
+module.exports = function(router, core) {
 
-  var prefixURL = config.get('prefixURL');
+  var prefixURL = core.config.get('prefixURL');
 
   //
   // Define route parameters
@@ -74,7 +74,7 @@ module.exports = function(router, models, config) {
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined) {
         return next();
       }
-      datamodel([models.mongo, models.table, models.docus, models.dump])
+      datamodel([core.models.mongo, core.models.table, core.models.docus, core.models.dump])
       .apply(req, res, next);
   });
 
@@ -87,7 +87,7 @@ module.exports = function(router, models, config) {
       if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined || req.routeParams.star === undefined) {
         return next();
       }
-      datamodel([models.mongo, models.table, models.docu, models.dump])
+      datamodel([core.models.mongo, core.models.table, core.models.docu, core.models.dump])
       .apply(req, res, next);
   });
 
@@ -102,7 +102,7 @@ module.exports = function(router, models, config) {
       if (req.routeParams.resourceName === undefined || req.routeParams.dollar === undefined) {
         return next();
       }
-      datamodel([models.mongo, models.reduce])
+      datamodel([core.models.mongo, core.models.reduce])
       .apply(req, res, next);
   });
 
@@ -114,7 +114,7 @@ module.exports = function(router, models, config) {
       if (req.routeParams.resourceName === undefined) {
         return next();
       }
-      datamodel([models.page, models.mongo, models.table])
+      datamodel([core.models.page, core.models.mongo, core.models.table])
       .apply(req)
       .then(function(locals) {
           return res.render("index.html", locals);

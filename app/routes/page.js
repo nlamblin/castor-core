@@ -8,7 +8,7 @@ var path = require('path')
   , express =  require('express')
   ;
 
-module.exports = function(router, models, config) {
+module.exports = function(router, core) {
 
   var supportedFormats = {
     "html" : "text/html",
@@ -45,7 +45,7 @@ module.exports = function(router, models, config) {
         return next();
       }
 
-      datamodel([models.page])
+      datamodel([core.models.page])
       .apply(req)
       .then(function(locals) {
           res.set('Content-Type', req.templateMimetype);

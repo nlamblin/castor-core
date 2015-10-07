@@ -74,6 +74,7 @@ module.exports = function(warmup) {
   config.fix('dataPath',             path.normalize(path.resolve(process.cwd(), path.normalize(argv._[0] || "./data"))));
   config.fix('viewPath',             path.resolve(__dirname, './app/views/'));
   config.fix('middlewares',          {});
+  config.fix('models',               {});
   config.fix('markdown',             undefined);
   config.fix('filters',              {});
   config.fix('asynchronousFilters',  {});
