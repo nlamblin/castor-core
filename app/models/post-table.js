@@ -5,7 +5,6 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
   , datamodel = require('datamodel')
-  , faker = require('faker')
   , assert = require('assert')
   , Errors = require('../helpers/errors.js')
   ;
@@ -77,25 +76,13 @@ module.exports = function(model) {
               "propertyName" : "jbj-playground",
               "propertyLabel" : "View it on JBJ Playground",
               "propertyComment" : "A help column to define others columns"
-            },
-            //
-            // Example Column
-            //
-            {
-              "propertyScheme": "http://schema.org/description",
-              "propertyValue" : {
-                "set" : faker.lorem.paragraph()
-              },
-              "propertyName" : "description",
-              "propertyLabel" : "Description",
-              "propertyComment" : "A example column"
             }
           ],
           //
           // Table metadata
           //
-          "title": faker.lorem.sentence(),
-          "description": faker.lorem.paragraph()
+          "title": "Table "+req.routeParams.resourceName,
+          "description": "Undefined description."
       });
   })
   .append('mongoResult', function(req, fill) {

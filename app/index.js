@@ -94,11 +94,14 @@ module.exports = function(config, online) {
   //
   core.models.page = require('./models/page.js')
   core.models.mongo = require('./models/mongo.js')
-  core.models.reduce = require('./models/reduce-table.js')
-  core.models.table = require('./models/get-table.js')
-  core.models.docu = require('./models/get-document.js')
-  core.models.docus = require('./models/get-documents.js')
-  core.models.dump = require('./models/dump-query.js')
+  core.models.reduceTable = require('./models/reduce-table.js')
+  core.models.getTable = require('./models/get-table.js')
+  core.models.getDocument = require('./models/get-document.js')
+  core.models.getDocuments = require('./models/get-documents.js')
+  core.models.dumpQuery = require('./models/dump-query.js')
+  core.models.computeDocuments = require('./models/compute-documents.js')
+  core.models.postColumn = require('./models/post-column.js')
+  core.models.postTable = require('./models/post-table.js')
 
   var models = new Hook('models');
   models.from(viewPath, __dirname)

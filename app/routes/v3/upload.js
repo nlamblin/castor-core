@@ -14,19 +14,19 @@ var path = require('path')
   , Loader = require('castor-load')
  ;
 
-module.exports = function(config, router) {
+module.exports = function(router, core) {
   var jfum = new JFUM({
       minFileSize: 1,
-      maxFileSize: config.get('maxFileSize'),
+      maxFileSize: core.config.get('maxFileSize'),
       acceptFileTypes: /\.(csv|xml|txt|xls|xlsx|nq|n3|nt)$/i
   });
   var options = {
-    "connexionURI" : config.get('connexionURI'),
-    "concurrency" : config.get('concurrency'),
-    "delay" : config.get('delay'),
-    "maxFileSize" : config.get('maxFileSize'),
-    "writeConcern" : config.get('writeConcern'),
-    "ignore" : config.get('filesToIgnore'),
+    "connexionURI" : core.config.get('connexionURI'),
+    "concurrency" : core.config.get('concurrency'),
+    "delay" : core.config.get('delay'),
+    "maxFileSize" : core.config.get('maxFileSize'),
+    "writeConcern" : core.config.get('writeConcern'),
+    "ignore" : core.config.get('filesToIgnore'),
     "watch" : false
   };
 
@@ -78,7 +78,7 @@ module.exports = function(config, router) {
       }
       var common = {
         resourceName :  resourceName,
-        baseURL : String(req.config.get('baseURL')).replace(/\/+$/,'')
+        baseURL : String(core.config.get('baseURL')).replace(/\/+$/,'')
       }
 
       if (req.body.type === 'file' && typeof req.body.file === 'object') {

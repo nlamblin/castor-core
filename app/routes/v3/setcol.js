@@ -9,23 +9,17 @@ var path = require('path')
   , datamodel = require('datamodel')
  ;
 
-module.exports = function(config, router) {
-
-  var page = require('../../models/page.js')
-    , mongo = require('../../models/mongo.js')
-    , postcol = require('../../models/post-column.js')
-    ;
-
+module.exports = function(router, core) {
 
 
   //   router.route(authorityName + '/:resourceName/:star/:columnName')
   router.route('/-/v3/setcol/:resourceName/:columnName')
   .post(bodyParser.urlencoded({ extended: true}))
   .post(function(req, res, next) {
-      if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined || req.routeParams.columnName === undefined) {
+      if (req.routeParams.resourceName === undefined || req.routeParams.columnName === undefined) {
         return next();
       }
-      datamodel([mongo, postcol])
+      datamodel([core.models.mongo, core.models.postColumn])
       .apply(req)
       .then(function(locals) {
           return res.send(204);

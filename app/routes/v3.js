@@ -8,7 +8,7 @@ var path = require('path')
   , express =  require('express')
   ;
 
-module.exports = function(router, config) {
+module.exports = function(router, core) {
 
   var supportedFormats = {
     "html" : "text/html",
@@ -43,11 +43,10 @@ module.exports = function(router, config) {
   });
 
 
-  require('./v3/upload.js')(config, router);
-  require('./v3/load.js')(config, router);
-  require('./v3/echo.js')(config, router);
-  require('./v3/setcol.js')(config, router);
-  require('./v3/settab.js')(config, router);
+  require('./v3/upload.js')(router, core);
+  require('./v3/load.js')(router, core);
+  require('./v3/setcol.js')(router, core);
+  require('./v3/settab.js')(router, core);
 
   return router;
 };

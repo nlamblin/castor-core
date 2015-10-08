@@ -10,12 +10,7 @@ var path = require('path')
   , check = require('../../middlewares/check.js')
  ;
 
-module.exports = function(config, router) {
-
-  var page = require('../../models/page.js')
-    , mongo = require('../../models/mongo.js')
-    , posttab = require('../../models/post-table.js')
-    ;
+module.exports = function(router, core) {
 
 
   router.route('/-/v3/settab/:resourceName')
@@ -25,7 +20,7 @@ module.exports = function(config, router) {
       if (req.routeParams.resourceName === undefined) {
         return next();
       }
-      datamodel([mongo, posttab])
+      datamodel([core.models.mongo, core.models.postTable])
       .apply(req)
       .then(function(locals) {
           return res.send(204);

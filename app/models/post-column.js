@@ -5,7 +5,6 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
   , datamodel = require('datamodel')
-  , faker = require('faker')
   , assert = require('assert')
   , Errors = require('../helpers/errors.js')
   ;
@@ -43,7 +42,7 @@ module.exports = function(model) {
       }
       else if (req.body) {
         property.scheme = "http://exemple.com/" + req.routeParams.columnName;
-        property.label = faker.lorem.words().join(' ');
+        property.label = 'Column ' + req.routeParams.columnName;
         property.value = {
           "set" : "n/a"
         }

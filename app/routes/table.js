@@ -26,6 +26,19 @@ module.exports = function(router, core) {
       next();
   });
 
+
+  router.param('operator', function(req, res, next, value) {
+      try {
+        req.routeParams.operator = core.computer.operator(value);
+      }
+      catch(e) {
+        debug(e);
+      }
+      next();
+  });
+
+
+
   router.param('documentName', function(req, res, next, value) {
       if (value !== '*' && value !== '$') {
         req.routeParams.documentName = value;
@@ -74,7 +87,7 @@ module.exports = function(router, core) {
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined) {
         return next();
       }
-      datamodel([core.models.mongo, core.models.table, core.models.docus, core.models.dump])
+      datamodel([core.models.mongo, core.models.getTable, core.models.getDocuments, core.models.dumpQuery])
       .apply(req, res, next);
   });
 
@@ -87,7 +100,7 @@ module.exports = function(router, core) {
       if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined || req.routeParams.star === undefined) {
         return next();
       }
-      datamodel([core.models.mongo, core.models.table, core.models.docu, core.models.dump])
+      datamodel([core.models.mongo, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
       .apply(req, res, next);
   });
 
@@ -102,9 +115,25 @@ module.exports = function(router, core) {
       if (req.routeParams.resourceName === undefined || req.routeParams.dollar === undefined) {
         return next();
       }
-      datamodel([core.models.mongo, core.models.reduce])
+      datamodel([core.models.mongo, core.models.reduceTable])
       .apply(req, res, next);
   });
+
+
+  //
+  // documents list title
+  //
+  router.route(prefixURL + '/:resourceName/:dollar:operator')
+
+  .get(function(req, res, next) {
+      debug('get /:resourceName/:dollar:operator', req.routeParams);
+      if (req.routeParams.resourceName === undefined || req.routeParams.dollar === undefined || req.routeParams.operator === undefined) {
+        return next();
+      }
+      datamodel([core.models.mongo, core.models.computeDocuments])
+      .apply(req, res, next);
+  });
+
 
 
 
@@ -114,7 +143,7 @@ module.exports = function(router, core) {
       if (req.routeParams.resourceName === undefined) {
         return next();
       }
-      datamodel([core.models.page, core.models.mongo, core.models.table])
+      datamodel([core.models.page, core.models.mongo, core.models.getTable])
       .apply(req)
       .then(function(locals) {
           return res.render("index.html", locals);

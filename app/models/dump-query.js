@@ -24,14 +24,6 @@ module.exports = function(model) {
     , agent = new EU(cache);
 
   model
-  .declare('collectionName', function(req, fill) {
-      if (req.routeParams.resourceName === 'index') {
-        fill(req.config.get('collectionsIndexName'))
-      }
-      else {
-        fill(req.routeParams.resourceName);
-      }
-  })
   .declare('documentName', function(req, fill) {
       fill(req.routeParams.documentName);
   })
@@ -83,13 +75,7 @@ module.exports = function(model) {
   .declare('baseURL', function(req, fill) {
       fill(String(req.config.get('baseURL')).replace(/\/+$/,''));
   })
-  .append('mongoCursor', function(req, fill) {
-      if (this.mongoDatabaseHandle instanceof Error) {
-        return fill();
-      }
-      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery));
-  })
-  .send(function(res, next) {
+ .send(function(res, next) {
       var self = this;
       res.set('Content-Type', this.mimeType);
       res.on('finish', function() {

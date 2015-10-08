@@ -11,8 +11,16 @@ module.exports = function(model) {
     model = require('datamodel')();
   }
   model
-    .declare('mongoQuery', function(req, fill) {
-        var q = {};
+  .declare('collectionName', function(req, fill) {
+      if (req.routeParams.resourceName === 'index') {
+        fill(req.config.get('collectionsIndexName'))
+      }
+      else {
+        fill(req.routeParams.resourceName);
+      }
+  })
+  .declare('mongoQuery', function(req, fill) {
+      var q = {};
       if (req.routeParams.resourceName === 'index') {
         q = { _name: { $ne: "index" } }
       }
@@ -21,6 +29,13 @@ module.exports = function(model) {
       }
       fill(q);
   })
+  .append('mongoCursor', function(req, fill) {
+      if (this.mongoDatabaseHandle instanceof Error) {
+        return fill();
+      }
+      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery));
+  })
+
 
   return model;
 }
