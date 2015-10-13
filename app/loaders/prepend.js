@@ -16,7 +16,13 @@ module.exports = function(options) {
     // https://schema.org/name
     input.name = path.basename(input.location, path.extname(input.location)).replace(/[\_\-\.]+/g, ' ');
     // Pseudo search
-    input.text = input.text || '';
+    if (input.text) {
+      input._text = input.text;
+      delete input.text
+    }
+    else if (input._text === undefined) {
+      input._text = '';
+    }
     // For content
     input.content = input.content || {};
     submit(null, input);

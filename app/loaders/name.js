@@ -2,12 +2,12 @@
 module.exports = function(options) {
   options = options || {};
   return function (input, submit) {
-    input._name = '';
+    input._wid = '';
     if (input.resourceName) {
-      input._name = input._name.concat(input.resourceName)
+      input._wid = input._wid.concat(input.resourceName)
     }
     if (input.wid) {
-      input._name = input._name.concat("/").concat(input.wid)
+      input._wid = input._wid.concat("/").concat(input.wid)
     }
     submit(null, input)
   }

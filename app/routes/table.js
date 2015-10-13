@@ -110,6 +110,7 @@ module.exports = function(router, core) {
   //
   router.route(prefixURL + '/:resourceName/:dollar')
 
+  .all(cors())
   .get(function(req, res, next) {
       debug('get /:resourceName/:dollar', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.dollar === undefined) {
@@ -125,6 +126,7 @@ module.exports = function(router, core) {
   //
   router.route(prefixURL + '/:resourceName/:dollar:operator')
 
+  .all(cors())
   .get(function(req, res, next) {
       debug('get /:resourceName/:dollar:operator', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.dollar === undefined || req.routeParams.operator === undefined) {
@@ -138,6 +140,7 @@ module.exports = function(router, core) {
 
 
   router.route(prefixURL + '/:resourceName')
+  .all(cors())
   .get(function(req, res, next) {
       debug('get /:resourceName', req.routeParams);
       if (req.routeParams.resourceName === undefined) {

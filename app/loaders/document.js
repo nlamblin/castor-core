@@ -73,7 +73,7 @@ module.exports = function(options) {
         else if (!options.stylesheet[field].noindex) {
           field = field.slice(1);
           var value = objectPath.get(res, field);
-          if (field !== 'text' && typeof value === 'string') {
+          if (field !== '_text' && typeof value === 'string') {
             objectPath.set(res,field,value.slice(0,999));
           }
         }

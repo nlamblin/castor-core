@@ -15,6 +15,8 @@ var path = require('path')
   , ecstatic = require('ecstatic')
   , I18n = require('i18n-2')
   , Hook = require('./helpers/hook.js')
+  , async = require('async')
+  , MongoClient = require('mongodb').MongoClient
   ;
 
 module.exports = function(config, online) {
@@ -35,7 +37,7 @@ module.exports = function(config, online) {
   if (online === undefined || typeof online !== 'function') {
     online = function(err, server) {
       if (err instanceof Error) {
-        console.error(kuler("Unable to init the server.", "red"), err.toString());
+        console.error(kuler("Unable to init the server.", "red"), kuler(err.toString(), 'orangered'));
         process.exit(3);
         return;
       }
@@ -118,7 +120,7 @@ module.exports = function(config, online) {
   try {
     ldropts = {
       // "dateConfig" : dateConfig,
-      "connexionURI" : config.get('connexionURI'),
+      "connexionURI" : config.get('connectionURI'),
       "collectionName": config.get('collectionName'),
       "concurrency" : config.get('concurrency'),
       "delay" : config.get('delay'),
@@ -144,7 +146,7 @@ module.exports = function(config, online) {
       ldr.use('**/*', require('./loaders/wid.js')());
       ldr.sync(function(err) {
           if (err instanceof Error) {
-            console.error(kuler(err.message, 'red'));
+            console.error(kuler("Loader synchronization failed.", "red"), kuler(err.toString(), 'orangered'));
           }
           else {
             console.info(kuler('Files and Database are synchronised.', 'olive'));
@@ -160,103 +162,39 @@ module.exports = function(config, online) {
   //
   // Add Mongo indexes
   //
-
-
-  // (...)
-
-
-  //
-  // Define Computer
-  //
-  var cptlock, cptopts;
   try {
-    cptopts = {
-      "port": config.get('port'),
-      "connexionURI" : config.get('connexionURI'),
-      "collectionName": config.get('collectionName'),
-      "concurrency" : config.get('concurrency')
-    }
-    core.computer = new Computer(config.get('corpusFields'), cptopts) ;
-
-    core.computer.use('count', require('./operators/count.js'));
-    core.computer.use('catalog', require('./operators/catalog.js'));
-    core.computer.use('distinct', require('./operators/distinct.js'));
-    core.computer.use('ventilate', require('./operators/ventilate.js'));
-    core.computer.use('total', require('./operators/total.js'));
-    core.computer.use('graph', require('./operators/graph.js'));
-    core.computer.use('groupby', require('./operators/groupby.js'));
-    core.computer.use('merge', require('./operators/merge.js'));
-
-    var operators = new Hook('operators')
-    operators.from(viewPath, __dirname)
-    operators.over(config.get('operators'))
-    operators.apply(function(hash, func) {
-        core.computer.use(hash, func);
-    });
-    var cptfunc = function(err, doc) {
-      if (cptlock === undefined || cptlock === false) {
-        cptlock = true;
-        heart.createEvent(2, {repeat: 1}, function() {
-            cptlock = false; // évite d'oublier un evenement pendant le calcul
-            core.computer.run(function(err) {
-                if (err instanceof Error) {
-                  console.error(kuler(err.message, 'red'));
-                }
-                else {
-                  console.info(kuler('Corpus fields computed.', 'olive'));
-                }
-            });
+    MongoClient.connect(config.get('connectionURI')).then(function(db) {
+        db.collection(config.get('collectionName')).then(function(coll) {
+            debug('indexes', coll);
+            var usfs = config.get('documentFields');
+            var  idx = Object.keys(usfs)
+            .filter(function(i) { return (i !== '$text') && (usfs[i].noindex !== true); })
+            .map(function(i) {var j = {}; j[i.replace('$','')] = 1; return j;})
+            ;
+          idx.push({ 'wid': 1 });
+          idx.push({ 'text': 'text' });
+          debug('indexes', idx);
+          async.map(idx, function(i, cb) {
+              coll.ensureIndex(i, { w: config.get('writeConcern')}, function(err, indexName) {
+                  if (err instanceof Error) {
+                    console.error(kuler("Unable to create the index.", "red"), kuler(err.toString(), 'orangered'));
+                  }
+                  else {
+                    console.info(kuler('Index added.', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
+                  }
+                  cb(err, indexName);
+              });
+            }, function(e, ret) {
+              if (e) {
+                throw e;
+              }
+              db.close();
+          });
+        }).catch(function(e) {
+            throw e;
         });
-      }
-    };
-    ldr.on('watching', cptfunc);
-    ldr.on('changed', cptfunc);
-    ldr.on('cancelled', cptfunc);
-    ldr.on('dropped', cptfunc);
-    ldr.on('added', cptfunc);
-  }
-  catch(e) {
-    return online(e);
-  }
-
-
-  //
-  // WEB Server
-  //
-  var app = express();
-
-
-
-  //
-  // is it behind a proxy,
-  //
-  if (config.get('trustProxy') === true) {
-    app.enable('trust proxy');
-  }
-
-
-
-  //
-  // Add middlewares to Express
-  //
-  try {
-    app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
-    app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
-    app.use(require('cookie-parser')(__dirname));
-    app.use(require('express-session')({
-          secret: __dirname,
-          cookie: {
-            maxAge: 60000,
-            secure: true
-          },
-          resave: false,
-          saveUninitialized: true
-    }));
-    var middlewares = new Hook('middlewares')
-    middlewares.from(viewPath, __dirname)
-    middlewares.over(config.get('middlewares'))
-    middlewares.apply(function(hash, func, item) {
-        app.use(item.path || hash, func(item.options || config, config));
+    }).catch(function(e) {
+        throw e;
     });
   }
   catch(e) {
@@ -264,195 +202,294 @@ module.exports = function(config, online) {
   }
 
 
-  //
-  // Add some vars in req
-  //
-  app.use(function (req, res, next) {
-      req.config = config;
-      next();
-  });
-  app.use(function (req, res, next) {
-      req.routeParams = {};
-      next();
-  });
-
-
-
-  //
-  // Define I18N
-  //
-  I18n.expressBind(app, {
-      locales: ['en', 'fr']
-  });
-  app.use(require('./middlewares/i18n.js')());
-
-
-
-  //
-  // Define the view template engine
-  //
-  //
-  var env = nunjucks.configure(viewPath, {
-      autoescape: false,
-      watch: false,
-      express: app
-  });
-
-
-
-  //
-  // "Tags" for nunjucks
-  //
-  //
-  require('nunjucks-markdown').register(env, config.get('markdown'));
-
-
-
-  //
-  // "Filters" for nunjucks
-  //
-  //
-  env.addFilter('nl2br', require('./filters/nl2br.js')(config));
-  env.addFilter('json', require('./filters/json.js')(config));
-  env.addFilter('hash', require('./filters/hash.js')(config));
-  env.addFilter('stack', require('./filters/stack.js')(config));
-  env.addFilter('flatten', require('./filters/flatten.js')(config));
-  env.addFilter('add2Array', require('./filters/add2Array.js')(config));
-  env.addFilter('objectPath', require('./filters/objectPath.js')(config));
-  env.addFilter('markdown', require('./filters/markdown.js')(config.get('markdown')));
-
-  var filters = new Hook('filters')
-  filters.from(viewPath, __dirname)
-  filters.over(config.get('filters'))
-  filters.apply(function(hash, func) {
-      env.addFilter(hash, func(config));
-  });
-
-  var asynchronousFilters = new Hook('filters')
-  asynchronousFilters.from(viewPath, __dirname)
-  asynchronousFilters.over(config.get('asynchronousFilters'))
-  asynchronousFilters.apply(function(hash, func) {
-      env.addFilter(hash, func(config), true);
-  });
-
-
-
-  //
-  // Set JS modules for the browser
-  //
-  //
-  var modules = config.get('browserifyModules');
-  if (Array.isArray(modules) && modules.length > 0) {
-    app.get('/libs.js', browserify(modules, {
-          debug: true
-    }));
-    app.get('/bundle.js', function(req, res) {
-        console.warn('Depretacted route, use /libs.js');
-        res.redirect(301, '/libs.js');
-    });
-  }
-  else {
-    app.get('/libs.js', function(req, res, next) {
-        next(new Errors.PageNotFound('Not Found'));
-    });
-    app.get('/bundle.js', function(req, res, next) {
-        next(new Errors.PageNotFound('Not Found'));
-    });
-  }
-
-
-
-  //
-  // Define reserved routes : /libs, /assets, /
-  //
-  //
-  app.route('/assets/*').all(ecstatic({
-        root          : path.resolve(viewPath, './assets'),
-        baseDir       : '/assets',
-        cache         : 3600,
-        showDir       : true,
-        autoIndex     : true,
-        humanReadable : true,
-        si            : false,
-        defaultExt    : 'html',
-        gzip          : false
-  }));
-  app.route('/libs/*').all(ecstatic({
-        root          : path.resolve(viewPath, './libs'),
-        baseDir       : '/libs',
-        cache         : 3600,
-        showDir       : true,
-        autoIndex     : true,
-        humanReadable : true,
-        si            : false,
-        defaultExt    : 'html',
-        gzip          : false
-  }));
-  app.route('/').all(function(req, res) {
-      res.redirect(config.get('rootURL'));
-  });
-
-  //
-  // Mandatory route
-  //
-
-  var pageRouter = express.Router();
-  require('./routes/page.js')(pageRouter, core)
-  app.use(pageRouter);
-
-  //
-  // Optionals routes
-  //
-  var routes = new Hook('routes')
-  routes.from(viewPath, __dirname)
-  routes.over(config.get('routes'))
-  routes.apply(function(hash, func, item) {
-      var router = express.Router();
-      func(router, core)
-      app.use(router);
-  });
-
-  //
-  // catch 404 and forward to error handler
-  //
-  app.use(function(req, res, next) {
-      next(new Errors.PageNotFound('Not Found'));
-  });
-
-
-
-  //
-  // Route Errors handler
-  //
-  app.use(function(err, req, res, next) {
-      if (err instanceof Errors.PageNotFound) {
-        res.status(404);
+    //
+    // Define Computer
+    //
+    var cptlock, cptopts;
+    try {
+      cptopts = {
+        "port": config.get('port'),
+        "connectionURI" : config.get('connectionURI'),
+        "collectionName": config.get('collectionName'),
+        "concurrency" : config.get('concurrency')
       }
-      else if (err instanceof Errors.InvalidParameters) {
-        res.status(400);
-      }
-      else if (err instanceof Errors.Forbidden) {
-        res.status(403);
-      }
-      else {
-        res.status(500);
-      }
-      console.error(kuler("ERROR", "red"), err.toString());
-      res.render('error.html', {
-          name: err.name,
-          message: err.message,
-          error: app.get('env') === 'development' ? err : undefined
+      core.computer = new Computer(config.get('corpusFields'), cptopts) ;
+
+      core.computer.use('count', require('./operators/count.js'));
+      core.computer.use('catalog', require('./operators/catalog.js'));
+      core.computer.use('distinct', require('./operators/distinct.js'));
+      core.computer.use('ventilate', require('./operators/ventilate.js'));
+      core.computer.use('total', require('./operators/total.js'));
+      core.computer.use('graph', require('./operators/graph.js'));
+      core.computer.use('groupby', require('./operators/groupby.js'));
+      core.computer.use('merge', require('./operators/merge.js'));
+
+      var operators = new Hook('operators')
+      operators.from(viewPath, __dirname)
+      operators.over(config.get('operators'))
+      operators.apply(function(hash, func) {
+          core.computer.use(hash, func);
       });
-  });
+      var cptfunc = function(err, doc) {
+        if (cptlock === undefined || cptlock === false) {
+          cptlock = true;
+          heart.createEvent(2, {repeat: 1}, function() {
+              cptlock = false; // évite d'oublier un evenement pendant le calcul
+              core.computer.run(function(err) {
+                  if (err instanceof Error) {
+                    console.error(kuler("Unable to compute some fields.", "red"), kuler(err.toString(), 'orangered'));
+                  }
+                  else {
+                    console.info(kuler('Corpus fields computed.', 'olive'));
+                  }
+              });
+          });
+        }
+      };
+      ldr.on('watching', cptfunc);
+      ldr.on('changed', cptfunc);
+      ldr.on('cancelled', cptfunc);
+      ldr.on('dropped', cptfunc);
+      ldr.on('added', cptfunc);
+    }
+    catch(e) {
+      return online(e);
+    }
 
 
-  //
-  // Create HTTP server
-  //
-  //
-  var server = require('http').createServer(app)
-  server.listen(config.get('port'), function() {
-      online(null, server);
-  });
+    //
+    // WEB Server
+    //
+    var app = express();
 
-}
+
+
+    //
+    // is it behind a proxy,
+    //
+    if (config.get('trustProxy') === true) {
+      app.enable('trust proxy');
+    }
+
+
+
+    //
+    // Add middlewares to Express
+    //
+    try {
+      app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
+      app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
+      app.use(require('cookie-parser')(__dirname));
+      app.use(require('express-session')({
+            secret: __dirname,
+            cookie: {
+              maxAge: 60000,
+              secure: true
+            },
+            resave: false,
+            saveUninitialized: true
+      }));
+      var middlewares = new Hook('middlewares')
+      middlewares.from(viewPath, __dirname)
+      middlewares.over(config.get('middlewares'))
+      middlewares.apply(function(hash, func, item) {
+          app.use(item.path || hash, func(item.options || config, config));
+      });
+    }
+    catch(e) {
+      return online(e);
+    }
+
+
+    //
+    // Add some vars in req
+    //
+    app.use(function (req, res, next) {
+        req.config = config;
+        next();
+    });
+    app.use(function (req, res, next) {
+        req.routeParams = {};
+        next();
+    });
+
+
+
+    //
+    // Define I18N
+    //
+    I18n.expressBind(app, {
+        locales: ['en', 'fr']
+    });
+    app.use(require('./middlewares/i18n.js')());
+
+
+
+    //
+    // Define the view template engine
+    //
+    //
+    var env = nunjucks.configure(viewPath, {
+        autoescape: false,
+        watch: false,
+        express: app
+    });
+
+
+
+    //
+    // "Tags" for nunjucks
+    //
+    //
+    require('nunjucks-markdown').register(env, config.get('markdown'));
+
+
+
+    //
+    // "Filters" for nunjucks
+    //
+    //
+    env.addFilter('nl2br', require('./filters/nl2br.js')(config));
+    env.addFilter('json', require('./filters/json.js')(config));
+    env.addFilter('hash', require('./filters/hash.js')(config));
+    env.addFilter('stack', require('./filters/stack.js')(config));
+    env.addFilter('flatten', require('./filters/flatten.js')(config));
+    env.addFilter('add2Array', require('./filters/add2Array.js')(config));
+    env.addFilter('objectPath', require('./filters/objectPath.js')(config));
+    env.addFilter('markdown', require('./filters/markdown.js')(config.get('markdown')));
+
+    var filters = new Hook('filters')
+    filters.from(viewPath, __dirname)
+    filters.over(config.get('filters'))
+    filters.apply(function(hash, func) {
+        env.addFilter(hash, func(config));
+    });
+
+    var asynchronousFilters = new Hook('filters')
+    asynchronousFilters.from(viewPath, __dirname)
+    asynchronousFilters.over(config.get('asynchronousFilters'))
+    asynchronousFilters.apply(function(hash, func) {
+        env.addFilter(hash, func(config), true);
+    });
+
+
+
+    //
+    // Set JS modules for the browser
+    //
+    //
+    var modules = config.get('browserifyModules');
+    if (Array.isArray(modules) && modules.length > 0) {
+      app.get('/libs.js', browserify(modules, {
+            debug: true
+      }));
+      app.get('/bundle.js', function(req, res) {
+          console.warn('Depretacted route, use /libs.js');
+          res.redirect(301, '/libs.js');
+      });
+    }
+    else {
+      app.get('/libs.js', function(req, res, next) {
+          next(new Errors.PageNotFound('Not Found'));
+      });
+      app.get('/bundle.js', function(req, res, next) {
+          next(new Errors.PageNotFound('Not Found'));
+      });
+    }
+
+
+
+    //
+    // Define reserved routes : /libs, /assets, /
+    //
+    //
+    app.route('/assets/*').all(ecstatic({
+          root          : path.resolve(viewPath, './assets'),
+          baseDir       : '/assets',
+          cache         : 3600,
+          showDir       : true,
+          autoIndex     : true,
+          humanReadable : true,
+          si            : false,
+          defaultExt    : 'html',
+          gzip          : false
+    }));
+    app.route('/libs/*').all(ecstatic({
+          root          : path.resolve(viewPath, './libs'),
+          baseDir       : '/libs',
+          cache         : 3600,
+          showDir       : true,
+          autoIndex     : true,
+          humanReadable : true,
+          si            : false,
+          defaultExt    : 'html',
+          gzip          : false
+    }));
+    app.route('/').all(function(req, res) {
+        res.redirect(config.get('rootURL'));
+    });
+
+    //
+    // Mandatory route
+    //
+
+    var pageRouter = express.Router();
+    require('./routes/page.js')(pageRouter, core)
+    app.use(pageRouter);
+
+    //
+    // Optionals routes
+    //
+    var routes = new Hook('routes')
+    routes.from(viewPath, __dirname)
+    routes.over(config.get('routes'))
+    routes.apply(function(hash, func, item) {
+        var router = express.Router();
+        func(router, core)
+        app.use(router);
+    });
+
+    //
+    // catch 404 and forward to error handler
+    //
+    app.use(function(req, res, next) {
+        next(new Errors.PageNotFound('Not Found'));
+    });
+
+
+
+    //
+    // Route Errors handler
+    //
+    app.use(function(err, req, res, next) {
+        if (err instanceof Errors.PageNotFound) {
+          res.status(404);
+        }
+        else if (err instanceof Errors.InvalidParameters) {
+          res.status(400);
+        }
+        else if (err instanceof Errors.Forbidden) {
+          res.status(403);
+        }
+        else {
+          res.status(500);
+        }
+        console.error(kuler("Route error.", "red"), kuler(err.toString(), 'orangered'));
+        res.render('error.html', {
+            name: err.name,
+            message: err.message,
+            error: app.get('env') === 'development' ? err : undefined
+        });
+    });
+
+
+    //
+    // Create HTTP server
+    //
+    //
+    var server = require('http').createServer(app)
+    server.listen(config.get('port'), function() {
+        online(null, server);
+    });
+
+  }

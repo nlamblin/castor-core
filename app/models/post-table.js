@@ -44,7 +44,7 @@ module.exports = function(model) {
   })
    .declare('doc', function(req, fill) {
       fill({
-          "_name": req.routeParams.resourceName,
+          "_wid": req.routeParams.resourceName,
           "_columns" : [
             //
             // Mandatory Column for the reduce system
@@ -65,13 +65,13 @@ module.exports = function(model) {
               "propertyScheme": "http://castorjs.github.io/node-jbj/",
               "propertyType": "http://www.w3.org/TR/xmlschema-2/#anyURI",
               "propertyValue" : {
-                "get": [ "baseURL", "_name" ],
+                "get": [ "baseURL", "_wid" ],
                 "join" : "/",
                 "prepend" : "http://castorjs.github.io/node-jbj/?input=",
                 "append" : "/*?alt=raw"
               },
               "propertyText" : {
-                "get" : "_name",
+                "get" : "_wid",
               },
               "propertyName" : "jbj-playground",
               "propertyLabel" : "View it on JBJ Playground",
@@ -93,7 +93,7 @@ module.exports = function(model) {
 
       if (self.property && self.property.name === false && self.property.previousName !== 'index') {
         query = {
-          _name: self.property.previousName
+          _wid: self.property.previousName
         }
         self.mongoCollectionsIndexHandle.deleteOne(query).then(function(r) {
             self.mongoDatabaseHandle.listCollections({name: self.property.previousName}).next().then(function(collinfo) {
@@ -109,7 +109,7 @@ module.exports = function(model) {
       }
       else if (self.property && self.property.name === self.property.previousName) {
         query = {
-          _name: self.property.name
+          _wid: self.property.name
         };
         operation = { $set:{
             title: self.property.title,
@@ -121,11 +121,11 @@ module.exports = function(model) {
       }
       else if (self.property && self.property.name !== self.property.previousName  && self.property.previousName !== 'index') {
         query = {
-          _name: self.property.previousName
+          _wid: self.property.previousName
         };
         operation = {
           $set:{
-            _name: self.property.name,
+            _wid: self.property.name,
             title: self.property.title,
             description: self.property.description
           }

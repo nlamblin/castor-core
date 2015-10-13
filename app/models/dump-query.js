@@ -13,7 +13,7 @@ var path = require('path')
   , JBJ = require('jbj')
   , CSV = require('csv-string')
   , async = require('async')
-  , url =require('url')
+  , url = require('url')
   , Errors = require('../helpers/errors.js')
   , jsonld = require('jsonld')
   ;
@@ -57,15 +57,18 @@ module.exports = function(model) {
       }
       fill(s.concat('.').concat(this.extension));
   })
-  .append('outputing', function(req, fill) {
-      if (this.extension === 'nq') {
+  .complete('outputing', function(req, fill) {
+      var self = this;
+      if (self.extension === 'nq') {
         fill(es.map(function (data, submit) {
               jsonld.toRDF(data, {format: 'application/nquads'}, submit);
         }))
       }
-      else if (this.extension === 'csv') {
+      else if (self.extension === 'csv') {
         fill(es.map(function (data, submit) {
-              submit(null, CSV.stringify(data));
+              submit(null, CSV.stringify(self.table._columns.map(function(item) {
+                      return data[item.propertyName];
+              })));
         }))
       }
       else {
@@ -75,7 +78,7 @@ module.exports = function(model) {
   .declare('baseURL', function(req, fill) {
       fill(String(req.config.get('baseURL')).replace(/\/+$/,''));
   })
- .send(function(res, next) {
+  .send(function(res, next) {
       var self = this;
       res.set('Content-Type', this.mimeType);
       res.on('finish', function() {
@@ -84,7 +87,7 @@ module.exports = function(model) {
       if (this.mimeType !== 'application/json') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
       }
-
+      debug('_columns', self.table._columns);
       if (this.mimeType === 'text/csv') {
         res.write(CSV.stringify(self.table._columns.map(function(item) {
                 return item.propertyName;
@@ -162,7 +165,7 @@ module.exports = function(model) {
       //
       .pipe(es.map(function (data, submit) {
             var doc = {}
-            doc['@id'] = self.baseURL.concat("/").concat(data['_name']);
+            doc['@id'] = self.baseURL.concat("/").concat(data['_wid']);
             doc['@context'] = {}
             if (Array.isArray(self.table._columns)) {
               self.table._columns.forEach(function(item, index) {

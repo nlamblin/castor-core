@@ -52,7 +52,8 @@ module.exports = function(warmup) {
   //
   var Configurator = require('./configurator.js');
   var config = new Configurator();
-  config.fix('connexionURI',         'mongodb://localhost:27017/castor/');
+  config.fix('connectionURI',        'mongodb://localhost:27017/castor/');
+  config.fix('connexionURI',         config.get('connectionURI'));
   config.fix('collectionsIndexName', 'px_index');
   config.fix('collectionName',       'hotfolder');
   config.fix('debug',                false);

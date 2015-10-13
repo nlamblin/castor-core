@@ -15,7 +15,7 @@ module.exports = function(model) {
         return fill();
       }
       self.mongoCollectionsIndexHandle.findOne({
-          "_name" : req.routeParams.resourceName
+          "_wid" : req.routeParams.resourceName
       }).then(function(doc) {
           if (doc === null && req.routeParams.resourceName === 'index') {
             self.mongoCollectionsIndexHandle.insertOne(self.indexDescription).then(function() {
@@ -25,7 +25,11 @@ module.exports = function(model) {
           else if (doc === null && req.routeParams.resourceName !== 'index') {
             fill(new Errors.TableNotFound('The table does not exist.'));
           }
-          else {
+          else if (doc._columns !== undefined) {
+            fill(doc);
+          }
+          else if (doc._columns === undefined) {
+            doc._columns = []
             fill(doc);
           }
       }).catch(fill);

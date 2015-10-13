@@ -15,7 +15,7 @@ module.exports = function(model) {
         return fill();
       }
       var q = {
-          "_name" : 'index'
+          "_wid" : 'index'
       }
       this.mongoCollectionsIndexHandle.findOne(q).then(function(doc) {
           var field = doc._columns.filter(function(d) {
@@ -34,7 +34,7 @@ module.exports = function(model) {
         return fill();
       }
       var q = {
-          "_name" : req.routeParams.resourceName
+          "_wid" : req.routeParams.resourceName
       }
       this.mongoCollectionsIndexHandle.findOne(q).then(fill).catch(fill);
   })

@@ -42,7 +42,7 @@ function Compute(schema, options) {
   var self = this;
   self.options = {};
   self.options.collectionName = options.collectionName || '';
-  self.options.connexionURI = options.connexionURI || process.env.MONGO_URL;
+  self.options.connectionURI = options.connectionURI || process.env.MONGO_URL;
   self.options.concurrency = options.concurrency || 1;
   self.options.port = options.port || 80;
 
@@ -110,7 +110,7 @@ Compute.prototype.run = function (cb)
     }
     else {
       fields.computedDate = new Date();
-      MongoClient.connect(self.options.connexionURI).then(function(db) {
+      MongoClient.connect(self.options.connectionURI).then(function(db) {
         db.collection(self.options.collectionName + '_corpus').then(function(coll) {
             coll.insert(fields, {w:1}, cb);
             return;

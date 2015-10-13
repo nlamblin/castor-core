@@ -12,11 +12,14 @@ var path = require('path')
 module.exports = function(model) {
   model
   .declare('mongoDatabaseHandle', function(req, fill) {
-      MongoClient.connect(req.config.get('connexionURI')).then(fill).catch(fill);
+      MongoClient.connect(req.config.get('connectionURI')).then(fill).catch(fill);
   })
   .declare('indexDescription', function(req, fill) {
       var index = {
-        "_name": "index",
+        // @toto Idéalement il faudrait inserer ce document avec castor-load
+        "fid": "index",   // pour être compatible castor-load
+        "number": 0,      // pour être compatible castor-load
+        "_wid": "index",
         "_columns" : [
           //
           // Mandatory Column for the reduce system
@@ -37,11 +40,11 @@ module.exports = function(model) {
             "propertyScheme": "http://schema.org/url",
             "propertyType": "http://www.w3.org/TR/xmlschema-2/#anyURI",
             "propertyValue" : {
-              "get": ["baseURL", "_name"],
+              "get": ["baseURL", "_wid"],
               "join": "/"
             },
             "propertyText" : {
-              "get" : "_name",
+              "get" : "_wid",
             },
               "propertyName" : "url",
               "propertyLabel" : "URL",
@@ -63,10 +66,11 @@ module.exports = function(model) {
       }
       self.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'), {strict:true}, function(err, coll) {
           if (err) {
+            debug('Try to init index', req.config.get('collectionsIndexName'));
             self.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'), function(err, newcoll) {
                 newcoll.insertOne(self.indexDescription).then(function() {
                     self.mongoDatabaseHandle.createIndex(req.config.get('collectionsIndexName'),
-                      {_name:1},
+                      {_wid:1},
                       {unique:true, background:false, w:1}
                     ).then(function() {
                         fill(newcoll);

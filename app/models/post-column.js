@@ -58,7 +58,7 @@ module.exports = function(model) {
         return fill([]);
       }
       var q = {
-        "_name" : req.routeParams.resourceName
+        "_wid" : req.routeParams.resourceName
       };
 
       function miseajour() {

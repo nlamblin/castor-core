@@ -22,10 +22,10 @@ module.exports = function(model) {
   .declare('mongoQuery', function(req, fill) {
       var q = {};
       if (req.routeParams.resourceName === 'index') {
-        q = { _name: { $ne: "index" } }
+        q = { _wid: { $ne: "index" } }
       }
       else {
-        q = { _name : req.routeParams.resourceName + "/" + req.routeParams.documentName }
+        q = { _wid : req.routeParams.resourceName + "/" + req.routeParams.documentName }
       }
       fill(q);
   })
