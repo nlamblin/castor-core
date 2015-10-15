@@ -114,7 +114,6 @@ module.exports = function(model) {
                 var field = self.table._columns[propertyName]
                 data['___marker'] = true;
                 JBJ.render(field.title, data, function(err, out) {
-                    debug('jbj', field.title ,  data, out);
                     if (err) {
                       callback(err);
                     }
@@ -151,7 +150,7 @@ module.exports = function(model) {
                       if (err) {
                         callback(err);
                       }
-                      else if (out.___marker === true)  { // no transformation
+                      else if (typeof out === 'object' && out.___marker === true)  { // no transformation
                         callback(err, undefined);
                       }
                       else {
