@@ -20,45 +20,35 @@ module.exports = function(model) {
         "fid": "index",   // pour être compatible castor-load
         "number": 0,      // pour être compatible castor-load
         "_wid": "index",
-        "_columns" : [
-          //
-          // Mandatory Column for the reduce system
-          //
-          {
-            "propertyScheme": "http://schema.org/name",
-            "propertyValue" : {
+        "_columns" : {
+          "_wid" : {
+            //
+            // Mandatory Column for the reduce system
+            //
+            "label" : "Identifier",
+            "scheme": "http://purl.org/dc/elements/1.1/identifier",
+            "comment" : "A mandatory column for \"dollar\" URLs",
+            "title" : {
               "get" : "title"
-            },
-            "propertyName" : "name",
-            "propertyLabel" : "Name",
-            "propertyComment" : "A mandatory column for \"dollar\" URLs"
-          },
-          //
-          // Recommended Column to expose existing table
-          //
-          {
-            "propertyScheme": "http://schema.org/url",
-            "propertyType": "http://www.w3.org/TR/xmlschema-2/#anyURI",
-            "propertyValue" : {
-              "get": ["baseURL", "_wid"],
-              "join": "/"
-            },
-            "propertyText" : {
-              "get" : "_wid",
-            },
-              "propertyName" : "url",
-              "propertyLabel" : "URL",
-              "propertyComment" : ""
             }
-          ],
-          //
-          // Table metadata
-          //
-          "title": req.config.get('title'),
-          "description": req.config.get('description')
-        };
-        fill(index);
-    })
+          },
+          "_url" : {
+            "label" : "URL",
+            "comment" : "Recommended Column to expose existing table",
+            "scheme": "http://schema.org/url",
+            "type": "http://www.w3.org/TR/xmlschema-2/#anyURI",
+            "get": ["baseURL", "_wid"],
+            "join": "/",
+            "title": {
+              "get" : "_wid"
+            }
+          },
+        },
+        "title": req.config.get('title'),
+        "description": req.config.get('description')
+      };
+      fill(index);
+  })
   .prepend('mongoCollectionsIndexHandle', function(req, fill) {
       var self = this;
       if (self.mongoDatabaseHandle instanceof Error) {

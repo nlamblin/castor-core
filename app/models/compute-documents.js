@@ -36,12 +36,15 @@ module.exports = function(model) {
           exp : self.field
         }
       }
-
-      debug(opts);
-      self.mongoDatabaseHandle.collection(self.collectionName).mapReduce(req.routeParams.operator.map, req.routeParams.operator.reduce, opts).then(function(newcoll) {
-          newcoll.find().toArray().then(function(results) {
-              fill(results);
-          }).catch(fill);
+      debug('collectionName', self.collectionName);
+      debug('mapReduce', opts);
+      self.mongoDatabaseHandle.collection(self.collectionName).mapReduce(req.routeParams.operator.map, req.routeParams.operator.reduce, opts).then(function(output) {
+          if (output.results) {
+            fill(output.results);
+          }
+          else {
+            fill(new Error('No result.'));
+          }
       }).catch(fill);
   })
   .send(function(res, next) {

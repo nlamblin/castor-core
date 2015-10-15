@@ -63,17 +63,17 @@ module.exports = function(model) {
 
       function miseajour() {
         if (self.property.name) {
+          var f1 = self.property.value;
+          f1["_" + self.property.name] = {
+            "scheme": self.property.scheme,
+            "type": self.property.type,
+            "text" : self.property.text,
+            "label" : self.property.label,
+            "comment" : self.property.comment
+          }
           var o1 = {
             "$push" : {
-              "_columns" : {
-                "propertyScheme": self.property.scheme,
-                "propertyType": self.property.type,
-                "propertyValue" : self.property.value,
-                "propertyText" : self.property.text,
-                "propertyName" : self.property.name,
-                "propertyLabel" : self.property.label,
-                "propertyComment" : self.property.comment
-              }
+              "_columns" : f1
             }
           }
           self.mongoCollectionsIndexHandle.update(q, o1).then(fill).catch(fill);
@@ -85,12 +85,10 @@ module.exports = function(model) {
       }
 
       if (req.body && req.body.previousName) {
+        var f2 = {}
+        f2['_columns._'+ req.body.previousName] = "";
         var o2 = {
-          "$pull" : {
-            "_columns" : {
-              "propertyName": req.body.previousName
-            }
-          }
+          "$unset" : f2
         }
         self.mongoCollectionsIndexHandle.update(q, o2).then(miseajour).catch(fill);
       }

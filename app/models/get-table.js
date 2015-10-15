@@ -28,6 +28,10 @@ module.exports = function(model) {
           else if (doc._columns !== undefined) {
             fill(doc);
           }
+          else if (doc._columns === undefined && req.config.has('flyingFields')) {
+            doc._columns = req.config.get('flyingFields');
+            fill(doc);
+          }
           else if (doc._columns === undefined) {
             doc._columns = []
             fill(doc);

@@ -14,7 +14,7 @@ var path = require('path')
 
 module.exports = function(router, core) {
   var options = {
-    "connexionURI" : core.config.get('connexionURI'),
+    "connexionURI" : core.config.get('connectionURI'),
     "concurrency" : core.config.get('concurrency'),
     "delay" : core.config.get('delay'),
     "maxFileSize" : core.config.get('maxFileSize'),
@@ -38,7 +38,7 @@ module.exports = function(router, core) {
         return next(new Errors.Forbidden('`index` is read only'));
       }
       var common = {
-        resourceName :  resourceName,
+        _index :  resourceName,
         baseURL : String(core.config.get('baseURL')).replace(/\/+$/,'')
       }
 
@@ -66,7 +66,6 @@ module.exports = function(router, core) {
                 ldr.use('**/*.n3', require('castor-load-nq')({}));
                 ldr.use('**/*', require('../../loaders/wid.js')());
                 ldr.use('**/*', require('../../loaders/extend.js')(common));
-                ldr.use('**/*', require('../../loaders/name.js')());
                 ldr.push(file);
             });
         });
@@ -83,7 +82,6 @@ module.exports = function(router, core) {
         ldr.use('**/*.n3', require('castor-load-nq')({}));
         ldr.use('**/*', require('../../loaders/wid.js')());
         ldr.use('**/*', require('../../loaders/extend.js')(common));
-        ldr.use('**/*', require('../../loaders/name.js')());
         ldr.push(url.format({
               protocol: "http",
               hostname: "127.0.0.1",
@@ -106,7 +104,6 @@ module.exports = function(router, core) {
         ldr.use('**/*.n3', require('castor-load-nq')({}));
         ldr.use('**/*', require('../../loaders/wid.js')());
         ldr.use('**/*', require('../../loaders/extend.js')(common));
-        ldr.use('**/*', require('../../loaders/name.js')());
         ldr.push(req.body.uri);
       }
       else {

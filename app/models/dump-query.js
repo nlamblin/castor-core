@@ -66,8 +66,8 @@ module.exports = function(model) {
       }
       else if (self.extension === 'csv') {
         fill(es.map(function (data, submit) {
-              submit(null, CSV.stringify(self.table._columns.map(function(item) {
-                      return data[item.propertyName];
+              submit(null, CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
+                      return data[propertyName];
               })));
         }))
       }
@@ -87,10 +87,9 @@ module.exports = function(model) {
       if (this.mimeType !== 'application/json') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
       }
-      debug('_columns', self.table._columns);
       if (this.mimeType === 'text/csv') {
-        res.write(CSV.stringify(self.table._columns.map(function(item) {
-                return item.propertyName;
+        res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
+                return propertyName;
         })))
       }
 
@@ -105,83 +104,98 @@ module.exports = function(model) {
 
       stream
       //
-      // Compute field with propertyText
+      // Compute column field with a title
       //
       .pipe(es.map(function (data, submit) {
-            async.map(self.table._columns
-            , function(field, callback) {
-                if (field.propertyText === undefined) {
-                  callback(null, null);
+            var titleFields =  Object.keys(self.table._columns).filter(function(propertyName) {
+                return self.table._columns[propertyName].title !== undefined && self.table._columns[propertyName].title !== null && typeof self.table._columns[propertyName].title === 'object'
+            });
+            async.map(titleFields, function(propertyName, callback) {
+                var field = self.table._columns[propertyName]
+                data['___marker'] = true;
+                JBJ.render(field.title, data, function(err, out) {
+                    debug('jbj', field.title ,  data, out);
+                    if (err) {
+                      callback(err);
+                    }
+                    else if (typeof out === 'object' && out.___marker === true)  { // no transformation
+                      callback(err, undefined);
+                    }
+                    else {
+                      callback(err, out);
+                    }
+                });
+              }
+            , function(err, results) {
+                if (err) {
+                  return submit(err);
                 }
-                else if (field.propertyText !== null && typeof field.propertyText === 'object') {
-                  JBJ.render(field.propertyText, data, callback);
+                titleFields.forEach(function(propertyName, index) {
+                    if (results[index] !== undefined) {
+                      data['$' + propertyName] = results[index];
+                    }
+                });
+                submit(null, data);
+            });
+      }))
+      //
+      // Transform field with JBJ
+      //
+      .pipe(es.map(function (data, submit) {
+            data['___marker'] = true;
+            async.map(Object.keys(self.table._columns)
+            , function(propertyName, callback) {
+                var field = self.table._columns[propertyName];
+                if (typeof field === 'object') {
+                  JBJ.render(field, data, function(err, out) {
+                      if (err) {
+                        callback(err);
+                      }
+                      else if (out.___marker === true)  { // no transformation
+                        callback(err, undefined);
+                      }
+                      else {
+                        callback(err, out);
+                      }
+                  });
                 }
                 else {
-                  callback(null, field.propertyText);
+                  callback(null, undefined);
                 }
               }
             , function(err, results) {
                 if (err) {
                   return submit(err);
                 }
-                if (Array.isArray(self.table._columns)) {
-                  self.table._columns.forEach(function(item, index) {
-                      data['$' + item.propertyName] = results[index];
-                  });
-                }
+                Object.keys(self.table._columns).forEach(function(propertyName, index) {
+                    if (results[index] !== undefined) {
+                      data[propertyName] = results[index];
+                    }
+                });
                 submit(null, data);
             });
       }))
       //
-      // Compute field with propertyValue
-      //
-      .pipe(es.map(function (data, submit) {
-            async.map(self.table._columns
-            , function(field, callback) {
-                if (field.propertyValue === undefined) {
-                  callback(null, null);
-                }
-                else if (field.propertyValue !== undefined && field.propertyValue !== null && typeof field.propertyValue === 'object') {
-                  JBJ.render(field.propertyValue, data, callback);
-                }
-                else {
-                  callback(null, field.propertyValue);
-                }
-              }
-            , function(err, results) {
-                if (err) {
-                  return submit(err);
-                }
-                if (Array.isArray(self.table._columns)) {
-                  self.table._columns.forEach(function(item, index) {
-                      data[item.propertyName] = results[index];
-                  });
-                }
-                submit(null, data);
-            });
-      }))
-      //
-      // Transform document to standard
+      // Transform document to JSON-LD
       //
       .pipe(es.map(function (data, submit) {
             var doc = {}
             doc['@id'] = self.baseURL.concat("/").concat(data['_wid']);
             doc['@context'] = {}
-            if (Array.isArray(self.table._columns)) {
-              self.table._columns.forEach(function(item, index) {
-                  doc['@context'][item.propertyName] = {};
-                  doc['@context'][item.propertyName]['@id'] = item.propertyScheme;
-                  if (item.propertyType) {
-                    doc['@context'][item.propertyName]['@type'] = item.propertyType;
-                  }
-                  if (item.propertyText) {
-                    doc['$' + item.propertyName] = data['$' + item.propertyName];
-                  }
-                  if (item.propertyValue) {
-                    doc[item.propertyName] = data[item.propertyName];
-                  }
-              });
-            }
+            Object.keys(self.table._columns).forEach(function(propertyName, index) {
+                var field = self.table._columns[propertyName];
+                doc['@context'][propertyName] = {};
+                if (field.scheme !== undefined) {
+                  doc['@context'][propertyName]['@id'] = field.scheme;
+                }
+                if (field.type !== undefined) {
+                  doc['@context'][propertyName]['@type'] = field.type;
+                }
+                if (field.title !== undefined) {
+                  doc['$' + propertyName] = data['$' + propertyName];
+                }
+                doc[propertyName] = data[propertyName] || null;
+            });
             submit(null, doc);
       }))
       //

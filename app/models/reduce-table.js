@@ -18,14 +18,11 @@ module.exports = function(model) {
           "_wid" : 'index'
       }
       this.mongoCollectionsIndexHandle.findOne(q).then(function(doc) {
-          var field = doc._columns.filter(function(d) {
-              return d.propertyScheme === "http://schema.org/name";
-          }).shift();
-          if (field === undefined) {
-            fill(new Errors.PropertyNotFound('`http://schema.org/name` is missing.'));
+          if (doc._columns._wid === undefined) {
+            fill(new Errors.PropertyNotFound('`http://purl.org/dc/elements/1.1/identifier` is missing.'));
           }
           else {
-            fill(field);
+            fill(doc._columns._wid);
           }
       }).catch(fill);
   })
@@ -43,8 +40,8 @@ module.exports = function(model) {
       if (self.field.propertyValue === undefined) {
         fill(null);
       }
-      else if (typeof self.field.propertyValue === 'object') {
-        JBJ.render(self.field.propertyValue, self.doc, function (err, res) {
+      else if (typeof self.field.title === 'object') {
+        JBJ.render(self.field.title, self.doc, function (err, res) {
             if (err) {
               fill(err);
             }
@@ -54,7 +51,7 @@ module.exports = function(model) {
         });
       }
       else {
-        fill(self.field.propertyValue);
+        fill(self.field);
       }
   })
   .send(function(res, next) {

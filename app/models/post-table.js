@@ -45,39 +45,28 @@ module.exports = function(model) {
    .declare('doc', function(req, fill) {
       fill({
           "_wid": req.routeParams.resourceName,
-          "_columns" : [
-            //
-            // Mandatory Column for the reduce system
-            //
-            {
-              "propertyScheme": "http://schema.org/name",
-              "propertyValue" : {
-                "set" : "n/a"
-              },
-              "propertyName" : "name",
-              "propertyLabel" : "Name",
-              "propertyComment" : "A mandatory column for \"dollar\" URLs"
+          "_columns" : {
+            "_wid" : {
+              //
+              // Mandatory Column for the reduce system
+              //
+              "label" : "Identifier",
+              "scheme": "http://purl.org/dc/elements/1.1/identifier",
+              "comment" : "A mandatory column for \"dollar\" URLs"
             },
-            //
-            // Helper Column for create specific column
-            //
-           {
-              "propertyScheme": "http://castorjs.github.io/node-jbj/",
-              "propertyType": "http://www.w3.org/TR/xmlschema-2/#anyURI",
-              "propertyValue" : {
-                "get": [ "baseURL", "_wid" ],
-                "join" : "/",
-                "prepend" : "http://castorjs.github.io/node-jbj/?input=",
-                "append" : "/*?alt=raw"
-              },
-              "propertyText" : {
-                "get" : "_wid",
-              },
-              "propertyName" : "jbj-playground",
-              "propertyLabel" : "View it on JBJ Playground",
-              "propertyComment" : "A help column to define others columns"
+            "_url" : {
+              "label" : "URL",
+              "comment" : "Recommended Column to expose existing table",
+              "scheme": "http://schema.org/url",
+              "type": "http://www.w3.org/TR/xmlschema-2/#anyURI",
+              "get": ["baseURL", "_index", "_wid"],
+              "join": "/",
+              "title": {
+                "get" : ["_index", "_wid"],
+                "join" : "/"
+              }
             }
-          ],
+          },
           //
           // Table metadata
           //

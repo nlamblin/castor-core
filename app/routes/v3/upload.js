@@ -21,7 +21,7 @@ module.exports = function(router, core) {
       acceptFileTypes: /\.(csv|xml|txt|xls|xlsx|nq|n3|nt)$/i
   });
   var options = {
-    "connexionURI" : core.config.get('connexionURI'),
+    "connexionURI" : core.config.get('connectionURI'),
     "concurrency" : core.config.get('concurrency'),
     "delay" : core.config.get('delay'),
     "maxFileSize" : core.config.get('maxFileSize'),
@@ -51,109 +51,6 @@ module.exports = function(router, core) {
         res.json(req.jfum.files);
       }
   });
-
-  router.route('/-/v3/echo/:basename.:extension')
-  .get(function(req, res, next) {
-      if (req.query.plain) {
-        res.send(req.query.plain);
-      }
-      else {
-        next(new Errors.InvalidParameters('No input.'));
-      }
-  });
-
-  router.route('/-/v3/load')
-  .all(bodyParser.urlencoded({ extended: true}))
-  .post(function(req, res, next) {
-      var ldr
-        , referer = url.parse(req.get('Referer'))
-        , resourceName = path.basename(referer.pathname)
-        ;
-
-      // TODO : check if req.body is valid
-      // TODO : check if resourceName already exists
-
-      if (resourceName === 'index') {
-        return next(new Errors.Forbidden('`index` is read only'));
-      }
-      var common = {
-        resourceName :  resourceName,
-        baseURL : String(core.config.get('baseURL')).replace(/\/+$/,'')
-      }
-
-      if (req.body.type === 'file' && typeof req.body.file === 'object') {
-        var p = require('os').tmpdir(); // upload go to tmpdir
-        fs.readdir(p, function (err, files) {
-            if (err) {
-              throw err;
-            }
-            files.map(function (file) {
-                return path.join(p, file);
-            }).filter(function (file) {
-                var token = crypto.createHash('sha1').update(file).digest('hex');
-                return  (token === req.body.file.token);
-            }).forEach(function (file) {
-                debug('file', file);
-                options['collectionName'] = resourceName;
-                var ldr = new Loader(__dirname, options);
-                ldr.use('**/*.xml', require('castor-load-xml')({}));
-                ldr.use('**/*.csv', require('castor-load-csv')({}));
-                ldr.use('**/*.xls', require('castor-load-excel')({}));
-                ldr.use('**/*.xlsx', require('castor-load-excel')({}));
-                ldr.use('**/*.nq', require('castor-load-nq')({}));
-                ldr.use('**/*.nt', require('castor-load-nq')({}));
-                ldr.use('**/*.n3', require('castor-load-nq')({}));
-                ldr.use('**/*', require('../../loaders/wid.js')());
-                ldr.use('**/*', require('../../loaders/extend.js')(common));
-                ldr.use('**/*', require('../../loaders/name.js')());
-                ldr.push(file);
-            });
-        });
-      }
-      else if (req.body.type === 'text') {
-        options['collectionName'] = resourceName;
-        ldr = new Loader(__dirname, options);
-        ldr.use('**/*.xml', require('castor-load-xml')({}));
-        ldr.use('**/*.csv', require('castor-load-csv')({}));
-        ldr.use('**/*.xls', require('castor-load-excel')({}));
-        ldr.use('**/*.xlsx', require('castor-load-excel')({}));
-        ldr.use('**/*.nq', require('castor-load-nq')({}));
-        ldr.use('**/*.nt', require('castor-load-nq')({}));
-        ldr.use('**/*.n3', require('castor-load-nq')({}));
-        ldr.use('**/*', require('../../loaders/wid.js')());
-        ldr.use('**/*', require('../../loaders/extend.js')(common));
-        ldr.use('**/*', require('../../loaders/name.js')());
-        ldr.push(url.format({
-              protocol: "http",
-              hostname: "127.0.0.1",
-              port: config.get('port'),
-              pathname: "/-/v3/echo/keyboard." + req.body.loader,
-              query: {
-                plain : req.body.text
-              }
-        }));
-      }
-      else if (req.body.type === 'uri') {
-        options['collectionName'] = resourceName;
-        ldr = new Loader(__dirname, options);
-        ldr.use('**/*.xml', require('castor-load-xml')({}));
-        ldr.use('**/*.csv', require('castor-load-csv')({}));
-        ldr.use('**/*.xls', require('castor-load-excel')({}));
-        ldr.use('**/*.xlsx', require('castor-load-excel')({}));
-        ldr.use('**/*.nq', require('castor-load-nq')({}));
-        ldr.use('**/*.nt', require('castor-load-nq')({}));
-        ldr.use('**/*.n3', require('castor-load-nq')({}));
-        ldr.use('**/*', require('../../loaders/wid.js')());
-        ldr.use('**/*', require('../../loaders/extend.js')(common));
-        ldr.use('**/*', require('../../loaders/name.js')());
-        ldr.push(req.body.uri);
-      }
-      else {
-        return next(new Errors.InvalidParameters('Unknown type.'));
-      }
-      res.json({});
-  });
-
 
   return router;
 }
