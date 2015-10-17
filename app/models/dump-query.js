@@ -101,7 +101,7 @@ module.exports = function(model) {
       if (this.extension === 'raw' && this.documentName) {
         return stream.pipe(this.outputing).pipe(res);
       }
-
+      debug('_columns', self.table._columns);
       stream
       //
       // Compute column field with a title

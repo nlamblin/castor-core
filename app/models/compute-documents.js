@@ -6,6 +6,7 @@ var path = require('path')
   , debug = require('debug')('castor:models:' + basename)
   , JBJ = require('jbj')
   , Errors = require('../helpers/errors.js')
+  , Where = require('../helpers/where.js')
   ;
 
 module.exports = function(model) {
@@ -18,8 +19,13 @@ module.exports = function(model) {
         fill(req.routeParams.resourceName);
       }
   })
-  .declare('selector', function(req, fill) {
-      fill({});
+  .declare('mongoQuery', function(req, fill) {
+      var w = new Where()
+      var q = w.parse(req.query.where);
+      if (req.routeParams.resourceName === 'index') {
+        q = { _wid: { $ne: "index" } }
+      }
+      fill(q);
   })
   .declare('field', function(req, fill) {
       fill(['_wid']);
@@ -30,7 +36,7 @@ module.exports = function(model) {
         return fill();
       }
       var opts = {
-        query: self.selector,
+        query: self.mongoQuery,
         out: { inline: 1 },
         scope: {
           exp : self.field

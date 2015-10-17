@@ -19,7 +19,7 @@ module.exports = function(model) {
       }).then(function(doc) {
           if (doc === null && req.routeParams.resourceName === 'index') {
             self.mongoCollectionsIndexHandle.insertOne(self.indexDescription).then(function() {
-                fill(self.indexDescription._columns);
+                fill(self.indexDescription);
             }).catch(fill);
           }
           else if (doc === null && req.routeParams.resourceName !== 'index') {
