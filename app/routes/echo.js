@@ -10,12 +10,11 @@ module.exports = function(router) {
 
   router.route('/-/echo/:basename.:extension')
   .get(function(req, res, next) {
-      if (req.query.plain) {
-        res.send(req.query.plain);
-      }
-      else {
-        res.send(204);
-      }
+      res.send({
+          host: req.protocol + '//' + req.hostname,
+          url : req.originalUrl,
+          query : req.query || {}
+      });
   });
 
 }
