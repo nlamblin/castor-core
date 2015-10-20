@@ -5,12 +5,12 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
   , JBJ = require('jbj')
-  , Errors = require('../helpers/errors.js')
   ;
 
 module.exports = function(model) {
   model
   .append('field', function(req, fill) {
+      var Errors = req.config.get('Errors');
       if (this.mongoCollectionsIndexHandle instanceof Error) {
         return fill();
       }

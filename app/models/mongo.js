@@ -5,7 +5,6 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
   , MongoClient = require('mongodb').MongoClient
-  , Errors = require('../helpers/errors.js')
   ;
 
 

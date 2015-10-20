@@ -5,7 +5,6 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
   , JBJ = require('jbj')
-  , Errors = require('../helpers/errors.js')
   , Where = require('../helpers/where.js')
   ;
 
@@ -28,7 +27,20 @@ module.exports = function(model) {
       fill(q);
   })
   .declare('field', function(req, fill) {
+      /*
+      if (req.query.field    else {
+        return fill(new Errors.InvalidParameters('Bad field.'));
+      }
+      */
+     if (Array.isArray(req.query.field)) {
+       fill(req.query.field);
+     }
+     else if (req.query.field) {
+       fill([req.query.field]);
+     }
+     else {
       fill(['_wid']);
+    }
   })
   .prepend('results', function(req, fill) {
       var self = this;

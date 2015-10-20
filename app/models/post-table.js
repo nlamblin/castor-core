@@ -6,13 +6,13 @@ var path = require('path')
   , debug = require('debug')('castor:models:' + basename)
   , datamodel = require('datamodel')
   , assert = require('assert')
-  , Errors = require('../helpers/errors.js')
   ;
 
 module.exports = function(model) {
 
   model
   .declare('property', function(req, fill) {
+      var Errors = req.config.get('Errors');
       debug('req.body', req.body);
       var property = {
         name: req.routeParams.resourceName

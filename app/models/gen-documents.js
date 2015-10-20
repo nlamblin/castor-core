@@ -5,7 +5,6 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
   , url = require('url')
-  , Errors = require('../helpers/errors.js')
   , Loader = require('castor-load')
   , shortid = require('shortid')
   ;

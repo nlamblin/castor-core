@@ -6,13 +6,13 @@ var path = require('path')
   , debug = require('debug')('castor:models:' + basename)
   , datamodel = require('datamodel')
   , assert = require('assert')
-  , Errors = require('../helpers/errors.js')
   ;
 
 module.exports = function(model) {
 
   model
   .declare('property', function(req, fill) {
+      var Errors = req.config.get('Errors');
       var types = {
         "value" : undefined,
         "link" : "http://www.w3.org/TR/xmlschema-2/#anyURI"
