@@ -112,6 +112,18 @@ module.exports = function(config, online) {
       core.models[hash] = func;
   });
 
+  core.loaders = [];
+  core.loaders.push(['**/*', require('./loaders/prepend.js')()]);
+
+  var loaders = new Hook('loaders');
+  loaders.from(viewPath, __dirname)
+  loaders.over(config.get('loaders'))
+  loaders.apply(function(hash, func, item) {
+      core.loaders.push([item.pattern || '**/*', func(item.options , config)]);
+  });
+  core.loaders.push(['**/*', require('./loaders/document.js')({ stylesheet: config.get('documentFields') })]);
+  core.loaders.push(['**/*', require('./loaders/wid.js')()]);
+
 
   //
   // HOT folder
@@ -132,18 +144,9 @@ module.exports = function(config, online) {
 
     if (fs.existsSync(config.get('dataPath'))) {
       console.info(kuler('Watching hot directory. ', 'olive'), kuler(config.get('dataPath'), 'limegreen'));
-      ldr.use('**/*', require('./loaders/prepend.js')());
-
-      var loaders = new Hook('loaders');
-      loaders.from(viewPath, __dirname)
-      loaders.over(config.get('loaders'))
-      loaders.apply(function(hash, func, item) {
-          ldr.use(item.pattern || '**/*', func(item.options , config));
+      core.loaders.forEach(function(loader) {
+          ldr.use(loader[0], loader[1]);
       });
-      ldr.use('**/*', require('./loaders/document.js')({
-            stylesheet: config.get('documentFields')
-      }));
-      ldr.use('**/*', require('./loaders/wid.js')());
       ldr.sync(function(err) {
           if (err instanceof Error) {
             console.error(kuler("Loader synchronization failed.", "red"), kuler(err.toString(), 'orangered'));

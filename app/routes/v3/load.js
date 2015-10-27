@@ -57,14 +57,9 @@ module.exports = function(router, core) {
                 debug('file', file);
                 options['collectionName'] = resourceName;
                 var ldr = new Loader(__dirname, options);
-                ldr.use('**/*.xml', require('castor-load-xml')({}));
-                ldr.use('**/*.csv', require('castor-load-csv')({}));
-                ldr.use('**/*.xls', require('castor-load-excel')({}));
-                ldr.use('**/*.xlsx', require('castor-load-excel')({}));
-                ldr.use('**/*.nq', require('castor-load-nq')({}));
-                ldr.use('**/*.nt', require('castor-load-nq')({}));
-                ldr.use('**/*.n3', require('castor-load-nq')({}));
-                ldr.use('**/*', require('../../loaders/wid.js')());
+                core.loaders.forEach(function(loader) {
+                    ldr.use(loader[0], loader[1]);
+                });
                 ldr.use('**/*', require('../../loaders/extend.js')(common));
                 ldr.push(file);
             });
@@ -73,14 +68,9 @@ module.exports = function(router, core) {
       else if (req.body.type === 'text') {
         options['collectionName'] = resourceName;
         ldr = new Loader(__dirname, options);
-        ldr.use('**/*.xml', require('castor-load-xml')({}));
-        ldr.use('**/*.csv', require('castor-load-csv')({}));
-        ldr.use('**/*.xls', require('castor-load-excel')({}));
-        ldr.use('**/*.xlsx', require('castor-load-excel')({}));
-        ldr.use('**/*.nq', require('castor-load-nq')({}));
-        ldr.use('**/*.nt', require('castor-load-nq')({}));
-        ldr.use('**/*.n3', require('castor-load-nq')({}));
-        ldr.use('**/*', require('../../loaders/wid.js')());
+        core.loaders.forEach(function(loader) {
+            ldr.use(loader[0], loader[1]);
+        });
         ldr.use('**/*', require('../../loaders/extend.js')(common));
         ldr.push(url.format({
               protocol: "http",
@@ -95,14 +85,9 @@ module.exports = function(router, core) {
       else if (req.body.type === 'uri') {
         options['collectionName'] = resourceName;
         ldr = new Loader(__dirname, options);
-        ldr.use('**/*.xml', require('castor-load-xml')({}));
-        ldr.use('**/*.csv', require('castor-load-csv')({}));
-        ldr.use('**/*.xls', require('castor-load-excel')({}));
-        ldr.use('**/*.xlsx', require('castor-load-excel')({}));
-        ldr.use('**/*.nq', require('castor-load-nq')({}));
-        ldr.use('**/*.nt', require('castor-load-nq')({}));
-        ldr.use('**/*.n3', require('castor-load-nq')({}));
-        ldr.use('**/*', require('../../loaders/wid.js')());
+        core.loaders.forEach(function(loader) {
+            ldr.use(loader[0], loader[1]);
+        });
         ldr.use('**/*', require('../../loaders/extend.js')(common));
         ldr.push(req.body.uri);
       }

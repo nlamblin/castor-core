@@ -67,7 +67,7 @@ Hook.prototype.apply = function (callback)
     }
     else if (typeof item === "object") {
       name = item._id;
-      func = item.script || item.value;
+      func = item['require'] || item['script'] || item.value;
     }
     if (func !== undefined) {
       callback(name, include(self.basedirs, func), item);
