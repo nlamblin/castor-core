@@ -64,5 +64,6 @@
     "serve-favicon": "^2.3.0",
     "short-hash": "^1.0.0",
     "shortid": "^2.2.2"
-  }
+  },
+  "license": "MIT"
 }
