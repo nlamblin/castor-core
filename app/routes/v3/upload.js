@@ -15,10 +15,11 @@ var path = require('path')
  ;
 
 module.exports = function(router, core) {
+  var acceptFileTypes = new RegExp('\.('+core.config.get('acceptFileTypes').join('|')+')$', 'i');
   var jfum = new JFUM({
       minFileSize: 1,
       maxFileSize: core.config.get('maxFileSize'),
-      acceptFileTypes: /\.(csv|xml|txt|xls|xlsx|nq|n3|nt)$/i
+      acceptFileTypes: acceptFileTypes
   });
   var options = {
     "connexionURI" : core.config.get('connectionURI'),
@@ -36,6 +37,7 @@ module.exports = function(router, core) {
   .post(jfum.postHandler.bind(jfum), function(req, res, next) {
       // Check if upload failed or was aborted
       if (req.jfum.error) {
+        console.error('Upload failed.', req.jfum.error);
         next(req.jfum.error);
       }
       else {
@@ -45,8 +47,8 @@ module.exports = function(router, core) {
             delete req.jfum.files[i]["path"];
           }
           else {
-             return next(new Errors.InvalidParameters('Unknown file.'));
-           }
+            return next(new Errors.InvalidParameters(req.jfum.files[i].error.toString()));
+          }
         }
         res.json(req.jfum.files);
       }

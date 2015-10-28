@@ -69,6 +69,7 @@ module.exports = function(warmup) {
   config.fix('delay',                250);
   config.fix('prefixURL',            ''); // ex: /1234
   config.fix('maxFileSize',          10485760); // 10 Mo
+  config.fix('acceptFileTypes',      []);
   config.fix('heartrate',            5000);
   config.fix('filesToIgnore',        [ "**/.*", "~*", "*~", "*.sw?", "*.old", "*.bak", "**/node_modules", "Thumbs.db" ]);
   config.fix('tempPath',             os.tmpdir());
