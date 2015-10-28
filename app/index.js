@@ -17,6 +17,7 @@ var path = require('path')
   , Hook = require('./helpers/hook.js')
   , async = require('async')
   , MongoClient = require('mongodb').MongoClient
+  , JBJ = require('jbj')
   ;
 
 module.exports = function(config, online) {
@@ -365,7 +366,10 @@ module.exports = function(config, online) {
     filters.from(viewPath, __dirname)
     filters.over(config.get('filters'))
     filters.apply(function(hash, func) {
-        env.addFilter(hash, func(config));
+        JBJ.use(func());
+    });
+    Object.keys(JBJ.filters).forEach(function(filterName) {
+        env.addFilter(filterName, JBJ.filters[filterName]);
     });
 
     var asynchronousFilters = new Hook('filters')
