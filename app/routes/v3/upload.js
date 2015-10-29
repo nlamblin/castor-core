@@ -21,15 +21,6 @@ module.exports = function(router, core) {
       maxFileSize: core.config.get('maxFileSize'),
       acceptFileTypes: acceptFileTypes
   });
-  var options = {
-    "connexionURI" : core.config.get('connectionURI'),
-    "concurrency" : core.config.get('concurrency'),
-    "delay" : core.config.get('delay'),
-    "maxFileSize" : core.config.get('maxFileSize'),
-    "writeConcern" : core.config.get('writeConcern'),
-    "ignore" : core.config.get('filesToIgnore'),
-    "watch" : false
-  };
 
   router.route('/-/v3/upload')
   .all(bodyParser.urlencoded({ extended: false }))
