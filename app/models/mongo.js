@@ -15,10 +15,14 @@ module.exports = function(model) {
   })
   .declare('indexDescription', function(req, fill) {
       var index = {
-        // @toto Idéalement il faudrait inserer ce document avec castor-load
-        "fid": "index",   // pour être compatible castor-load
-        "number": 0,      // pour être compatible castor-load
+        // @todo Idéalement il faudrait inserer ce document avec castor-load
+        "fid": "index",       // pour être compatible castor-load
+        "number": 0,          // pour être compatible castor-load
+        "state": "inserted",  // pour être compatible castor-load
         "_wid": "index",
+        "_label": req.config.get('title'),
+        "_text": req.config.get('description'),
+        "_hash": null,
         "_columns" : {
           "_wid" : {
             //
@@ -28,7 +32,7 @@ module.exports = function(model) {
             "scheme": "http://purl.org/dc/elements/1.1/identifier",
             "comment" : "A mandatory column for \"dollar\" URLs",
             "title" : {
-              "get" : "title"
+              "get" : "_label"
             }
           },
           "_url" : {
@@ -42,9 +46,7 @@ module.exports = function(model) {
               "get" : "_wid"
             }
           },
-        },
-        "title": req.config.get('title'),
-        "description": req.config.get('description')
+        }
       };
       fill(index);
   })

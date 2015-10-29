@@ -43,8 +43,15 @@ module.exports = function(model) {
       fill(property);
   })
    .declare('doc', function(req, fill) {
-      fill({
+       fill({
+           // @todo Idéalement il faudrait inserer ce document avec castor-load
+           "fid": req.routeParams.resourceName,       // pour être compatible castor-load
+           "number": 0,          // pour être compatible castor-load
+           "state": "inserted",  // pour être compatible castor-load
           "_wid": req.routeParams.resourceName,
+          "_label": "Table "+req.routeParams.resourceName,
+          "_text": "Undefined description.",
+          "_hash": null,
           "_columns" : {
             "_wid" : {
               //
@@ -66,12 +73,7 @@ module.exports = function(model) {
                 "join" : "/"
               }
             }
-          },
-          //
-          // Table metadata
-          //
-          "title": "Table "+req.routeParams.resourceName,
-          "description": "Undefined description."
+          }
       });
   })
   .append('mongoResult', function(req, fill) {
@@ -100,9 +102,10 @@ module.exports = function(model) {
         query = {
           _wid: self.property.name
         };
-        operation = { $set:{
-            title: self.property.title,
-            description: self.property.description
+        operation = { 
+          $set:{
+            _label : self.property.title,
+            _text  : self.property.description
           }
         };
         debug('update table', query, operation);
@@ -115,8 +118,8 @@ module.exports = function(model) {
         operation = {
           $set:{
             _wid: self.property.name,
-            title: self.property.title,
-            description: self.property.description
+            _label : self.property.title,
+            _text  : self.property.description
           }
         }
         debug('rename table', query, operation);

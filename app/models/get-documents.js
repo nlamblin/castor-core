@@ -26,6 +26,10 @@ module.exports = function(model) {
       if (req.routeParams.resourceName === 'index') {
         q = { _wid: { $ne: "index" } }
       }
+      q.state = {
+        $nin: [ "deleted", "hidden" ]
+      };
+      debug('mongoQuery', q);
       fill(q);
   })
   .append('mongoCursor', function(req, fill) {
@@ -33,7 +37,7 @@ module.exports = function(model) {
         return fill();
       }
       debug('mongoCursor on `' + this.collectionName + '`', this.mongoQuery);
-      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery));
+      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery).limit(10000));
   })
 
 

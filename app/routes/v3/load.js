@@ -111,14 +111,14 @@ module.exports = function(router, core) {
             });
         });
       }
-      else if (req.body.type === 'text') {
+      else if (req.body.type === 'keyboard') {
         ldr.push(url.format({
               protocol: "http",
               hostname: "127.0.0.1",
               port: core.config.get('port'),
               pathname: "/-/v3/echo/keyboard." + req.body.loader,
               query: {
-                plain : req.body.text
+                plain : req.body.keyboard
               }
         }));
       }
