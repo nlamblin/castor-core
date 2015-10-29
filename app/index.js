@@ -167,19 +167,20 @@ module.exports = function(config, online) {
   //
   // Add Mongo indexes
   //
+  core.indexes = [];
+  core.indexes.push({ '_wid': 1 }); // wid = fid + number (which are unique)
+  core.indexes.push({ '_text': 'text' });
+  core.indexes.push({ 'state': 1 });
   try {
     MongoClient.connect(config.get('connectionURI')).then(function(db) {
         db.collection(config.get('collectionName')).then(function(coll) {
             debug('indexes', coll);
             var usfs = config.get('documentFields');
-            var  idx = Object.keys(usfs)
+            core.indexes = Object.keys(usfs)
             .filter(function(i) { return (i !== '$text') && (usfs[i].noindex !== true); })
             .map(function(i) {var j = {}; j[i.replace('$','')] = 1; return j;})
             ;
-          idx.push({ 'wid': 1 });
-          idx.push({ 'text': 'text' });
-          debug('indexes', idx);
-          async.map(idx, function(i, cb) {
+          async.map(core.indexes, function(i, cb) {
               coll.ensureIndex(i, { w: config.get('writeConcern')}, function(err, indexName) {
                   if (err instanceof Error) {
                     console.error(kuler("Unable to create the index.", "red"), kuler(err.toString(), 'orangered'));
@@ -311,6 +312,7 @@ module.exports = function(config, online) {
     //
     app.use(function (req, res, next) {
         req.config = config;
+        req.core = core;
         next();
     });
     app.use(function (req, res, next) {

@@ -6,6 +6,7 @@ var path = require('path')
   , debug = require('debug')('castor:models:' + basename)
   , datamodel = require('datamodel')
   , assert = require('assert')
+  , async = require('async')
   ;
 
 module.exports = function(model) {
@@ -102,7 +103,7 @@ module.exports = function(model) {
         query = {
           _wid: self.property.name
         };
-        operation = { 
+        operation = {
           $set:{
             _label : self.property.title,
             _text  : self.property.description
@@ -138,7 +139,22 @@ module.exports = function(model) {
       }
       else {
         debug('add table', query, operation);
-        self.mongoCollectionsIndexHandle.insertOne(self.doc).then(fill).catch(fill);
+        self.mongoCollectionsIndexHandle.insertOne(self.doc).then(function() {
+            async.map(req.core.indexes, function(i, cb) {
+                self.mongoDatabaseHandle.createIndex(req.routeParams.resourceName, i, { w: req.config.get('writeConcern')}, function(err, indexName) {
+                  if (err instanceof Error) {
+                    console.error("Unable to create the index.", err);
+                  }
+                  cb(err, indexName);
+              });
+            }, function(e, ret) {
+              if (e) {
+                throw e;
+              }
+              fill(ret)
+          });
+
+        }).catch(fill);
       }
   })
 
