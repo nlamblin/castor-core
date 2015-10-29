@@ -10,37 +10,90 @@ var path = require('path')
   , crypto = require('crypto')
   , Errors = require('../../helpers/errors.js')
   , Loader = require('castor-load')
+  , JBJ = require('jbj')
  ;
 
 module.exports = function(router, core) {
-  var options = {
-    "connexionURI" : core.config.get('connectionURI'),
-    "concurrency" : core.config.get('concurrency'),
-    "delay" : core.config.get('delay'),
-    "maxFileSize" : core.config.get('maxFileSize'),
-    "writeConcern" : core.config.get('writeConcern'),
-    "ignore" : core.config.get('filesToIgnore'),
-    "watch" : false
-  };
 
   router.route('/-/v3/load')
   .all(bodyParser.urlencoded({ extended: true}))
   .post(function(req, res, next) {
-      var ldr
-        , referer = url.parse(req.get('Referer'))
-        , resourceName = path.basename(referer.pathname)
-        ;
+      var referer = url.parse(req.get('Referer'));
+      var resourceName = path.basename(referer.pathname);
 
-      // TODO : check if req.body is valid
-      // TODO : check if resourceName already exists
-
+      if (typeof req.body !== 'object') {
+        return next(new Errors.InvalidParameters('No body.'));
+      }
+      if (typeof req.body.hash !== 'object') {
+        return next(new Errors.InvalidParameters('No hash.'));
+      }
+      if (typeof req.body.text !== 'object') {
+        return next(new Errors.InvalidParameters('No text.'));
+      }
+      if (typeof req.body.label !== 'object') {
+        return next(new Errors.InvalidParameters('No label.'));
+      }
       if (resourceName === 'index') {
         return next(new Errors.Forbidden('`index` is read only'));
       }
+      if (!resourceName || resourceName === '') {
+        return next(new Errors.Forbidden('Invalid call.'));
+      }
+
+      // TODO : check if resourceName already exists
       var common = {
         _index :  resourceName,
         baseURL : String(core.config.get('baseURL')).replace(/\/+$/,'')
       }
+
+      var addField = function (fieldname, stylesheet) {
+        return function (input, submit) {
+          debug('JBJ fieldname', stylesheet);
+          if (typeof stylesheet === 'object') {
+            debug('JBJ stylesheet', stylesheet);
+                }
+          else {
+            submit(null, input);
+          }
+        }
+      }
+
+      var options = {
+        "collectionName" : resourceName,
+        "connexionURI" : core.config.get('connectionURI'),
+        "concurrency" : core.config.get('concurrency'),
+        "delay" : core.config.get('delay'),
+        "maxFileSize" : core.config.get('maxFileSize'),
+        "writeConcern" : core.config.get('writeConcern'),
+        "ignore" : core.config.get('filesToIgnore'),
+        "watch" : false
+      };
+
+      // Be careful, at this time, loader code should be different ! cf. https://github.com/castorjs/castor-load/blob/master/lib/mount.js#L58
+
+      var ldr = new Loader(__dirname, options);
+      ldr.use('**/*', require('../../loaders/extend.js')(common));
+      ldr.use('**/*', function (input, submit) {
+          JBJ.render(req.body.hash, input, function (err, res) {
+              input._hash = res;
+              submit(err, input);
+          });
+      });
+      ldr.use('**/*', function (input, submit) {
+          JBJ.render(req.body.text, input, function (err, res) {
+              input._text = res;
+              submit(err, input);
+          });
+      });
+      ldr.use('**/*', function (input, submit) {
+          JBJ.render(req.body.label, input, function (err, res) {
+              input._label = res;
+              submit(err, input);
+          });
+      });
+      core.loaders.forEach(function(loader) {
+          ldr.use(loader[0], loader[1]);
+      });
 
       if (req.body.type === 'file' && typeof req.body.file === 'object') {
         var p = require('os').tmpdir(); // upload go to tmpdir
@@ -54,24 +107,11 @@ module.exports = function(router, core) {
                 var token = crypto.createHash('sha1').update(file).digest('hex');
                 return  (token === req.body.file.token);
             }).forEach(function (file) {
-                debug('file', file);
-                options['collectionName'] = resourceName;
-                var ldr = new Loader(__dirname, options);
-                core.loaders.forEach(function(loader) {
-                    ldr.use(loader[0], loader[1]);
-                });
-                ldr.use('**/*', require('../../loaders/extend.js')(common));
                 ldr.push(file);
             });
         });
       }
       else if (req.body.type === 'text') {
-        options['collectionName'] = resourceName;
-        ldr = new Loader(__dirname, options);
-        core.loaders.forEach(function(loader) {
-            ldr.use(loader[0], loader[1]);
-        });
-        ldr.use('**/*', require('../../loaders/extend.js')(common));
         ldr.push(url.format({
               protocol: "http",
               hostname: "127.0.0.1",
@@ -83,12 +123,6 @@ module.exports = function(router, core) {
         }));
       }
       else if (req.body.type === 'uri') {
-        options['collectionName'] = resourceName;
-        ldr = new Loader(__dirname, options);
-        core.loaders.forEach(function(loader) {
-            ldr.use(loader[0], loader[1]);
-        });
-        ldr.use('**/*', require('../../loaders/extend.js')(common));
         ldr.push(req.body.uri);
       }
       else {

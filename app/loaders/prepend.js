@@ -18,10 +18,15 @@ module.exports = function(options) {
     }
 
     // _label
-    input._label = 'n/a';
+    if (input._label === undefined) {
+      input._label = 'n/a';
+    }
+
 
     // _hash
-    input._label = null;
+    if (input._hash === undefined) {
+      input._hash = null;
+    }
 
 
     // content

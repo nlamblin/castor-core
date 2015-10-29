@@ -351,8 +351,8 @@ module.exports = function(config, online) {
 
 
     //
-    // JBJ 
-    // 
+    // JBJ
+    //
     //
     var filters = new Hook('filters')
     filters.from(viewPath, __dirname)
@@ -363,16 +363,11 @@ module.exports = function(config, online) {
     Object.keys(JBJ.filters).forEach(function(filterName) {
         env.addFilter(filterName, JBJ.filters[filterName]);
     });
-
-
-
     JBJ.register('local:', protocols('local', config));
     JBJ.register('http:', protocols('http', config));
     JBJ.register('https:', protocols('https', config));
 
 
-
-  
 
 
     //
