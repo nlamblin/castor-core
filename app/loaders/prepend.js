@@ -7,7 +7,8 @@ module.exports = function(options) {
   options = options || {};
   return function (input, submit) {
     input.name = path.basename(input.location, path.extname(input.location)).replace(/[\_\-\.]+/g, ' ');
-    // Pseudo search
+
+    // _text
     if (input.text) {
       input._text = input.text;
       delete input.text
@@ -15,7 +16,15 @@ module.exports = function(options) {
     else if (input._text === undefined) {
       input._text = '';
     }
-    // For content
+
+    // _label
+    input._label = 'n/a';
+
+    // _hash
+    input._label = null;
+
+
+    // content
     input.content = input.content || {};
     submit(null, input);
   }

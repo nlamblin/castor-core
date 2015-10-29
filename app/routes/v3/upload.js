@@ -26,7 +26,6 @@ module.exports = function(router, core) {
   .all(bodyParser.urlencoded({ extended: false }))
   .options(jfum.optionsHandler.bind(jfum))
   .post(jfum.postHandler.bind(jfum), function(req, res, next) {
-      // Check if upload failed or was aborted
       if (req.jfum.error) {
         console.error('Upload failed.', req.jfum.error);
         next(req.jfum.error);

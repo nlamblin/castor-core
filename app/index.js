@@ -15,6 +15,7 @@ var path = require('path')
   , ecstatic = require('ecstatic')
   , I18n = require('i18n-2')
   , Hook = require('./helpers/hook.js')
+  , protocols = require('./helpers/protocols.js')
   , async = require('async')
   , MongoClient = require('mongodb').MongoClient
   , JBJ = require('jbj')
@@ -350,18 +351,9 @@ module.exports = function(config, online) {
 
 
     //
-    // "Filters" for nunjucks
+    // JBJ 
+    // 
     //
-    //
-    env.addFilter('nl2br', require('./filters/nl2br.js')(config));
-    env.addFilter('json', require('./filters/json.js')(config));
-    env.addFilter('hash', require('./filters/hash.js')(config));
-    env.addFilter('stack', require('./filters/stack.js')(config));
-    env.addFilter('flatten', require('./filters/flatten.js')(config));
-    env.addFilter('add2Array', require('./filters/add2Array.js')(config));
-    env.addFilter('objectPath', require('./filters/objectPath.js')(config));
-    env.addFilter('markdown', require('./filters/markdown.js')(config.get('markdown')));
-
     var filters = new Hook('filters')
     filters.from(viewPath, __dirname)
     filters.over(config.get('filters'))
@@ -372,13 +364,15 @@ module.exports = function(config, online) {
         env.addFilter(filterName, JBJ.filters[filterName]);
     });
 
-    var asynchronousFilters = new Hook('filters')
-    asynchronousFilters.from(viewPath, __dirname)
-    asynchronousFilters.over(config.get('asynchronousFilters'))
-    asynchronousFilters.apply(function(hash, func) {
-        env.addFilter(hash, func(config), true);
-    });
 
+
+    JBJ.register('local:', protocols('local', config));
+    JBJ.register('http:', protocols('http', config));
+    JBJ.register('https:', protocols('https', config));
+
+
+
+  
 
 
     //

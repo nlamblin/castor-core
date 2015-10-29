@@ -78,8 +78,7 @@ module.exports = function(warmup) {
   config.fix('middlewares',          {});
   config.fix('models',               {});
   config.fix('markdown',             undefined);
-  config.fix('filters',              {});
-  config.fix('asynchronousFilters',  {});
+  config.fix('filters',              []);
   config.fix('routes',               {});
   config.fix('loaders',              {});
   config.fix('middlewares',          []);
