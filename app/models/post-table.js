@@ -21,18 +21,23 @@ module.exports = function(model) {
       if (req.body && req.body.name && req.body.name === 'index') {
         property.previousName = req.routeParams.resourceName;
         property.name = req.routeParams.resourceName;
-        property.title = req.body.title;
-        property.description= req.body.description || '';
+        property.title = req.body.title || null;
+        property.description = req.body.description || null;
+        property.template = req.body.template || null;
       }
       else if (req.body && req.body.name && req.body.name !== 'index') {
         property.previousName = req.routeParams.resourceName;
         property.name = req.body.name || '';
-        property.title = req.body.title;
-        property.description= req.body.description || '';
+        property.title = req.body.title || null;
+        property.description= req.body.description || null;
+        property.template = req.body.template || null;
       }
       else if (req.body && req.body[req.routeParams.resourceName] == 'true' &&  req.routeParams.resourceName !== 'index') {
         property.name = false;
         property.previousName = req.routeParams.resourceName;
+      }
+      else if (req.body.origin) {
+        property.originalName = req.body.origin;
       }
       else if (req.body) {
         property = false;
@@ -53,6 +58,7 @@ module.exports = function(model) {
           "_label": "Table "+req.routeParams.resourceName,
           "_text": "Undefined description.",
           "_hash": null,
+          "_template": "Empty.",
           "_columns" : {
             "_wid" : {
               //
@@ -67,7 +73,7 @@ module.exports = function(model) {
               "comment" : "Recommended Column to expose existing table",
               "scheme": "http://schema.org/url",
               "type": "http://www.w3.org/TR/xmlschema-2/#anyURI",
-              "get": ["baseURL", "_index", "_wid"],
+              "get": ["baseURL", "_table._wid", "_wid"],
               "join": "/",
               "title": {
                 "get" : ["_index", "_wid"],
@@ -77,13 +83,31 @@ module.exports = function(model) {
           }
       });
   })
+  .prepend('action', function(req, fill) {
+      var self = this;
+      if (self.property && self.property.name === false && self.property.previousName !== 'index') {
+        fill("delete")
+      }
+      else if (self.property && self.property.name === self.property.previousName) {
+        fill("update")
+      }
+      else if (self.property && self.property.originalName === undefined && self.property.name !== self.property.previousName  && self.property.previousName !== 'index') {
+        fill("rename")
+      }
+      else if (self.property && self.property.originalName) {
+        fill("clone")
+      }
+      else {
+        fill("add")
+      }
+  })
   .append('mongoResult', function(req, fill) {
       var self = this, query, operation;
       if (self.mongoDatabaseHandle instanceof Error) {
         return fill([]);
       }
 
-      if (self.property && self.property.name === false && self.property.previousName !== 'index') {
+      if (self.action === "delete") {
         query = {
           _wid: self.property.previousName
         }
@@ -99,29 +123,44 @@ module.exports = function(model) {
             });
         }).catch(fill);
       }
-      else if (self.property && self.property.name === self.property.previousName) {
+      else if (self.action === "update") {
         query = {
           _wid: self.property.name
         };
         operation = {
-          $set:{
-            _label : self.property.title,
-            _text  : self.property.description
+          $set : {
           }
         };
+        if (self.property.title !== null) {
+          operation['$set']._label = self.property.title;
+        }
+        if (self.property.description !== null) {
+          operation['$set']._text = self.property.description;
+        }
+        if (self.property.template !== null) {
+          operation['$set']._template = self.property.template;
+        }
+
         debug('update table', query, operation);
         self.mongoCollectionsIndexHandle.updateOne(query, operation).then(fill).catch(fill);
       }
-      else if (self.property && self.property.name !== self.property.previousName  && self.property.previousName !== 'index') {
+      else if (self.action === "rename") {
         query = {
           _wid: self.property.previousName
         };
         operation = {
           $set:{
             _wid: self.property.name,
-            _label : self.property.title,
-            _text  : self.property.description
           }
+        }
+        if (self.property.title !== null) {
+          operation['$set']._label = self.property.title;
+        }
+        if (self.property.description !== null) {
+          operation['$set']._text = self.property.description;
+        }
+        if (self.property.template !== null) {
+          operation['$set']._template = self.property.template;
         }
         debug('rename table', query, operation);
         self.mongoCollectionsIndexHandle.updateOne(query, operation).then(function(r) {
@@ -135,6 +174,36 @@ module.exports = function(model) {
                 // nothing to do
                 fill(null);
             });
+        }).catch(fill);
+      }
+      else if (self.action === "clone") {
+        query = {
+          _wid: self.property.originalName
+        };
+        debug('clone table', query);
+        self.mongoCollectionsIndexHandle.findOne(query).then(function(newdoc) {
+            delete newdoc._id;
+            newdoc._wid = req.routeParams.resourceName;
+            newdoc.fid  = req.routeParams.resourceName;
+            newdoc.number = 0;
+            newdoc.state = "inserted";
+            debug('newdoc', newdoc);
+            self.mongoCollectionsIndexHandle.insertOne(newdoc).then(function() {
+                async.map(req.core.indexes, function(i, cb) {
+                    self.mongoDatabaseHandle.createIndex(req.routeParams.resourceName, i, { w: req.config.get('writeConcern')}, function(err, indexName) {
+                        if (err instanceof Error) {
+                          console.error("Unable to create the index.", err);
+                        }
+                        cb(err, indexName);
+                    });
+                  }, function(e, ret) {
+                    if (e) {
+                      throw e;
+                    }
+                    fill(ret)
+                });
+
+            }).catch(fill);
         }).catch(fill);
       }
       else {

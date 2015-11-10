@@ -6,6 +6,7 @@ var path = require('path')
   , debug = require('debug')('castor:models:' + basename)
   , datamodel = require('datamodel')
   , assert = require('assert')
+  , extend = require('extend')
   ;
 
 module.exports = function(model) {
@@ -24,7 +25,6 @@ module.exports = function(model) {
         property.scheme = req.body.propertyScheme;
         property.type = types[req.body.propertyType];
         property.comment = req.body.propertyComment;
-        property.text = req.body.propertyText;
         property.label = req.body.propertyLabel;
         property.value = req.body.propertyValue;
       }
@@ -32,7 +32,6 @@ module.exports = function(model) {
         property.scheme = req.body.propertyScheme;
         property.type = types[req.body.propertyType];
         property.comment = req.body.propertyComment;
-        property.text = req.body.propertyText;
         property.label = req.body.propertyLabel;
         property.value = req.body.propertyValue;
       }
@@ -50,6 +49,7 @@ module.exports = function(model) {
       else {
         return fill(new Errors.InvalidParameters('Some parameters is missing.'));
       }
+      debug('property', property);
       fill(property);
   })
   .append('mongoResult', function(req, fill) {
@@ -63,19 +63,18 @@ module.exports = function(model) {
 
       function miseajour() {
         if (self.property.name) {
-          var f1 = self.property.value;
-          f1["_" + self.property.name] = {
+          var o1 = {
+            "$set" : {}
+          };
+          var o11 = {
             "scheme": self.property.scheme,
             "type": self.property.type,
-            "text" : self.property.text,
             "label" : self.property.label,
             "comment" : self.property.comment
           }
-          var o1 = {
-            "$push" : {
-              "_columns" : f1
-            }
-          }
+          extend(o11, self.property.value);
+          o1['$set']["_columns." + self.property.name] = o11;
+          debug('update', q, o11);
           self.mongoCollectionsIndexHandle.update(q, o1).then(fill).catch(fill);
         }
         else {
@@ -86,10 +85,11 @@ module.exports = function(model) {
 
       if (req.body && req.body.previousName) {
         var f2 = {}
-        f2['_columns._'+ req.body.previousName] = "";
+        f2['_columns.'+ req.body.previousName] = "";
         var o2 = {
           "$unset" : f2
         }
+        debug("update column", q, o2);
         self.mongoCollectionsIndexHandle.update(q, o2).then(miseajour).catch(fill);
       }
       else {

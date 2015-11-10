@@ -11,6 +11,7 @@ var path = require('path')
   , Errors = require('../../helpers/errors.js')
   , Loader = require('castor-load')
   , JBJ = require('jbj')
+  , extend = require('extend')
  ;
 
 module.exports = function(router, core) {
@@ -25,13 +26,16 @@ module.exports = function(router, core) {
         return next(new Errors.InvalidParameters('No body.'));
       }
       if (typeof req.body.hash !== 'object') {
-        return next(new Errors.InvalidParameters('No hash.'));
+        req.body.hash = {}
       }
       if (typeof req.body.text !== 'object') {
-        return next(new Errors.InvalidParameters('No text.'));
+        req.body.text = {}
       }
       if (typeof req.body.label !== 'object') {
-        return next(new Errors.InvalidParameters('No label.'));
+        req.body.label = {}
+      }
+      if (typeof req.body.xtend !== 'object') {
+        req.body.xtend = {}
       }
       if (resourceName === 'index') {
         return next(new Errors.Forbidden('`index` is read only'));
@@ -42,7 +46,6 @@ module.exports = function(router, core) {
 
       // TODO : check if resourceName already exists
       var common = {
-        _index :  resourceName,
         baseURL : String(core.config.get('baseURL')).replace(/\/+$/,'')
       }
 
@@ -74,20 +77,40 @@ module.exports = function(router, core) {
       var ldr = new Loader(__dirname, options);
       ldr.use('**/*', require('../../loaders/extend.js')(common));
       ldr.use('**/*', function (input, submit) {
+          if (req.body.hash !== 'object') {
+            return submit(null, input);
+          }
           JBJ.render(req.body.hash, input, function (err, res) {
               input._hash = res;
               submit(err, input);
           });
       });
       ldr.use('**/*', function (input, submit) {
+          if (req.body.text !== 'object') {
+            return submit(null, input);
+          }
           JBJ.render(req.body.text, input, function (err, res) {
               input._text = res;
               submit(err, input);
           });
       });
       ldr.use('**/*', function (input, submit) {
+          if (req.body.label !== 'object') {
+            return submit(null, input);
+          }
           JBJ.render(req.body.label, input, function (err, res) {
               input._label = res;
+              submit(err, input);
+          });
+      });
+      ldr.use('**/*', function (input, submit) {
+          if (req.body.xtend !== 'object') {
+            return submit(null, input);
+          }
+          JBJ.render(req.body.xtend, input, function (err, res) {
+              if (typeof res === 'object') {
+                extend(input, res);
+              }
               submit(err, input);
           });
       });

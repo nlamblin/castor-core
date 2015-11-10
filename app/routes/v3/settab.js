@@ -15,7 +15,7 @@ module.exports = function(router, core) {
 
   router.route('/-/v3/settab/:resourceName')
   .post(bodyParser.urlencoded({ extended: true}))
-  .post(check.body({ '?name': /\w+/, '?title': String, '?description': String}))
+  .post(check.body({ '?name': /\w+/, '?title': String, '?description': String, '?template': String}))
   .post(function(req, res, next) {
       if (req.routeParams.resourceName === undefined) {
         return next();

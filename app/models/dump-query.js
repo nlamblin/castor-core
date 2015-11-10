@@ -44,6 +44,9 @@ module.exports = function(model) {
       else if (this.extension === 'raw') {
         fill('application/json');
       }
+      else if (this.extension === 'html') {
+        fill('text/html');
+      }
       else {
         fill('application/json');
       }
@@ -60,7 +63,15 @@ module.exports = function(model) {
       var self = this;
       if (self.extension === 'nq') {
         fill(es.map(function (data, submit) {
-              jsonld.toRDF(data, {format: 'application/nquads'}, submit);
+              jsonld.toRDF(data, {format: 'application/nquads'}, function(err, out) {
+                  if (err) {
+                    console.error(err);
+                    submit(null, {});
+                  }
+                  else {
+                    submit(err, out);
+                  }
+              });
         }))
       }
       else if (self.extension === 'csv') {
@@ -79,33 +90,52 @@ module.exports = function(model) {
   })
   .send(function(res, next) {
       var self = this;
+
       res.set('Content-Type', this.mimeType);
       res.on('finish', function() {
           self.mongoDatabaseHandle.close();
       });
-      if (this.mimeType !== 'application/json') {
+      if (this.mimeType === 'text/csv' || this.mimeType === 'application/n-quads') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
       }
       if (this.mimeType === 'text/csv') {
+        res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
         res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
                 return propertyName;
         })))
       }
+      debug(this.extension, this.documentName)
 
       //
       // Pipe Mongo cursor
       //
       var stream = this.mongoCursor.stream();
-      debug(this.extension, this.documentName)
+
+
+      //
+      // Add Table info
+      //
+      stream = stream
+      .pipe(es.map(function (data, submit) {
+            data._table = self.table;
+            submit(null, data);
+      }))
+
+      //
+      // Break pipe for RAW format
+      //
       if (this.extension === 'raw' && this.documentName) {
-        return stream.pipe(this.outputing).pipe(res);
+        return stream.pipe(es.map(function (data, submit) {
+              Object.keys(data).filter(function(key) { return key[0] !== '_' }).forEach(function(key) { delete data[key] });
+              delete data._id;
+              submit(null, data);
+        })).pipe(this.outputing).pipe(res);
       }
-      debug('_columns', self.table._columns);
-      stream
+
       //
       // Compute column field with a title
       //
-      .pipe(es.map(function (data, submit) {
+      stream = stream.pipe(es.map(function (data, submit) {
             var titleFields =  Object.keys(self.table._columns).filter(function(propertyName) {
                 return self.table._columns[propertyName].title !== undefined && self.table._columns[propertyName].title !== null && typeof self.table._columns[propertyName].title === 'object'
             });
@@ -116,7 +146,7 @@ module.exports = function(model) {
                     if (err) {
                       callback(err);
                     }
-                    else if (typeof out === 'object' && out.___marker === true)  { // no transformation
+                    else if (out !== null && typeof out === 'object' && out.___marker === true)  { // no transformation
                       callback(err, undefined);
                     }
                     else {
@@ -139,7 +169,7 @@ module.exports = function(model) {
       //
       // Transform field with JBJ
       //
-      .pipe(es.map(function (data, submit) {
+      stream = stream.pipe(es.map(function (data, submit) {
             data['___marker'] = true;
             async.map(Object.keys(self.table._columns)
             , function(propertyName, callback) {
@@ -172,16 +202,19 @@ module.exports = function(model) {
                 });
                 submit(null, data);
             });
-      }))
+      }));
       //
       // Transform document to JSON-LD
       //
-      .pipe(es.map(function (data, submit) {
+      stream = stream.pipe(es.map(function (data, submit) {
             var doc = {}
             doc['@id'] = self.baseURL.concat("/").concat(data['_wid']);
             doc['@context'] = {}
             Object.keys(self.table._columns).forEach(function(propertyName, index) {
                 var field = self.table._columns[propertyName];
+                if (field.type === null || field.type === undefined || typeof field.type !== 'string') {
+                  delete field.type;
+                }
                 doc['@context'][propertyName] = {};
                 if (field.scheme !== undefined) {
                   doc['@context'][propertyName]['@id'] = field.scheme;
@@ -195,11 +228,11 @@ module.exports = function(model) {
                 doc[propertyName] = data[propertyName] || null;
             });
             submit(null, doc);
-      }))
+      }));
       //
       // Resolve Resource Link
       //
-      .pipe(es.map(function (data, submit) {
+      stream = stream.pipe(es.map(function (data, submit) {
             var urls = [], keys = [];
             Object.keys(data["@context"]).forEach(function(key) {
                 if (data["@context"][key]
@@ -238,9 +271,36 @@ module.exports = function(model) {
                 });
                 submit(null, data)
             });
-      }))
-      .pipe(this.outputing)
-      .pipe(res);
+      }));
+
+
+      if (this.mimeType === 'text/html') {
+        var template =
+        String('{% extends "page.html" %}')
+        .concat("\n")
+        .concat('{% block body %}')
+        .concat("\n")
+        .concat(self.table._template)
+        .concat("\n")
+        .concat('{% endblock %}');
+        stream = stream.pipe(es.map(function (data, submit) {
+              // data._  =  {
+                // site: self.site,
+                // user: self.user,
+                // page: self.page,
+                // parameters: self.parameters,
+                // config: self.config,
+                // url: self.url
+              // }
+              debug('context', data);
+              res.renderString(template, data, submit);
+        }))
+      }
+      else {
+        stream = stream.pipe(this.outputing)
+      }
+
+      stream.pipe(res);
   });
 
   return model;

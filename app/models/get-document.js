@@ -21,12 +21,11 @@ module.exports = function(model) {
   })
   .declare('mongoQuery', function(req, fill) {
       var q = {};
-      if (req.routeParams.resourceName === 'index') {
-        q = { _wid: req.routeParams.documentName }
-      }
-      else {
-        q = { _wid : req.routeParams.resourceName + "/" + req.routeParams.documentName }
-      }
+      q._wid = req.routeParams.documentName;
+      q.state = {
+        $nin: [ "deleted", "hidden" ]
+      };
+      debug('mongoQuery', q);
       fill(q);
   })
   .append('mongoCursor', function(req, fill) {

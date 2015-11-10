@@ -38,6 +38,14 @@ module.exports = function(model) {
           }
       }).catch(fill);
   })
+  .complete('table', function(req, fill) {
+      var self = this;
+      Object.keys(self.table).filter(function(key) { return key[0] !== '_' }).forEach(function(key) { delete self.table[key] });
+      delete self.table._id;
+      fill(self.table);
+  })
+
+
 
   return model;
 }

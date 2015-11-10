@@ -23,6 +23,7 @@ module.exports = function(model) {
         "_label": req.config.get('title'),
         "_text": req.config.get('description'),
         "_hash": null,
+        "_template": "Empty.",
         "_columns" : {
           "_wid" : {
             //

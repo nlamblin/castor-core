@@ -17,6 +17,7 @@ var path = require('path')
   , Hook = require('./helpers/hook.js')
   , protocols = require('./helpers/protocols.js')
   , async = require('async')
+  , extend =  require('extend')
   , MongoClient = require('mongodb').MongoClient
   , JBJ = require('jbj')
   ;
@@ -125,6 +126,7 @@ module.exports = function(config, online) {
   });
   core.loaders.push(['**/*', require('./loaders/document.js')({ stylesheet: config.get('documentFields') })]);
   core.loaders.push(['**/*', require('./loaders/wid.js')()]);
+  core.loaders.push(['**/*', require('./loaders/append.js')()]);
 
 
   //
@@ -307,28 +309,6 @@ module.exports = function(config, online) {
     }
 
 
-    //
-    // Add some vars in req
-    //
-    app.use(function (req, res, next) {
-        req.config = config;
-        req.core = core;
-        next();
-    });
-    app.use(function (req, res, next) {
-        req.routeParams = {};
-        next();
-    });
-
-
-
-    //
-    // Define I18N
-    //
-    I18n.expressBind(app, {
-        locales: ['en', 'fr']
-    });
-    app.use(require('./middlewares/i18n.js')());
 
 
 
@@ -351,7 +331,6 @@ module.exports = function(config, online) {
     require('nunjucks-markdown').register(env, config.get('markdown'));
 
 
-
     //
     // JBJ
     //
@@ -369,6 +348,45 @@ module.exports = function(config, online) {
     JBJ.register('http:', protocols('http', config));
     JBJ.register('https:', protocols('https', config));
 
+    //
+    // Add some vars in req
+    //
+    app.use(function (req, res, next) {
+        req.routeParams = {};
+        req.config = config;
+        req.core = core;
+        next();
+    });
+    app.use(function (req, res, next) {
+        res.renderString = function(input, options, callback) {
+          var context = {}
+          extend(context, res.locals)
+          extend(context, options)
+          env.renderString(input, context, function(err, output) {
+              if (callback !== undefined) {                
+                callback(err, output);
+              }
+              else {
+                if (err) {
+                  throw err;
+                }
+                else {
+                  res.write(output);
+                  res.end();
+                }
+              }
+          });
+        }
+        next();
+    });
+
+//
+    // Define I18N
+    //
+    I18n.expressBind(app, {
+        locales: ['en', 'fr']
+    });
+    app.use(require('./middlewares/i18n.js')());
 
 
 
@@ -426,6 +444,7 @@ module.exports = function(config, online) {
     app.route('/').all(function(req, res) {
         res.redirect(config.get('rootURL'));
     });
+
 
     //
     // Mandatory route

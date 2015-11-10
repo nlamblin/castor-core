@@ -28,11 +28,13 @@ module.exports = function(router, core) {
 
 
   router.param('operator', function(req, res, next, value) {
-      try {
-        req.routeParams.operator = core.computer.operator(value);
-      }
-      catch(e) {
-        debug(e);
+      if (value !== undefined) {
+        try {
+          req.routeParams.operator = core.computer.operator(value);
+        }
+        catch(e) {
+          debug(e);
+        }
       }
       next();
   });
@@ -149,9 +151,21 @@ module.exports = function(router, core) {
       datamodel([core.models.page, core.models.mongo, core.models.getTable])
       .apply(req)
       .then(function(locals) {
-          return res.render("index.html", locals);
+          return res.render("table.html", locals);
       })
       .catch(next);
+  });
+
+  router.route(prefixURL + '/:resourceName/:documentName')
+  .all(cors())
+  .get(function(req, res, next) {
+      debug('get /:resourceName', req.routeParams);
+      if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined) {
+        return next();
+      }
+      req.query.alt = 'html';
+      datamodel([core.models.page,core.models.mongo, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
+      .apply(req, res, next);
   });
 
 
