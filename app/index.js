@@ -173,8 +173,11 @@ module.exports = function(config, online) {
   core.indexes.push({ '_wid': 1 }); // wid = fid + number (which are unique)
   core.indexes.push({ '_text': 'text' });
   core.indexes.push({ 'state': 1 });
+  core.connect = function() {
+    return MongoClient.connect(config.get('connectionURI'));
+  }
   try {
-    MongoClient.connect(config.get('connectionURI')).then(function(db) {
+    core.connect().then(function(db) {
         db.collection(config.get('collectionName')).then(function(coll) {
             debug('indexes', coll);
             var usfs = config.get('documentFields');
@@ -363,7 +366,7 @@ module.exports = function(config, online) {
           extend(context, res.locals)
           extend(context, options)
           env.renderString(input, context, function(err, output) {
-              if (callback !== undefined) {                
+              if (callback !== undefined) {
                 callback(err, output);
               }
               else {
