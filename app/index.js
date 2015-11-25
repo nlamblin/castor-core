@@ -100,6 +100,7 @@ module.exports = function(config, online) {
   core.models.page = require('./models/page.js')
   core.models.mongo = require('./models/mongo.js')
   core.models.reduceTable = require('./models/reduce-table.js')
+  core.models.getRoot = require('./models/get-root.js')
   core.models.getTable = require('./models/get-table.js')
   core.models.getDocument = require('./models/get-document.js')
   core.models.getDocuments = require('./models/get-documents.js')
@@ -116,17 +117,17 @@ module.exports = function(config, online) {
   });
 
   core.loaders = [];
-  core.loaders.push(['**/*', require('./loaders/prepend.js')()]);
+  core.loaders.push(['**/*', require('./loaders/prepend.js'), {}]);
 
   var loaders = new Hook('loaders');
   loaders.from(viewPath, __dirname)
   loaders.over(config.get('loaders'))
   loaders.apply(function(hash, func, item) {
-      core.loaders.push([item.pattern || '**/*', func(item.options , config)]);
+      core.loaders.push([item.pattern || '**/*', func, item.options]);
   });
-  core.loaders.push(['**/*', require('./loaders/document.js')({ stylesheet: config.get('documentFields') })]);
-  core.loaders.push(['**/*', require('./loaders/wid.js')()]);
-  core.loaders.push(['**/*', require('./loaders/append.js')()]);
+  core.loaders.push(['**/*', require('./loaders/document.js'), { stylesheet: config.get('documentFields') }]);
+  core.loaders.push(['**/*', require('./loaders/wid.js'), {}]);
+  core.loaders.push(['**/*', require('./loaders/append.js'), {}]);
 
 
   //
@@ -149,7 +150,7 @@ module.exports = function(config, online) {
     if (fs.existsSync(config.get('dataPath'))) {
       console.info(kuler('Watching hot directory. ', 'olive'), kuler(config.get('dataPath'), 'limegreen'));
       core.loaders.forEach(function(loader) {
-          ldr.use(loader[0], loader[1]);
+          ldr.use(loader[0], loader[1](loader[2]));
       });
       ldr.sync(function(err) {
           if (err instanceof Error) {
@@ -444,9 +445,12 @@ module.exports = function(config, online) {
           defaultExt    : 'html',
           gzip          : false
     }));
-    app.route('/').all(function(req, res) {
-        res.redirect(config.get('rootURL'));
-    });
+
+    if (config.get('rootURL') !== undefined) {
+      app.route('/').all(function(req, res) {
+          res.redirect(config.get('rootURL'));
+      });
+    }
 
 
     //

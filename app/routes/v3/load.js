@@ -54,7 +54,7 @@ module.exports = function(router, core) {
           debug('JBJ fieldname', stylesheet);
           if (typeof stylesheet === 'object') {
             debug('JBJ stylesheet', stylesheet);
-                }
+          }
           else {
             submit(null, input);
           }
@@ -115,7 +115,11 @@ module.exports = function(router, core) {
           });
       });
       core.loaders.forEach(function(loader) {
-          ldr.use(loader[0], loader[1]);
+          var opts = loader[2] || {};
+          if (req.body.loader === 'json' && req.body.options) {
+            opts['cutter'] = String(req.body.options);
+          }
+          ldr.use(loader[0], loader[1](opts));
       });
 
       if (req.body.type === 'file' && typeof req.body.file === 'object') {
@@ -130,7 +134,10 @@ module.exports = function(router, core) {
                 var token = crypto.createHash('sha1').update(file).digest('hex');
                 return  (token === req.body.file.token);
             }).forEach(function (file) {
-                ldr.push(file);
+                ldr.push(file, {}, {}, function(doc) {
+                    doc.filename = doc.fid + '.' + req.body.loader;
+                    doc.extension = req.body.loader;
+                });
             });
         });
       }
@@ -146,7 +153,10 @@ module.exports = function(router, core) {
         }));
       }
       else if (req.body.type === 'uri') {
-        ldr.push(req.body.uri);
+        ldr.push(req.body.uri, {}, {}, function(doc) {
+            doc.filename = doc.fid + '.' + req.body.loader;
+            doc.extension = req.body.loader;
+        });
       }
       else {
         return next(new Errors.InvalidParameters('Unknown type.'));

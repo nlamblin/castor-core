@@ -65,7 +65,7 @@ module.exports = function(warmup) {
   config.fix('itemsPerPage',         30);
   config.fix('concurrency',          os.cpus().length);
   config.fix('writeConcern',         1);
-  config.fix('rootURL',             "index");
+  config.fix('rootURL',              undefined);
   config.fix('delay',                250);
   config.fix('prefixURL',            ''); // ex: /1234
   config.fix('maxFileSize',          10485760); // 10 Mo

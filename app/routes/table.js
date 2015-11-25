@@ -164,11 +164,16 @@ module.exports = function(router, core) {
         return next();
       }
       req.query.alt = 'html';
-      datamodel([core.models.page,core.models.mongo, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
+      datamodel([core.models.page, core.models.mongo, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
       .apply(req, res, next);
   });
 
-
+  router.route(prefixURL + '/')
+  .get(function(req, res, next) {
+      req.routeParams.resourceName =
+      datamodel([core.models.page, core.models.mongo, core.models.getRoot])
+      .apply(req, res, next);
+  });
 
   return router;
 };

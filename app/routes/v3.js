@@ -47,6 +47,7 @@ module.exports = function(router, core) {
   require('./v3/load.js')(router, core);
   require('./v3/setcol.js')(router, core);
   require('./v3/settab.js')(router, core);
+  require('./v3/setroot.js')(router, core);
 
   return router;
 };

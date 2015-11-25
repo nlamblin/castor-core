@@ -24,6 +24,7 @@ module.exports = function(model) {
         "_text": req.config.get('description'),
         "_hash": null,
         "_template": "Empty.",
+        "_root": true,
         "_columns" : {
           "_wid" : {
             //
