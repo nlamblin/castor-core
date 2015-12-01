@@ -66,19 +66,25 @@ module.exports = function(model) {
               //
               "label" : "Identifier",
               "scheme": "http://purl.org/dc/elements/1.1/identifier",
-              "comment" : "A mandatory column for \"dollar\" URLs"
             },
             "_url" : {
-              "label" : "URL",
-              "comment" : "Recommended Column to expose existing table",
+              "label" : "Representative label",
               "scheme": "http://schema.org/url",
-              "type": "http://www.w3.org/TR/xmlschema-2/#anyURI",
+              "type": "http://www.w3.org/TR/xmlschema-2/#string",
               "get": ["baseURL", "_table._wid", "_wid"],
               "join": "/",
               "title": {
-                "get" : ["_index", "_wid"],
+                "get" : "_label",
                 "join" : "/"
               }
+            },
+            "_description" : {
+              "label" : "Representative text",
+              "scheme": "https://schema.org/description",
+              "type": "http://www.w3.org/TR/xmlschema-2/#anyURI",
+              "get": "_title",
+              "truncate": 8,
+              "append": "..."
             }
           }
       });
@@ -183,6 +189,7 @@ module.exports = function(model) {
         debug('clone table', query);
         self.mongoCollectionsIndexHandle.findOne(query).then(function(newdoc) {
             delete newdoc._id;
+            newdoc._from  = self.property.originalName;
             newdoc._wid = req.routeParams.resourceName;
             newdoc.fid  = req.routeParams.resourceName;
             newdoc.number = 0;

@@ -10,6 +10,7 @@ var path = require('path')
   , Errors = require('../helpers/errors.js')
   , bodyParser = require('body-parser')
   , cors = require('cors')
+  , slashes = require("connect-slashes")
   , check = require('../middlewares/check.js')
   ;
 
@@ -83,7 +84,7 @@ module.exports = function(router, core) {
   router.route(prefixURL + '/:resourceName/:star')
 
   .all(cors())
-  .get(check.query({'?alt' : ['csv', 'nq', 'json']}))
+  .get(check.query({'?alt' : ['csv', 'nq', 'json', 'raw']}))
   .get(function(req, res, next) {
       debug('get /:resourceName/:star', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined) {
@@ -143,6 +144,7 @@ module.exports = function(router, core) {
 
   router.route(prefixURL + '/:resourceName')
   .all(cors())
+  .all(slashes())
   .get(function(req, res, next) {
       debug('get /:resourceName', req.routeParams);
       if (req.routeParams.resourceName === undefined) {

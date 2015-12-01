@@ -39,6 +39,13 @@ module.exports = function(model) {
       debug('mongoCursor on `' + this.collectionName + '`', this.mongoQuery);
       fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery).limit(10000));
   })
+  .append('mongoCounter', function(req, fill) {
+      if (this.mongoDatabaseHandle instanceof Error) {
+        return fill();
+      }
+      this.mongoDatabaseHandle.collection(this.collectionName).count(this.mongoQuery).then(fill).catch(fill);
+  })
+
 
 
   return model;

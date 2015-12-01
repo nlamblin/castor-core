@@ -34,8 +34,12 @@ module.exports = function(router, core) {
       if (typeof req.body.label !== 'object') {
         req.body.label = {}
       }
-      if (typeof req.body.xtend !== 'object') {
-        req.body.xtend = {}
+      if (typeof req.body.enrich !== 'object') {
+        req.body.enrich = {}
+      }
+      if (req.body.type === 'fork') {
+        req.body.options = '!.*._content.json';
+        resourceName = path.basename(req.body.uri);
       }
       if (resourceName === 'index') {
         return next(new Errors.Forbidden('`index` is read only'));
@@ -104,10 +108,10 @@ module.exports = function(router, core) {
           });
       });
       ldr.use('**/*', function (input, submit) {
-          if (req.body.xtend !== 'object') {
+          if (req.body.enrich !== 'object') {
             return submit(null, input);
           }
-          JBJ.render(req.body.xtend, input, function (err, res) {
+          JBJ.render(req.body.enrich, input, function (err, res) {
               if (typeof res === 'object') {
                 extend(input, res);
               }
@@ -156,6 +160,21 @@ module.exports = function(router, core) {
         ldr.push(req.body.uri, {}, {}, function(doc) {
             doc.filename = doc.fid + '.' + req.body.loader;
             doc.extension = req.body.loader;
+        });
+      }
+      else if (req.body.type === 'fork') {
+        var sourceName = path.basename(referer.pathname);
+        ldr.push(url.format({
+              protocol: "http",
+              hostname: "127.0.0.1",
+              port: core.config.get('port'),
+              pathname: "/" + sourceName + '/*',
+              query: {
+                alt: "raw"
+              }
+        }), {}, {}, function(doc) {
+            doc.filename = 'forked.json';
+            doc.extension = 'json';
         });
       }
       else {

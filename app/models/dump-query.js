@@ -3,6 +3,7 @@
 
 var path = require('path')
   , basename = path.basename(__filename, '.js')
+  , crypto = require('crypto')
   , debug = require('debug')('castor:models:' + basename)
   , datamodel = require('datamodel')
   , MongoClient = require('mongodb').MongoClient
@@ -91,6 +92,11 @@ module.exports = function(model) {
   .send(function(res, next) {
       var self = this;
 
+
+      if (self.mongoCounter) {
+        debug('mongoCounter', self.mongoCounter);
+        res.set('ETag', String('W/').concat(crypto.createHash('md5').update(String(self.mongoCounter)).digest('base64').replace(/=+$/, '')));
+      }
       res.set('Content-Type', this.mimeType);
       res.on('finish', function() {
           self.mongoDatabaseHandle.close();
@@ -124,7 +130,7 @@ module.exports = function(model) {
       //
       // Break pipe for RAW format
       //
-      if (this.extension === 'raw' && this.documentName) {
+      if (this.extension === 'raw') {
         return stream.pipe(es.map(function (data, submit) {
               Object.keys(data).filter(function(key) { return key[0] !== '_' }).forEach(function(key) { delete data[key] });
               delete data._id;

@@ -23,7 +23,7 @@ module.exports = function(router, core) {
       datamodel([core.models.mongo, core.models.postTable])
       .apply(req)
       .then(function(locals) {
-          return res.send(204);
+          return res.sendStatus(204);
       })
       .catch(next);
   });

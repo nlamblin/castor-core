@@ -18,7 +18,6 @@ module.exports = function(model) {
       q.state = {
         $nin: [ "deleted", "hidden" ]
       };
-      debug('mongoQuery', q);
       fill(q);
   })
   .append('template', function(req, fill) {
@@ -34,7 +33,6 @@ module.exports = function(model) {
             fill(new Errors.TableNotFound('The root table does not exist.'));
           }
           else  {
-            debug('template', doc._template);
             fill(doc._template);
           }
       }).catch(fill);
@@ -68,7 +66,6 @@ module.exports = function(model) {
             fill(new Errors.TableNotFound('The root table does not exist.'));
           }
           else if (table._columns !== undefined) {
-            debug('table', table);
             docsFrom(table);
           }
           else if (table._columns === undefined && req.config.has('flyingFields')) {
@@ -100,7 +97,6 @@ module.exports = function(model) {
       .concat(self.template)
       .concat("\n")
       .concat('{% endblock %}');
-      debug('scope', self.table);
       res.set('Content-Type', "text/html");
       res.renderString(self.template, self.table);
   });
