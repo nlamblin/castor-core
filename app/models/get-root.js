@@ -4,14 +4,14 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
-  , Where = require('../helpers/where.js')
+  , Query = require('../helpers/query.js')
    ;
 
 module.exports = function(model) {
+  var qry = new Query();
   model
   .declare('mongoQuery', function(req, fill) {
-      var w = new Where()
-      var q = w.parse(req.query.where);
+      var q = qry.where(req.query.where).get('$query');
       if (req.routeParams.resourceName === 'index') {
         q = { _wid: { $ne: "index" } }
       }

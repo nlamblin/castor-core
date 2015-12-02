@@ -84,7 +84,7 @@ module.exports = function(router, core) {
   router.route(prefixURL + '/:resourceName/:star')
 
   .all(cors())
-  .get(check.query({'?alt' : ['csv', 'nq', 'json', 'raw']}))
+  .get(check.query({'?alt' : ['csv', 'nq', 'json', 'raw'], '?where' : String, '?orderby' : String}))
   .get(function(req, res, next) {
       debug('get /:resourceName/:star', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined) {

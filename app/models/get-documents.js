@@ -4,10 +4,11 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
-  , Where = require('../helpers/where.js')
+  , Query = require('../helpers/query.js')
   ;
 
 module.exports = function(model) {
+  var qry = new Query();
   if (model === undefined) {
     model = require('datamodel')();
   }
@@ -21,8 +22,7 @@ module.exports = function(model) {
       }
   })
   .declare('mongoQuery', function(req, fill) {
-      var w = new Where()
-      var q = w.parse(req.query.where);
+      var q = qry.where(req.query.where).get('$query');
       if (req.routeParams.resourceName === 'index') {
         q = { _wid: { $ne: "index" } }
       }
@@ -36,8 +36,9 @@ module.exports = function(model) {
       if (this.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
-      debug('mongoCursor on `' + this.collectionName + '`', this.mongoQuery);
-      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery).limit(10000));
+      var mongoSort = qry.orderBy(req.query.orderby).get('$orderby');
+      debug('mongoCursor on `' + this.collectionName + '`', this.mongoQuery, mongoSort);
+      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery).sort(mongoSort).limit(10000));
   })
   .append('mongoCounter', function(req, fill) {
       if (this.mongoDatabaseHandle instanceof Error) {
