@@ -59,7 +59,7 @@ Query.prototype = {
   orderBy : function (str) {
     var q = [];
     var input = CSV.parse(String(str || ''), ' ');
-    if (Array.isArray(input) && Array.isArray(input[0])) {
+    if (Array.isArray(input) && Array.isArray(input[0]) && input[0][0] !== '') {
       q.push([input[0][0], getOrder(input[0][1])]);
     }
     this.query['$orderby'] = q;
