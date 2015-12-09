@@ -22,13 +22,25 @@ module.exports = function(warmup) {
       boolean: ['help', 'version', 'verbose', 'debug']
   });
 
+  var appname = path.basename(process.argv[1])
   var usage = [
-    "Usage: " + path.basename(process.argv[1]) + " [options...] <path>",
+    "Usage: " + appname  + " [options...] <path>",
     "",
     "Options:",
     "\t -v, --verbose       Make the operation more talkative",
     "\t -V, --version       Show version number and quit",
-    ""
+    "",
+    "It will look in all the obvious places to set the configuration:",
+    " - command line arguments",
+    " - environment variables prefixed with " + appname + "_",
+    " - if you passed an option --config file then from that file",
+    " - a local ." + appname + "rc or the first found looking in ./ ../ ../../ ../../../ etc.",
+    " - $HOME/." + appname + "rc",
+    " - $HOME/." + appname + "/config",
+    " - $HOME/.config/" + appname + "",
+    " - $HOME/.config/" + appname + "/config",
+    " - /etc/" + appname + "rc",
+    " - /etc/" + appname + "/config",
   ].join("\n");
 
 
@@ -87,7 +99,8 @@ module.exports = function(warmup) {
   config.fix('browserifyModules',    []);
   config.fix('corpusFields',         {});
   config.fix('documentFields',       {});
-  config.load('pollux', argv);
+
+  config.load(appname, argv);
 
 
   if (!fs.existsSync(config.get('dataPath')) || !argv._[0]) {
