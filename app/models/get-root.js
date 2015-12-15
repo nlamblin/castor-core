@@ -20,6 +20,14 @@ module.exports = function(model) {
       };
       fill(q);
   })
+  .declare('mimeType', function(req, fill) {
+      if (req.query.alt === 'raw') {
+        fill('application/json');
+      }
+      else {
+        fill('text/html');
+      }
+  })
   .append('template', function(req, fill) {
       var Errors = req.config.get('Errors');
       var self = this;
@@ -97,8 +105,13 @@ module.exports = function(model) {
       .concat(self.template)
       .concat("\n")
       .concat('{% endblock %}');
-      res.set('Content-Type', "text/html");
-      res.renderString(self.template, self.table);
+      res.set('Content-Type', self.mimeType);
+      if (self.mimeType === 'application/json') {
+        res.send(self.table);
+      }
+      else {
+        res.renderString(self.template, self.table);
+      }
   });
   return model;
 }

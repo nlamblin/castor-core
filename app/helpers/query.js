@@ -65,12 +65,29 @@ Query.prototype = {
     this.query['$orderby'] = q;
     return this;
   },
+  limit: function (str) {
+    var q = [];
+    var input = CSV.parse(String(str || ''), ',');
+    if (Array.isArray(input) && Array.isArray(input[0]) && input[0][0] !== '' && input[0][1] !== '') {
+      this.query['$offset'] = input[0][1];
+      this.query['$limit'] = input[0][1];
+    }
+    else if (Array.isArray(input) && Array.isArray(input[0]) && input[0][0] !== '') {
+      this.query['$offset'] = 0;
+      this.query['$limit'] = input[0][1];
+    }
+    else {
+      this.query['$offset'] = 0;
+      this.query['$limit'] = 100;
+    }
+    return this;
+  },
   get: function (key) {
     if (key === undefined) {
       return this.query;
     }
     else {
-      return  this.query[key];
+      return this.query[key];
     }
   }
 }
