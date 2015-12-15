@@ -160,17 +160,19 @@ module.exports = function(router, core) {
 
   router.route(prefixURL + '/:resourceName/:documentName')
   .all(cors())
+  .get(check.query({'?alt' : ['raw']}))
   .get(function(req, res, next) {
       debug('get /:resourceName', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined) {
         return next();
       }
-      req.query.alt = 'html';
+      req.query.alt = req.query.alt === undefined ? 'html' : req.query.alt;
       datamodel([core.models.page, core.models.mongo, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
       .apply(req, res, next);
   });
 
   router.route(prefixURL + '/')
+  .get(check.query({'?alt' : ['raw']}))
   .get(function(req, res, next) {
       req.routeParams.resourceName =
       datamodel([core.models.page, core.models.mongo, core.models.getRoot])
