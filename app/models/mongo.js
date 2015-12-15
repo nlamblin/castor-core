@@ -23,7 +23,7 @@ module.exports = function(model) {
         "_label": req.config.get('title'),
         "_text": req.config.get('description'),
         "_hash": null,
-        "_template": "Empty.",
+        "_template": "<ul><li>_wid : {{_wid}}</li><li>_url : <a href=\"{{_url|e}}\">{{$_url}}</a></li></ul><ol> {% for doc in _documents %} <li><ul><li>_wid : {{_wid}}</li><li>_label : {{_label}}</li><li>_text : {{_text}}</li><li>_hash : {{_hash}}</li></ul></li> {% endfor %}</ol><hr><a href=\"?alt=raw\">View scope</a>",
         "_root": true,
         "_columns" : {
           "_wid" : {
