@@ -9,13 +9,12 @@ var path = require('path')
   , bodyParser = require('body-parser')
   ;
 
-module.exports = function(config, ldr, cpt) {
+module.exports = function(router, core) {
 
-  var router = express.Router();
   /*
-  router.route('/-/v2/browse.:format').all(require('./routes/browse.js')(config));
-  router.route('/-/v2//corpus.:format').all(require('./routes/corpus.js')(config));
-  router.route('/-/v2/compute.:format').all(require('./routes/compute.js')(config, cpt));
+  router.route('/-/v2/browse.json').all(require('./v2/browse.js')(core));
+  // router.route('/-/v2/corpus.:format').all(require('./v2/corpus.js')(core));
+  router.route('/-/v2/compute.json').all(require('./v2/compute.js')(core));
   router.route('/-/v2//display/:doc.:format').all(require('./routes/display.js')(config));
   router.route('/-/v2/dump/:doc.:format').all(require('./routes/dump.js')(config));
   router.route('/-/v2/save/:doc').all(bodyParser.urlencoded({ extended: false })).post(require('./routes/save.js')(config));
