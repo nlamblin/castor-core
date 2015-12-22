@@ -160,7 +160,7 @@ module.exports = function(router, core) {
 
   router.route(prefixURL + '/:resourceName/:documentName')
   .all(cors())
-  .get(check.query({'?alt' : ['raw']}))
+  .get(check.query({'?alt' : ['json', 'raw']}))
   .get(function(req, res, next) {
       debug('get /:resourceName', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined) {
@@ -172,7 +172,7 @@ module.exports = function(router, core) {
   });
 
   router.route(prefixURL + '/')
-  .get(check.query({'?alt' : ['raw']}))
+  .get(check.query({'?alt' : ['json', 'raw']}))
   .get(function(req, res, next) {
       req.routeParams.resourceName =
       datamodel([core.models.page, core.models.mongo, core.models.getRoot])

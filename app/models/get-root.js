@@ -5,7 +5,8 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
   , Query = require('../helpers/query.js')
-   ;
+  , recall = require('../helpers/recall.js')
+  ;
 
 module.exports = function(model) {
   var qry = new Query();
@@ -22,6 +23,9 @@ module.exports = function(model) {
   })
   .declare('mimeType', function(req, fill) {
       if (req.query.alt === 'raw') {
+        fill('application/json');
+      }
+      else if (req.query.alt === 'json') {
         fill('application/json');
       }
       else {
@@ -51,19 +55,28 @@ module.exports = function(model) {
       if (self.mongoCollectionsIndexHandle instanceof Error) {
         return fill();
       }
+      var request = recall({
+          port: req.config.get('port')
+      });
+
+
 
       function docsFrom(table) {
-        var collection;
-        if (table._wid === 'index') {
-          collection = self.mongoDatabaseHandle.collection(req.config.get('collectionsIndexName'))
-        }
-        else {
-          collection = self.mongoDatabaseHandle.collection(table._wid)
-        }
-        collection.find(self.mongoQuery).toArray().then(function(res) {
-            table._documents = res;
-            fill(table);
-        }).catch(fill);
+       
+        request({
+            pathname: '/' + table._wid + '/*',
+            query: {
+              alt :'json'
+            }
+          }, function(err, res) {
+            if (err) {
+              fill(err)
+            }
+            else {
+              table._documents = res;
+              fill(table);
+            }
+        })
       }
 
 
@@ -97,20 +110,23 @@ module.exports = function(model) {
   })
   .send(function(res, next) {
       var self = this;
-      var template =
-      String('{% extends "root.html" %}')
-      .concat("\n")
-      .concat('{% block body %}')
-      .concat("\n")
-      .concat(self.template)
-      .concat("\n")
-      .concat('{% endblock %}');
       res.set('Content-Type', self.mimeType);
       if (self.mimeType === 'application/json') {
         res.send(self.table);
       }
       else {
+        return res.render("root.html", self.table);
+        /*
+        var template =
+        String('{% extends "root.html" %}')
+        .concat("\n")
+        .concat('{% block body %}')
+        .concat("\n")
+        .concat(self.template)
+        .concat("\n")
+        .concat('{% endblock %}');
         res.renderString(self.template, self.table);
+        */
       }
   });
   return model;
