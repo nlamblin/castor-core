@@ -58,7 +58,7 @@ module.exports = function(model) {
           "_label": "Table "+req.routeParams.resourceName,
           "_text": "Undefined description.",
           "_hash": null,
-           "_template": "<ul><li>_wid : {{_wid}}</li><li>_url : {{_url}}</li><li>_description : {{_description}}</li><li>_url : <a href=\"{{_url|e}}\">{{$_url}}</a></li><li>_label : {{_label}}</li><li>_text : {{_text}}</li><li>_hash : {{_hash}}</li></ul><hr><a href=\"?alt=raw\">View scope</a>",
+           "_template": "<ul><li>_wid : {{_wid}}</li><li>_url : {{_url}}</li><li>_description : {{_description}}</li><li>_url : <a href=\"{{_url|e}}\">{{$_url}}</a></li><li>_label : {{_label}}</li><li>_text : {{_text}}</li><li>_hash : {{_hash}}</li></ul>",
           "_columns" : {
             "_wid" : {
               //

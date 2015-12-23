@@ -6,6 +6,7 @@ var path = require('path')
   , debug = require('debug')('castor:models:' + basename)
   , Query = require('../helpers/query.js')
   , recall = require('../helpers/recall.js')
+  , async = require('async')
   ;
 
 module.exports = function(model) {
@@ -55,58 +56,45 @@ module.exports = function(model) {
       if (self.mongoCollectionsIndexHandle instanceof Error) {
         return fill();
       }
-      var request = recall({
+      var retrieve = recall({
           port: req.config.get('port')
       });
-
-
-
-      function docsFrom(table) {
-       
-        request({
-            pathname: '/' + table._wid + '/*',
-            query: {
-              alt :'json'
-            }
-          }, function(err, res) {
-            if (err) {
-              fill(err)
-            }
-            else {
-              table._documents = res;
-              fill(table);
-            }
-        })
-      }
-
 
       self.mongoCollectionsIndexHandle.findOne({
           "_root" : true
       }).then(function(table) {
           if (table === null) {
-            fill(new Errors.TableNotFound('The root table does not exist.'));
+            return fill(new Errors.TableNotFound('The root table does not exist.'));
           }
-          else if (table._columns !== undefined) {
-            docsFrom(table);
-          }
-          else if (table._columns === undefined && req.config.has('flyingFields')) {
-            table._columns = req.config.get('flyingFields');
-            docsFrom(table);
-          }
-          else if (table._columns === undefined) {
-            table._columns = []
-            docsFrom(table);
-          }
-          else {
-            docsFrom(table);
-          }
-      }).catch(fill);
-  })
-  .complete('table', function(req, fill) {
-      var self = this;
-      Object.keys(self.table).filter(function(key) { return key[0] !== '_' }).forEach(function(key) { delete self.table[key] });
-      delete self.table._id;
-      fill(self.table);
+          async.parallel([
+              function(callback) {
+                retrieve({
+                    pathname: '/index/' + table._wid + '/*',
+                    query: {
+                      alt :'json'
+                    }
+                }, callback);
+              },
+              function(callback) {
+                retrieve({
+                    pathname: '/' + table._wid + '/*',
+                    query: {
+                      alt :'json'
+                    }
+                }, callback);
+              }
+            ],
+            function(err, results) {
+              if (err) {
+                fill(err)
+              }
+              else {
+                results[0][0]._documents = results[1];
+                fill(results[0][0]);
+              }
+          });
+      })
+      .catch(fill);
   })
   .send(function(res, next) {
       var self = this;
