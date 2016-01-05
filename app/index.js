@@ -126,7 +126,6 @@ module.exports = function(config, online) {
       core.loaders.push([item.pattern || '**/*', func, item.options]);
   });
   core.loaders.push(['**/*', require('./loaders/document.js'), { stylesheet: config.get('documentFields') }]);
-  core.loaders.push(['**/*', require('./loaders/wid.js'), {}]);
   core.loaders.push(['**/*', require('./loaders/append.js'), {}]);
 
 

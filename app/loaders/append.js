@@ -2,10 +2,22 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , path = require('path')
+  , shorthash = require('short-hash')
   ;
+
 module.exports = function(options) {
   options = options || {};
   return function (input, submit) {
+    
+    // _wid
+    if (input.wid !== undefined) {
+      input._wid = input.wid;
+      delete input.wid;
+    }
+    if (input._wid === undefined) {
+      input._wid = shorthash(input.fid + input.number);
+    }
+
     // _text
     if (input.text) {
       input._text = input.text;
