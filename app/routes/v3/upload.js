@@ -11,7 +11,6 @@ var path = require('path')
   , crypto = require('crypto')
   , JFUM = require('jfum')
   , Errors = require('../../helpers/errors.js')
-  , Loader = require('castor-load')
  ;
 
 module.exports = function(router, core) {
