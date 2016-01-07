@@ -17,7 +17,8 @@ var path = require('path')
 
 module.exports = function(router, core) {
 
-  var prefixURL = core.config.get('prefixURL');
+  var prefixURL = core.config.get('prefixURL').replace(/\/+$/g, '');
+  var prefixKEY = core.config.get('prefixKEY').replace(/\/+$/g, '');
 
   //
   // Define route parameters
@@ -161,7 +162,6 @@ module.exports = function(router, core) {
   //
   // Public route
   //
-  var prefixKEY = 'ark:';
   router.route(prefixURL + '/' + prefixKEY + '/:documentName')
   .all(cors())
   .get(check.query({'?alt' : ['json', 'raw']}))
