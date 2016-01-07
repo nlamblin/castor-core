@@ -67,7 +67,7 @@ module.exports = function(model) {
               },
               function(callback) {
                 retrieve({
-                    pathname: '/' + table._wid + '/*',
+                    pathname: '/' + table._wid + '/' + req.routeParams.documentName + '/',
                     query: {
                       alt :'json'
                     }
@@ -79,8 +79,8 @@ module.exports = function(model) {
                 fill(err)
               }
               else {
-                results[0][0]._documents = results[1];
-                fill(results[0][0]);
+                results[1][0]._table = results[0][0];
+                fill(results[1][0]);
               }
           });
       })
@@ -93,10 +93,10 @@ module.exports = function(model) {
         res.send(self.table);
       }
       else {
-        return res.render("index.html", self.table);
+        return res.render("item.html", self.table);
         /*
         var template =
-        String('{% extends "index.html" %}')
+        String('{% extends "item.html" %}')
         .concat("\n")
         .concat('{% block body %}')
         .concat("\n")

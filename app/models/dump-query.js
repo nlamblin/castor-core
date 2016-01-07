@@ -45,9 +45,11 @@ module.exports = function(model) {
       else if (this.extension === 'raw') {
         fill('application/json');
       }
+      /*
       else if (this.extension === 'html') {
         fill('text/html');
       }
+      */
       else {
         fill('application/json');
       }
@@ -279,7 +281,7 @@ module.exports = function(model) {
             });
       }));
 
-
+      /*
       if (this.mimeType === 'text/html') {
         var template =
         String('{% extends "page.html" %}')
@@ -305,6 +307,8 @@ module.exports = function(model) {
       else {
         stream = stream.pipe(this.outputing)
       }
+      */
+      stream = stream.pipe(this.outputing)
 
       stream.pipe(res);
   });

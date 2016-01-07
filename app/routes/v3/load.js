@@ -108,6 +108,15 @@ module.exports = function(router, core) {
           });
       });
       ldr.use('**/*', function (input, submit) {
+          if (req.body.reskey !== 'object') {
+            return submit(null, input);
+          }
+          JBJ.render(req.body.reskey, input, function (err, res) {
+              input._wid = res;
+              submit(err, input);
+          });
+      });
+      ldr.use('**/*', function (input, submit) {
           if (req.body.enrich !== 'object') {
             return submit(null, input);
           }

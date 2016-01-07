@@ -8,11 +8,14 @@ var path = require('path')
 module.exports = function(options) {
   options = options || {};
   return function (input, submit) {
-    
+
     // _wid
     if (input.wid !== undefined) {
       input._wid = input.wid;
       delete input.wid;
+    }
+    if (typeof input._wid !== 'string') {
+      delete input._wid;
     }
     if (input._wid === undefined) {
       input._wid = shorthash(input.fid + input.number);

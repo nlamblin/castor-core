@@ -153,10 +153,30 @@ module.exports = function(router, core) {
       datamodel([core.models.page, core.models.mongo, core.models.getTable])
       .apply(req)
       .then(function(locals) {
-          return res.render("table.html", locals);
+          return res.render("admin.html", locals);
       })
       .catch(next);
   });
+
+  //
+  // Public route
+  //
+  var prefixKEY = 'ark:';
+  router.route(prefixURL + '/' + prefixKEY + '/:documentName')
+  .all(cors())
+  .get(check.query({'?alt' : ['json', 'raw']}))
+  .get(function(req, res, next) {
+      debug('FRONT OFFICE');
+      debug('get '+ '/' + prefixKEY + '/:documentName', req.routeParams);
+      if (req.routeParams.documentName === undefined) {
+        return next();
+      }
+      req.query.alt = req.query.alt === undefined ? 'html' : req.query.alt;
+      datamodel([core.models.page, core.models.mongo, core.models.getRootDocument])
+      .apply(req, res, next);
+  });
+
+
 
   router.route(prefixURL + '/:resourceName/:documentName')
   .all(cors())
@@ -171,13 +191,18 @@ module.exports = function(router, core) {
       .apply(req, res, next);
   });
 
+  //
+  // Public route
+  //
   router.route(prefixURL + '/')
   .get(check.query({'?alt' : ['json', 'raw']}))
   .get(function(req, res, next) {
+      debug('FRONT OFFICE');
       req.routeParams.resourceName =
       datamodel([core.models.page, core.models.mongo, core.models.getRoot])
       .apply(req, res, next);
   });
 
-  return router;
+
+    return router;
 };

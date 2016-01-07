@@ -101,6 +101,7 @@ module.exports = function(config, online) {
   core.models.mongo = require('./models/mongo.js')
   core.models.reduceTable = require('./models/reduce-table.js')
   core.models.getRoot = require('./models/get-root.js')
+  core.models.getRootDocument = require('./models/get-root-document.js')
   core.models.getTable = require('./models/get-table.js')
   core.models.getDocument = require('./models/get-document.js')
   core.models.getDocuments = require('./models/get-documents.js')
