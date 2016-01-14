@@ -79,6 +79,10 @@ module.exports = function(model) {
                 fill(err)
               }
               else {
+                results[0][0]._globals = {
+                  prefixKEY : req.config.get('prefixKEY'),
+                  prefixURL : req.config.get('prefixURL')
+                };
                 results[0][0]._documents = results[1];
                 fill(results[0][0]);
               }
