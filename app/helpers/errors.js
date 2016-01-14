@@ -10,4 +10,5 @@ module.exports.TableNotFound = require('custom-error')('TableNotFound');
 module.exports.InvalidParameters = require('custom-error')('InvalidParameters');
 module.exports.Forbidden = require('custom-error')('Forbidden');
 module.exports.BadConfig = require('custom-error')('BadConfig');
+module.exports.Unauthorized = require('custom-error')('Unauthorized');
 
