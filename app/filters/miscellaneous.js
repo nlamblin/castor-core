@@ -1,17 +1,8 @@
 'use strict';
-var flatten = require('flat');
-var marked = require('marked');
-var objectPath = require('object-path');
 
 module.exports = function(exec, execmap) {
 
   var filters = {};
-
-  filters.flatten = function(obj, args) {
-    return exec(args, function(arg) {
-        return flatten(obj);
-    }, "flatten");
-  };
 
   filters.hash = function(obj, args) {
     return exec(args, function(arg) {
@@ -29,47 +20,53 @@ module.exports = function(exec, execmap) {
     }, "nl2br");
   };
 
-  filters.objectPath = function(obj, args) {
-    return execmap(args, function(arg) {
-        return objectPath.get(obj, arg);
-    }, "objectpath");
+  filters.nbsp = function(obj, args) {
+    return exec(args, function(arg) {
+        return arg.replace(/ /, '&nbsp;');
+    }, 'nbsp');
   }
 
-  filters.split = function(obj, args) {
+  filters.or = function(obj, args) {
     return exec(args, function(arg) {
-        if(typeof(obj) == 'string') {
-          return obj.split(arg);
+        return obj || arg;
+    }, 'or');
+  }
+
+  filters.and = function(obj, args) {
+    return exec(args, function(arg) {
+        if (obj) {
+          return obj + arg;
         }
         else {
-          return obj;
+          return '';
         }
-    }, "split");
+    }, 'and');
   }
 
-  /*
-   filters.stack = function(obj, args) {
-     return exec(args, function(arg) {
-         return Array.prototype.slice.call(arguments);
-     }, "stack");
-   }
-   */
-
-  filters.add2Array = function(obj, args) {
+  filters.plus = function(obj, args) {
     return exec(args, function(arg) {
-        if (obj instanceof Array) {
-          return obj.push(arg);
-        }
-        else {
-          return obj;
-        }
-    }, "add2Array");
+        return obj + arg;
+    }, 'plus');
   }
 
-  filters.markdown = function(obj, args) {
+  filters.is = function(obj, args) {
     return exec(args, function(arg) {
-        marked.setOptions(arg);
-        return marked(obj);
-    }, "stack");
+        return obj ? arg : '';
+    }, 'is');
   }
+
+  filters.true = function(obj, args) {
+    return exec(args, function(arg) {
+        return obj === true || obj === 'true' ? arg : '';
+    }, 'true');
+  }
+
+  filters.false = function(obj, args) {
+    return exec(args, function(arg) {
+        return obj === false || obj === 'false' ? arg : '';
+    }, 'false');
+  }
+
+
   return filters;
 }
