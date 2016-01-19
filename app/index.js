@@ -20,6 +20,8 @@ var path = require('path')
   , extend =  require('extend')
   , MongoClient = require('mongodb').MongoClient
   , JBJ = require('jbj')
+  , ACL = require('./helpers/acl.js')
+  , passport = require('passport')
   ;
 
 module.exports = function(config, online) {
@@ -27,11 +29,21 @@ module.exports = function(config, online) {
   var core = {
     config : config,
     models : {},
-    computer : undefined
+    connect : undefined,
+    computer : undefined,
+    passport : passport,
+    acl : new ACL()
   };
 
 
   var Errors = config.get('Errors');
+
+   core.passport.serializeUser(function(user, done) {
+          done(null, user);
+      });
+      core.passport.deserializeUser(function(user, done) {
+          done(null, user);
+      });
 
 
   //
@@ -117,6 +129,10 @@ module.exports = function(config, online) {
       core.models[hash] = func;
   });
 
+
+  //
+  // Loaders
+  //
   core.loaders = [];
   core.loaders.push(['**/*', require('./loaders/prepend.js'), {}]);
 
@@ -214,306 +230,330 @@ module.exports = function(config, online) {
   }
 
 
-    //
-    // Define Computer
-    //
-    var cptlock, cptopts;
-    try {
-      cptopts = {
-        "port": config.get('port'),
-        "connectionURI" : config.get('connectionURI'),
-        "collectionName": config.get('collectionName'),
-        "concurrency" : config.get('concurrency')
+  //
+  // Define Computer
+  //
+  var cptlock, cptopts;
+  try {
+    cptopts = {
+      "port": config.get('port'),
+      "connectionURI" : config.get('connectionURI'),
+      "collectionName": config.get('collectionName'),
+      "concurrency" : config.get('concurrency')
+    }
+    core.computer = new Computer(config.get('corpusFields'), cptopts) ;
+
+    core.computer.use('count', require('./operators/count.js'));
+    core.computer.use('catalog', require('./operators/catalog.js'));
+    core.computer.use('distinct', require('./operators/distinct.js'));
+    core.computer.use('ventilate', require('./operators/ventilate.js'));
+    core.computer.use('total', require('./operators/total.js'));
+    core.computer.use('graph', require('./operators/graph.js'));
+    core.computer.use('groupby', require('./operators/groupby.js'));
+    core.computer.use('merge', require('./operators/merge.js'));
+
+    var operators = new Hook('operators')
+    operators.from(viewPath, __dirname)
+    operators.over(config.get('operators'))
+    operators.apply(function(hash, func) {
+        core.computer.use(hash, func);
+    });
+    var cptfunc = function(err, doc) {
+      if (cptlock === undefined || cptlock === false) {
+        cptlock = true;
+        heart.createEvent(2, {repeat: 1}, function() {
+            cptlock = false; // évite d'oublier un evenement pendant le calcul
+            core.computer.run(function(err) {
+                if (err instanceof Error) {
+                  console.error(kuler("Unable to compute some fields.", "red"), kuler(err.toString(), 'orangered'));
+                }
+                else {
+                  console.info(kuler('Corpus fields computed.', 'olive'));
+                }
+            });
+        });
       }
-      core.computer = new Computer(config.get('corpusFields'), cptopts) ;
-
-      core.computer.use('count', require('./operators/count.js'));
-      core.computer.use('catalog', require('./operators/catalog.js'));
-      core.computer.use('distinct', require('./operators/distinct.js'));
-      core.computer.use('ventilate', require('./operators/ventilate.js'));
-      core.computer.use('total', require('./operators/total.js'));
-      core.computer.use('graph', require('./operators/graph.js'));
-      core.computer.use('groupby', require('./operators/groupby.js'));
-      core.computer.use('merge', require('./operators/merge.js'));
-
-      var operators = new Hook('operators')
-      operators.from(viewPath, __dirname)
-      operators.over(config.get('operators'))
-      operators.apply(function(hash, func) {
-          core.computer.use(hash, func);
-      });
-      var cptfunc = function(err, doc) {
-        if (cptlock === undefined || cptlock === false) {
-          cptlock = true;
-          heart.createEvent(2, {repeat: 1}, function() {
-              cptlock = false; // évite d'oublier un evenement pendant le calcul
-              core.computer.run(function(err) {
-                  if (err instanceof Error) {
-                    console.error(kuler("Unable to compute some fields.", "red"), kuler(err.toString(), 'orangered'));
-                  }
-                  else {
-                    console.info(kuler('Corpus fields computed.', 'olive'));
-                  }
-              });
-          });
-        }
-      };
-      ldr.on('watching', cptfunc);
-      ldr.on('changed', cptfunc);
-      ldr.on('cancelled', cptfunc);
-      ldr.on('dropped', cptfunc);
-      ldr.on('added', cptfunc);
-    }
-    catch(e) {
-      return online(e);
-    }
+    };
+    ldr.on('watching', cptfunc);
+    ldr.on('changed', cptfunc);
+    ldr.on('cancelled', cptfunc);
+    ldr.on('dropped', cptfunc);
+    ldr.on('added', cptfunc);
+  }
+  catch(e) {
+    return online(e);
+  }
 
 
-    //
-    // WEB Server
-    //
-    var app = express();
+  //
+  // Load strategies for PassportJS
+  //
+  var strategies = new Hook('strategies')
+  strategies.from(viewPath, __dirname)
+  strategies.over(config.get('strategies'))
+  strategies.apply(function(hash, func, item) {
+      core.passport.use(func(item.options));
+  });
+
+
+  //
+  // Load access
+  //
+  var access = new Hook('access')
+  access.from(viewPath, __dirname)
+  access.over(config.get('access'))
+  access.apply(function(hash, func, item) {
+      core.acl.use(item.pattern, func(item.options));
+  });
+  core.acl.use('* /**', require('./access/recall.js')());
 
 
 
-    //
-    // is it behind a proxy,
-    //
-    if (config.get('trustProxy') === true) {
-      app.enable('trust proxy');
-    }
+  //
+  // define WEB Server
+  //
+  var app = express();
 
 
 
-    //
-    // Add middlewares to Express
-    //
-    try {
-      app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
-      app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
-      app.use(require('cookie-parser')(__dirname));
-      app.use(require('express-session')({
-            secret: __dirname,
-            cookie: {
-              maxAge: 60000,
-              secure: true
-            },
-            resave: false,
-            saveUninitialized: true
-      }));
-      var middlewares = new Hook('middlewares')
-      middlewares.from(viewPath, __dirname)
-      middlewares.over(config.get('middlewares'))
-      middlewares.apply(function(hash, func, item) {
-          app.use(item.path || hash, func(item.options || config, config));
-      });
-    }
-    catch(e) {
-      return online(e);
-    }
+  //
+  // is it behind a proxy,
+  //
+  if (config.get('trustProxy') === true) {
+    app.enable('trust proxy');
+  }
 
 
 
-
-
-    //
-    // Define the view template engine
-    //
-    //
-    var env = nunjucks.configure(viewPath, {
-        autoescape: false,
-        watch: false,
-        express: app
-    });
-
-
-
-    //
-    // "Tags" for nunjucks
-    //
-    //
-    require('nunjucks-markdown').register(env, config.get('markdown'));
-
-
-    //
-    // JBJ
-    //
-    //
-    var filters = new Hook('filters')
-    filters.from(viewPath, __dirname)
-    filters.over(config.get('filters'))
-    filters.apply(function(hash, func) {
-        JBJ.use(func());
-    });
-    Object.keys(JBJ.filters).forEach(function(filterName) {
-        env.addFilter(filterName, JBJ.filters[filterName]);
-    });
-    JBJ.register('local:', protocols('local', config));
-    JBJ.register('http:', protocols('http', config));
-    JBJ.register('https:', protocols('https', config));
-
-    //
-    // Add some vars in req
-    //
+  //
+  // Add middlewares to Express
+  //
+  //try
+  {
     app.use(function (req, res, next) {
         req.routeParams = {};
         req.config = config;
         req.core = core;
         next();
     });
-    app.use(function (req, res, next) {
-        res.renderString = function(input, options, callback) {
-          var context = {}
-          extend(context, res.locals)
-          extend(context, options)
-          env.renderString(input, context, function(err, output) {
-              if (callback !== undefined) {
-                callback(err, output);
-              }
-              else {
-                if (err) {
-                  throw err;
-                }
-                else {
-                  res.write(output);
-                  res.end();
-                }
-              }
-          });
-        }
-        next();
-    });
-
-//
-    // Define I18N
-    //
+    app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
+    app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
+    app.use(require('cookie-parser')(__dirname));
+    app.use(require('express-session')());
+    app.use(core.passport.initialize()); // Initialize Passport
+    app.use(core.passport.session()); // Restore authentication state, if any, from the session.
     I18n.expressBind(app, {
         locales: ['en', 'fr']
     });
     app.use(require('./middlewares/i18n.js')());
 
-
-
-    //
-    // Set JS modules for the browser
-    //
-    //
-    var modules = config.get('browserifyModules');
-    if (Array.isArray(modules) && modules.length > 0) {
-      app.get('/libs.js', browserify(modules, {
-            debug: true
-      }));
-      app.get('/bundle.js', function(req, res) {
-          console.warn('Depretacted route, use /libs.js');
-          res.redirect(301, '/libs.js');
-      });
-    }
-    else {
-      app.get('/libs.js', function(req, res, next) {
-          next(new Errors.PageNotFound('Not Found'));
-      });
-      app.get('/bundle.js', function(req, res, next) {
-          next(new Errors.PageNotFound('Not Found'));
-      });
-    }
-
-
-
-    //
-    // Define reserved routes : /libs, /assets, /
-    //
-    //
-    app.route('/assets/*').all(ecstatic({
-          root          : path.resolve(viewPath, './assets'),
-          baseDir       : '/assets',
-          cache         : 3600,
-          showDir       : true,
-          autoIndex     : true,
-          humanReadable : true,
-          si            : false,
-          defaultExt    : 'html',
-          gzip          : false
-    }));
-    app.route('/libs/*').all(ecstatic({
-          root          : path.resolve(viewPath, './libs'),
-          baseDir       : '/libs',
-          cache         : 3600,
-          showDir       : true,
-          autoIndex     : true,
-          humanReadable : true,
-          si            : false,
-          defaultExt    : 'html',
-          gzip          : false
-    }));
-
-    if (config.get('rootURL') !== undefined) {
-      app.route('/').all(function(req, res) {
-          res.redirect(config.get('rootURL'));
-      });
-    }
-
-
-    //
-    // Mandatory route
-    //
-
-    var pageRouter = express.Router();
-    require('./routes/page.js')(pageRouter, core)
-    app.use(pageRouter);
-
-    //
-    // Optionals routes
-    //
-    var routes = new Hook('routes')
-    routes.from(viewPath, __dirname)
-    routes.over(config.get('routes'))
-    routes.apply(function(hash, func, item) {
-        var router = express.Router();
-        func(router, core)
-        app.use(router);
+    var middlewares = new Hook('middlewares')
+    middlewares.from(viewPath, __dirname)
+    middlewares.over(config.get('middlewares'))
+    middlewares.apply(function(hash, func, item) {
+        app.use(item.path || hash, func(item.options || config, config));
     });
+  }
+  // catch(e) {
+    // return online(e);
+  // }
 
-    //
-    // catch 404 and forward to error handler
-    //
-    app.use(function(req, res, next) {
+
+
+
+
+  //
+  // Define the view template engine
+  //
+  //
+  var env = nunjucks.configure(viewPath, {
+      autoescape: false,
+      watch: false,
+      express: app
+  });
+
+
+
+  //
+  // "Tags" for nunjucks
+  //
+  //
+  require('nunjucks-markdown').register(env, config.get('markdown'));
+
+
+  //
+  // JBJ
+  //
+  //
+  var filters = new Hook('filters')
+  filters.from(viewPath, __dirname)
+  filters.over(config.get('filters'))
+  filters.apply(function(hash, func) {
+      JBJ.use(func());
+  });
+  Object.keys(JBJ.filters).forEach(function(filterName) {
+      env.addFilter(filterName, JBJ.filters[filterName]);
+  });
+  JBJ.register('local:', protocols('local', config));
+  JBJ.register('http:', protocols('http', config));
+  JBJ.register('https:', protocols('https', config));
+
+  //
+  // Add some vars in req
+  //
+  app.use(function (req, res, next) {
+      res.renderString = function(input, options, callback) {
+        var context = {}
+        extend(context, res.locals)
+        extend(context, options)
+        env.renderString(input, context, function(err, output) {
+            if (callback !== undefined) {
+              callback(err, output);
+            }
+            else {
+              if (err) {
+                throw err;
+              }
+              else {
+                res.write(output);
+                res.end();
+              }
+            }
+        });
+      }
+      next();
+  });
+
+  //
+  // Set JS modules for the browser
+  //
+  //
+  var modules = config.get('browserifyModules');
+  if (Array.isArray(modules) && modules.length > 0) {
+    app.get('/libs.js', browserify(modules, {
+          debug: true
+    }));
+    app.get('/bundle.js', function(req, res) {
+        console.warn('Depretacted route, use /libs.js');
+        res.redirect(301, '/libs.js');
+    });
+  }
+  else {
+    app.get('/libs.js', function(req, res, next) {
         next(new Errors.PageNotFound('Not Found'));
     });
+    app.get('/bundle.js', function(req, res, next) {
+        next(new Errors.PageNotFound('Not Found'));
+    });
+  }
 
 
 
-    //
-    // Route Errors handler
-    //
-    app.use(function(err, req, res, next) {
+  //
+  // Define reserved routes : /libs, /assets, /
+  //
+  //
+  app.route('/assets/*').all(ecstatic({
+        root          : path.resolve(viewPath, './assets'),
+        baseDir       : '/assets',
+        cache         : 3600,
+        showDir       : true,
+        autoIndex     : true,
+        humanReadable : true,
+        si            : false,
+        defaultExt    : 'html',
+        gzip          : false
+  }));
+  app.route('/libs/*').all(ecstatic({
+        root          : path.resolve(viewPath, './libs'),
+        baseDir       : '/libs',
+        cache         : 3600,
+        showDir       : true,
+        autoIndex     : true,
+        humanReadable : true,
+        si            : false,
+        defaultExt    : 'html',
+        gzip          : false
+  }));
+
+  if (config.get('rootURL') !== undefined) {
+    app.route('/').all(function(req, res) {
+        res.redirect(config.get('rootURL'));
+    });
+  }
+
+
+  //
+ // Access for route
+  //
+  app.route('/*').all(core.acl.route());
+
+
+
+
+  //
+  // Mandatory route
+  //
+
+  var pageRouter = express.Router();
+  require('./routes/page.js')(pageRouter, core)
+  app.use(pageRouter);
+
+  //
+  // Optionals routes
+  //
+  var routes = new Hook('routes')
+  routes.from(viewPath, __dirname)
+  routes.over(config.get('routes'))
+  routes.apply(function(hash, func, item) {
+      var router = express.Router();
+      func(router, core)
+      app.use(router);
+  });
+
+  //
+  // catch 404 and forward to error handler
+  //
+  app.use(function(req, res, next) {
+      next(new Errors.PageNotFound('Not Found'));
+  });
+
+
+
+  //
+  // Route Errors handler
+  //
+  app.use(function errorsHandler(err, req, res, next) {
+      if (res.headersSent === false) {
         if (err instanceof Errors.PageNotFound) {
-          res.status(404);
+          res.sendStatus(404);
         }
         else if (err instanceof Errors.InvalidParameters) {
-          res.status(400);
+          res.sendStatus(400);
         }
         else if (err instanceof Errors.Forbidden) {
-          res.status(403);
+          res.sendStatus(403);
         }
         else {
-          res.status(500);
+          res.sendStatus(500);
         }
-        console.error(kuler("Route error.", "red"), kuler(err.toString(), 'orangered'));
-        res.render('error.html', {
-            name: err.name,
-            message: err.message,
-            error: app.get('env') === 'development' ? err : undefined
-        });
-    });
+      }
+      console.error(kuler("Route error.", "red"), kuler(err.toString(), 'orangered'));
+      res.render('error.html', {
+          name: err.name,
+          message: err.message,
+          error: err
+      });
+  });
 
 
-    //
-    // Create HTTP server
-    //
-    //
-    var server = require('http').createServer(app)
-    server.listen(config.get('port'), function() {
-        online(null, server);
-    });
+  //
+  // Create HTTP server
+  //
+  //
+  var server = require('http').createServer(app)
+  server.listen(config.get('port'), function() {
+      online(null, server);
+  });
 
-  }
+}

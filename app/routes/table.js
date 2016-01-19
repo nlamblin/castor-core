@@ -8,7 +8,6 @@ var path = require('path')
   , assert = require('assert')
   , datamodel = require('datamodel')
   , Errors = require('../helpers/errors.js')
-  , bodyParser = require('body-parser')
   , cors = require('cors')
   , slashes = require("connect-slashes")
   , check = require('../middlewares/check.js')
@@ -17,8 +16,8 @@ var path = require('path')
 
 module.exports = function(router, core) {
 
-  var prefixURL = core.config.get('prefixURL').replace(/\/+$/g, '');
-  var prefixKEY = core.config.get('prefixKEY').replace(/\/+$/g, '');
+  var prefixURL = core.config.get('prefixURL');
+  var prefixKEY = core.config.get('prefixKEY');
 
   //
   // Define route parameters
@@ -166,7 +165,6 @@ module.exports = function(router, core) {
   .all(cors())
   .get(check.query({'?alt' : ['json', 'raw']}))
   .get(function(req, res, next) {
-      debug('FRONT OFFICE');
       debug('get '+ '/' + prefixKEY + '/:documentName', req.routeParams);
       if (req.routeParams.documentName === undefined) {
         return next();
@@ -175,7 +173,6 @@ module.exports = function(router, core) {
       datamodel([core.models.page, core.models.mongo, core.models.getRootDocument])
       .apply(req, res, next);
   });
-
 
 
   router.route(prefixURL + '/:resourceName/:documentName')
@@ -191,14 +188,13 @@ module.exports = function(router, core) {
       .apply(req, res, next);
   });
 
+
   //
   // Public route
   //
   router.route(prefixURL + '/')
   .get(check.query({'?alt' : ['json', 'raw']}))
   .get(function(req, res, next) {
-      debug('FRONT OFFICE');
-      req.routeParams.resourceName =
       datamodel([core.models.page, core.models.mongo, core.models.getRoot])
       .apply(req, res, next);
   });

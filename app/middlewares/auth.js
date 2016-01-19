@@ -2,42 +2,18 @@
 
 var path = require('path')
   , basename = path.basename(__filename, '.js')
-  , debug = require('debug')('dotcase:middlewares:' + basename)
-  , path = require('path')
-  , querystring = require('querystring')
+  , debug = require('debug')('castor:middlewares:' + basename)
+  , auth = require('basic-auth')
   ;
 
 
-module.exports = function (mode, options) {
-
-  if (!options) {
-    options = {};
-  }
-  if (!options.page) {
-    options.page = '/login';
-  }
-
-  if (mode === true) {
-    return function (req, res, next) {
-      if (req.isAuthenticated()) {
-        return next();
-      }
-      else {
-        var u = options.page;
-        // u += '/?';
-        // u + querystring.stringify({n: options.url || req.originalUrl});
-        res.redirect(u)
-      }
+module.exports = function (options) {
+  options = options || {};
+  return function (req, res, next) {
+    var credentials = auth(req)
+    if (credentials && credentials.name === 'admin') {
+      req.user = credentials;
     }
-  }
-  else {
-    return function (req, res, next) {
-      if (req.isAuthenticated()) {
-        res.redirect('/403')
-      }
-      else {
-        return next();
-      }
-    }
+    next();
   }
 }
