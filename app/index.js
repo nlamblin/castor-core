@@ -46,23 +46,6 @@ module.exports = function(config, online) {
       });
 
 
-  //
-  // Default errors tracing
-  //
-  if (online === undefined || typeof online !== 'function') {
-    online = function(err, server) {
-      if (err instanceof Error) {
-        console.error(kuler("Unable to init the server.", "red"), kuler(err.toString(), 'orangered'));
-        process.exit(3);
-        return;
-      }
-      var pack = config.get('package');
-      if (pack) {
-        console.info(kuler('App detected.', 'olive'), kuler(pack.name + ' ' + pack.version, 'limegreen'));
-      }
-      console.info(kuler('Server is listening.', 'olive'),  kuler(config.get('baseURL') + "/", "limegreen"));
-    }
-  }
 
   //
   // Load conf file attached to dataPath

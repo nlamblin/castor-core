@@ -35,7 +35,6 @@ ACL.prototype.use = function (hash, func)
 
 ACL.prototype.route = function() {
   var self = this;
-  debug('access bank', self.bank);
   return function (req, res, next) {
     var Errors = req.config.get('Errors');
     var method = req.method.toLocaleUpperCase();
@@ -74,17 +73,19 @@ ACL.prototype.route = function() {
     async.parallel(list, function(err, results) {
         results = results.filter(function(x) {return typeof x === 'boolean'})
         if (err) {
+          debug('access on error for ', path);
           return next(err);
         }
         if (results.length === 0) {
+          debug('access ignored for ', path);
           return next()
         }
         if (results.reduce(check, false) === true) {
-          debug('access allowed', err, results);
+          debug('access allowed for ', path, err, results);
           next();
         }
         else {
-          debug('access denied', err, results);
+          debug('access denied for ', path, err, results);
           next(new Errors.Forbidden('restricted access'));
         }
     });
