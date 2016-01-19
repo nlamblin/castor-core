@@ -30,8 +30,12 @@ module.exports = function(config) {
     , themefile = include(themedirs, themename, false)
     , themepath = path.dirname(themefile)
     , themeconf = require(themefile) || {}
+    , themepack = path.join(themepath, 'package.json')
     ;
 
+  if (fs.existsSync(themepack)) {
+    config.set('package', require(themepack));
+  }
   if (Array.isArray(themeconf.browserifyModules)) {
     var browserifyDirs = [
       path.join(themepath, 'node_modules')
