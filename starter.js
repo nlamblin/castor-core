@@ -21,7 +21,7 @@ module.exports = function(warmup) {
         v: 'verbose',
         d: 'debug'
       },
-      boolean: ['help', 'version', 'verbose', 'debug']
+      boolean: ['help', 'version', 'verbose', 'debug', 'dry-run']
   });
 
   var appname = path.basename(process.argv[1])
@@ -61,7 +61,6 @@ module.exports = function(warmup) {
     if (!argv.verbose) {
       console.log = require('debug')('console:log');
     }
-
 
     //
     // Default config parameters
