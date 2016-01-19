@@ -63,7 +63,7 @@ Configurator.prototype.merge = function merge(obj) {
     else {
       o = obj[key];
     }
-    self.set(key, o);
+    self.config[key] = o;
   });
 };
 

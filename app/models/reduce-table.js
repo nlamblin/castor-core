@@ -10,7 +10,7 @@ var path = require('path')
 module.exports = function(model) {
   model
   .append('field', function(req, fill) {
-      var Errors = req.config.get('Errors');
+      var Errors = req.core.Errors;
       if (this.mongoCollectionsIndexHandle instanceof Error) {
         return fill();
       }

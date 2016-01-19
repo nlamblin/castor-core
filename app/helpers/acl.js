@@ -36,7 +36,7 @@ ACL.prototype.use = function (hash, func)
 ACL.prototype.route = function() {
   var self = this;
   return function (req, res, next) {
-    var Errors = req.config.get('Errors');
+    var Errors = req.core.Errors;
     var method = req.method.toLocaleUpperCase();
     var path = req.path;
     var match = function(x) {

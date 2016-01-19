@@ -13,7 +13,7 @@ module.exports = function(model) {
 
   model
   .declare('property', function(req, fill) {
-      var Errors = req.config.get('Errors');
+      var Errors = req.core.Errors;
       var types = {
         "value" : undefined,
         "link" : "http://www.w3.org/TR/xmlschema-2/#anyURI"

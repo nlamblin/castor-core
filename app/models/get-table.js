@@ -9,7 +9,7 @@ var path = require('path')
 module.exports = function(model) {
   model
   .append('table', function(req, fill) {
-      var Errors = req.config.get('Errors');
+      var Errors = req.core.Errors;
       var self = this;
       if (self.mongoCollectionsIndexHandle instanceof Error) {
         return fill();

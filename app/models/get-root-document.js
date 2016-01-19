@@ -24,7 +24,7 @@ module.exports = function(model) {
       }
   })
   .append('template', function(req, fill) {
-      var Errors = req.config.get('Errors');
+      var Errors = req.core.Errors;
       var self = this;
       if (self.mongoCollectionsIndexHandle instanceof Error) {
         return fill();
@@ -41,7 +41,7 @@ module.exports = function(model) {
       }).catch(fill);
   })
   .append('table', function(req, fill) {
-      var Errors = req.config.get('Errors');
+      var Errors = req.core.Errors;
       var self = this;
       if (self.mongoCollectionsIndexHandle instanceof Error) {
         return fill();

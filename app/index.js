@@ -22,6 +22,7 @@ var path = require('path')
   , JBJ = require('jbj')
   , ACL = require('./helpers/acl.js')
   , passport = require('passport')
+  , Errors = require('./helpers/errors.js')
   ;
 
 module.exports = function(config, online) {
@@ -32,36 +33,22 @@ module.exports = function(config, online) {
     connect : undefined,
     computer : undefined,
     passport : passport,
-    acl : new ACL()
+    acl : new ACL(),
+    Errors : Errors
   };
 
 
-  var Errors = config.get('Errors');
-
-   core.passport.serializeUser(function(user, done) {
-          done(null, user);
-      });
-      core.passport.deserializeUser(function(user, done) {
-          done(null, user);
-      });
-
-
-
   //
-  // Load conf file attached to dataPath
+  // Passport
   //
-  var dateConfig;
-  try {
-    var confile = path.normalize(config.get('dataPath')) + '.json';
-    if (fs.existsSync(confile)) {
-      console.info(kuler('Load configuration file.', 'olive'), kuler(confile, 'limegreen'));
-      config.merge(require(confile));
-      dateConfig = fs.statSync(confile).mtime;
-    }
-  }
-  catch(e) {
-    return online(e);
-  }
+  core.passport.serializeUser(function(user, done) {
+      done(null, user);
+  });
+  core.passport.deserializeUser(function(user, done) {
+      done(null, user);
+  });
+
+
 
   //
   // Find & Detect view
@@ -135,7 +122,7 @@ module.exports = function(config, online) {
   var ldr, ldropts;
   try {
     ldropts = {
-      // "dateConfig" : dateConfig,
+      // "dateConfig" : config.get('dateConfig'),
       "connexionURI" : config.get('connectionURI'),
       "collectionName": config.get('collectionName'),
       "concurrency" : config.get('concurrency'),
@@ -201,342 +188,342 @@ module.exports = function(config, online) {
               }
               db.close();
           });
-        }).catch(function(e) {
-            throw e;
-        });
-    }).catch(function(e) {
-        throw e;
-    });
-  }
-  catch(e) {
-    return online(e);
-  }
-
-
-  //
-  // Define Computer
-  //
-  var cptlock, cptopts;
-  try {
-    cptopts = {
-      "port": config.get('port'),
-      "connectionURI" : config.get('connectionURI'),
-      "collectionName": config.get('collectionName'),
-      "concurrency" : config.get('concurrency')
-    }
-    core.computer = new Computer(config.get('corpusFields'), cptopts) ;
-
-    core.computer.use('count', require('./operators/count.js'));
-    core.computer.use('catalog', require('./operators/catalog.js'));
-    core.computer.use('distinct', require('./operators/distinct.js'));
-    core.computer.use('ventilate', require('./operators/ventilate.js'));
-    core.computer.use('total', require('./operators/total.js'));
-    core.computer.use('graph', require('./operators/graph.js'));
-    core.computer.use('groupby', require('./operators/groupby.js'));
-    core.computer.use('merge', require('./operators/merge.js'));
-
-    var operators = new Hook('operators')
-    operators.from(viewPath, __dirname)
-    operators.over(config.get('operators'))
-    operators.apply(function(hash, func) {
-        core.computer.use(hash, func);
-    });
-    var cptfunc = function(err, doc) {
-      if (cptlock === undefined || cptlock === false) {
-        cptlock = true;
-        heart.createEvent(2, {repeat: 1}, function() {
-            cptlock = false; // évite d'oublier un evenement pendant le calcul
-            core.computer.run(function(err) {
-                if (err instanceof Error) {
-                  console.error(kuler("Unable to compute some fields.", "red"), kuler(err.toString(), 'orangered'));
-                }
-                else {
-                  console.info(kuler('Corpus fields computed.', 'olive'));
-                }
-            });
-        });
-      }
-    };
-    ldr.on('watching', cptfunc);
-    ldr.on('changed', cptfunc);
-    ldr.on('cancelled', cptfunc);
-    ldr.on('dropped', cptfunc);
-    ldr.on('added', cptfunc);
-  }
-  catch(e) {
-    return online(e);
-  }
-
-
-  //
-  // Load strategies for PassportJS
-  //
-  var strategies = new Hook('strategies')
-  strategies.from(viewPath, __dirname)
-  strategies.over(config.get('strategies'))
-  strategies.apply(function(hash, func, item) {
-      core.passport.use(func(item.options));
+      }).catch(function(e) {
+          throw e;
+      });
+  }).catch(function(e) {
+      throw e;
   });
+}
+catch(e) {
+  return online(e);
+}
 
 
-  //
-  // Load authorizations
-  //
-  var authorizations = new Hook('authorizations')
-  authorizations.from(viewPath, __dirname)
-  authorizations.over(config.get('authorizations'))
-  authorizations.apply(function(hash, func, item) {
-      core.acl.use(item.pattern, func(item.options));
-  });
-  core.acl.use('* /**', require('./authorizations/recall.js')());
-
-
-
-  //
-  // define WEB Server
-  //
-  var app = express();
-
-
-
-  //
-  // is it behind a proxy,
-  //
-  if (config.get('trustProxy') === true) {
-    app.enable('trust proxy');
+//
+// Define Computer
+//
+var cptlock, cptopts;
+try {
+  cptopts = {
+    "port": config.get('port'),
+    "connectionURI" : config.get('connectionURI'),
+    "collectionName": config.get('collectionName'),
+    "concurrency" : config.get('concurrency')
   }
+  core.computer = new Computer(config.get('corpusFields'), cptopts) ;
 
+  core.computer.use('count', require('./operators/count.js'));
+  core.computer.use('catalog', require('./operators/catalog.js'));
+  core.computer.use('distinct', require('./operators/distinct.js'));
+  core.computer.use('ventilate', require('./operators/ventilate.js'));
+  core.computer.use('total', require('./operators/total.js'));
+  core.computer.use('graph', require('./operators/graph.js'));
+  core.computer.use('groupby', require('./operators/groupby.js'));
+  core.computer.use('merge', require('./operators/merge.js'));
 
-
-  //
-  // Add middlewares to Express
-  //
-  //try
-  {
-    app.use(function (req, res, next) {
-        req.routeParams = {};
-        req.config = config;
-        req.core = core;
-        next();
-    });
-    app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
-    app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
-    app.use(require('cookie-parser')(__dirname));
-    app.use(require('express-session')());
-    app.use(core.passport.initialize()); // Initialize Passport
-    app.use(core.passport.session()); // Restore authentication state, if any, from the session.
-    I18n.expressBind(app, {
-        locales: ['en', 'fr']
-    });
-    app.use(require('./middlewares/i18n.js')());
-
-    var middlewares = new Hook('middlewares')
-    middlewares.from(viewPath, __dirname)
-    middlewares.over(config.get('middlewares'))
-    middlewares.apply(function(hash, func, item) {
-        app.use(item.path || hash, func(item.options || config, config));
-    });
-  }
-  // catch(e) {
-    // return online(e);
-  // }
-
-
-
-
-
-  //
-  // Define the view template engine
-  //
-  //
-  var env = nunjucks.configure(viewPath, {
-      autoescape: false,
-      watch: false,
-      express: app
+  var operators = new Hook('operators')
+  operators.from(viewPath, __dirname)
+  operators.over(config.get('operators'))
+  operators.apply(function(hash, func) {
+      core.computer.use(hash, func);
   });
-
-
-
-  //
-  // "Tags" for nunjucks
-  //
-  //
-  require('nunjucks-markdown').register(env, config.get('markdown'));
-
-
-  //
-  // JBJ
-  //
-  //
-  var filters = new Hook('filters')
-  filters.from(viewPath, __dirname)
-  filters.over(config.get('filters'))
-  filters.apply(function(hash, func) {
-      JBJ.use(func());
-  });
-  Object.keys(JBJ.filters).forEach(function(filterName) {
-      env.addFilter(filterName, JBJ.filters[filterName]);
-  });
-  JBJ.register('local:', protocols('local', config));
-  JBJ.register('http:', protocols('http', config));
-  JBJ.register('https:', protocols('https', config));
-
-  //
-  // Add some vars in req
-  //
-  app.use(function (req, res, next) {
-      res.renderString = function(input, options, callback) {
-        var context = {}
-        extend(context, res.locals)
-        extend(context, options)
-        env.renderString(input, context, function(err, output) {
-            if (callback !== undefined) {
-              callback(err, output);
-            }
-            else {
-              if (err) {
-                throw err;
+  var cptfunc = function(err, doc) {
+    if (cptlock === undefined || cptlock === false) {
+      cptlock = true;
+      heart.createEvent(2, {repeat: 1}, function() {
+          cptlock = false; // évite d'oublier un evenement pendant le calcul
+          core.computer.run(function(err) {
+              if (err instanceof Error) {
+                console.error(kuler("Unable to compute some fields.", "red"), kuler(err.toString(), 'orangered'));
               }
               else {
-                res.write(output);
-                res.end();
+                console.info(kuler('Corpus fields computed.', 'olive'));
               }
-            }
-        });
-      }
+          });
+      });
+    }
+  };
+  ldr.on('watching', cptfunc);
+  ldr.on('changed', cptfunc);
+  ldr.on('cancelled', cptfunc);
+  ldr.on('dropped', cptfunc);
+  ldr.on('added', cptfunc);
+}
+catch(e) {
+  return online(e);
+}
+
+
+//
+// Load strategies for PassportJS
+//
+var strategies = new Hook('strategies')
+strategies.from(viewPath, __dirname)
+strategies.over(config.get('strategies'))
+strategies.apply(function(hash, func, item) {
+    core.passport.use(func(item.options));
+});
+
+
+//
+// Load authorizations
+//
+var authorizations = new Hook('authorizations')
+authorizations.from(viewPath, __dirname)
+authorizations.over(config.get('authorizations'))
+authorizations.apply(function(hash, func, item) {
+    core.acl.use(item.pattern, func(item.options));
+});
+core.acl.use('* /**', require('./authorizations/recall.js')());
+
+
+
+//
+// define WEB Server
+//
+var app = express();
+
+
+
+//
+// is it behind a proxy,
+//
+if (config.get('trustProxy') === true) {
+  app.enable('trust proxy');
+}
+
+
+
+//
+// Add middlewares to Express
+//
+//try
+{
+  app.use(function (req, res, next) {
+      req.routeParams = {};
+      req.config = config;
+      req.core = core;
       next();
   });
-
-  //
-  // Set JS modules for the browser
-  //
-  //
-  var modules = config.get('browserifyModules');
-  if (Array.isArray(modules) && modules.length > 0) {
-    app.get('/libs.js', browserify(modules, {
-          debug: true
-    }));
-    app.get('/bundle.js', function(req, res) {
-        console.warn('Depretacted route, use /libs.js');
-        res.redirect(301, '/libs.js');
-    });
-  }
-  else {
-    app.get('/libs.js', function(req, res, next) {
-        next(new Errors.PageNotFound('Not Found'));
-    });
-    app.get('/bundle.js', function(req, res, next) {
-        next(new Errors.PageNotFound('Not Found'));
-    });
-  }
-
-
-
-  //
-  // Define reserved routes : /libs, /assets, /
-  //
-  //
-  app.route('/assets/*').all(ecstatic({
-        root          : path.resolve(viewPath, './assets'),
-        baseDir       : '/assets',
-        cache         : 3600,
-        showDir       : true,
-        autoIndex     : true,
-        humanReadable : true,
-        si            : false,
-        defaultExt    : 'html',
-        gzip          : false
-  }));
-  app.route('/libs/*').all(ecstatic({
-        root          : path.resolve(viewPath, './libs'),
-        baseDir       : '/libs',
-        cache         : 3600,
-        showDir       : true,
-        autoIndex     : true,
-        humanReadable : true,
-        si            : false,
-        defaultExt    : 'html',
-        gzip          : false
-  }));
-
-  if (config.get('rootURL') !== undefined) {
-    app.route('/').all(function(req, res) {
-        res.redirect(config.get('rootURL'));
-    });
-  }
-
-
-  //
- // Access for route
-  //
-  app.route('/*').all(core.acl.route());
-
-
-
-
-  //
-  // Mandatory route
-  //
-
-  var pageRouter = express.Router();
-  require('./routes/page.js')(pageRouter, core)
-  app.use(pageRouter);
-
-  //
-  // Optionals routes
-  //
-  var routes = new Hook('routes')
-  routes.from(viewPath, __dirname)
-  routes.over(config.get('routes'))
-  routes.apply(function(hash, func, item) {
-      var router = express.Router();
-      func(router, core)
-      app.use(router);
+  app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
+  app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
+  app.use(require('cookie-parser')(__dirname));
+  app.use(require('express-session')());
+  app.use(core.passport.initialize()); // Initialize Passport
+  app.use(core.passport.session()); // Restore authentication state, if any, from the session.
+  I18n.expressBind(app, {
+      locales: ['en', 'fr']
   });
+  app.use(require('./middlewares/i18n.js')());
 
-  //
-  // catch 404 and forward to error handler
-  //
-  app.use(function(req, res, next) {
+  var middlewares = new Hook('middlewares')
+  middlewares.from(viewPath, __dirname)
+  middlewares.over(config.get('middlewares'))
+  middlewares.apply(function(hash, func, item) {
+      app.use(item.path || hash, func(item.options || config, config));
+  });
+}
+// catch(e) {
+// return online(e);
+// }
+
+
+
+
+
+//
+// Define the view template engine
+//
+//
+var env = nunjucks.configure(viewPath, {
+    autoescape: false,
+    watch: false,
+    express: app
+});
+
+
+
+//
+// "Tags" for nunjucks
+//
+//
+require('nunjucks-markdown').register(env, config.get('markdown'));
+
+
+//
+// JBJ
+//
+//
+var filters = new Hook('filters')
+filters.from(viewPath, __dirname)
+filters.over(config.get('filters'))
+filters.apply(function(hash, func) {
+    JBJ.use(func());
+});
+Object.keys(JBJ.filters).forEach(function(filterName) {
+    env.addFilter(filterName, JBJ.filters[filterName]);
+});
+JBJ.register('local:', protocols('local', config));
+JBJ.register('http:', protocols('http', config));
+JBJ.register('https:', protocols('https', config));
+
+//
+// Add some vars in req
+//
+app.use(function (req, res, next) {
+    res.renderString = function(input, options, callback) {
+      var context = {}
+      extend(context, res.locals)
+      extend(context, options)
+      env.renderString(input, context, function(err, output) {
+          if (callback !== undefined) {
+            callback(err, output);
+          }
+          else {
+            if (err) {
+              throw err;
+            }
+            else {
+              res.write(output);
+              res.end();
+            }
+          }
+      });
+    }
+    next();
+});
+
+//
+// Set JS modules for the browser
+//
+//
+var modules = config.get('browserifyModules');
+if (Array.isArray(modules) && modules.length > 0) {
+  app.get('/libs.js', browserify(modules, {
+        debug: true
+  }));
+  app.get('/bundle.js', function(req, res) {
+      console.warn('Depretacted route, use /libs.js');
+      res.redirect(301, '/libs.js');
+  });
+}
+else {
+  app.get('/libs.js', function(req, res, next) {
       next(new Errors.PageNotFound('Not Found'));
   });
+  app.get('/bundle.js', function(req, res, next) {
+      next(new Errors.PageNotFound('Not Found'));
+  });
+}
 
 
 
-  //
-  // Route Errors handler
-  //
-  app.use(function errorsHandler(err, req, res, next) {
-      if (res.headersSent === false) {
-        if (err instanceof Errors.PageNotFound) {
-          res.sendStatus(404);
-        }
-        else if (err instanceof Errors.InvalidParameters) {
-          res.sendStatus(400);
-        }
-        else if (err instanceof Errors.Forbidden) {
-          res.sendStatus(403);
-        }
-        else {
-          res.sendStatus(500);
-        }
+//
+// Define reserved routes : /libs, /assets, /
+//
+//
+app.route('/assets/*').all(ecstatic({
+      root          : path.resolve(viewPath, './assets'),
+      baseDir       : '/assets',
+      cache         : 3600,
+      showDir       : true,
+      autoIndex     : true,
+      humanReadable : true,
+      si            : false,
+      defaultExt    : 'html',
+      gzip          : false
+}));
+app.route('/libs/*').all(ecstatic({
+      root          : path.resolve(viewPath, './libs'),
+      baseDir       : '/libs',
+      cache         : 3600,
+      showDir       : true,
+      autoIndex     : true,
+      humanReadable : true,
+      si            : false,
+      defaultExt    : 'html',
+      gzip          : false
+}));
+
+if (config.get('rootURL') !== undefined) {
+  app.route('/').all(function(req, res) {
+      res.redirect(config.get('rootURL'));
+  });
+}
+
+
+//
+// Access for route
+//
+app.route('/*').all(core.acl.route());
+
+
+
+
+//
+// Mandatory route
+//
+
+var pageRouter = express.Router();
+require('./routes/page.js')(pageRouter, core)
+app.use(pageRouter);
+
+//
+// Optionals routes
+//
+var routes = new Hook('routes')
+routes.from(viewPath, __dirname)
+routes.over(config.get('routes'))
+routes.apply(function(hash, func, item) {
+    var router = express.Router();
+    func(router, core)
+    app.use(router);
+});
+
+//
+// catch 404 and forward to error handler
+//
+app.use(function(req, res, next) {
+    next(new Errors.PageNotFound('Not Found'));
+});
+
+
+
+//
+// Route Errors handler
+//
+app.use(function errorsHandler(err, req, res, next) {
+    if (res.headersSent === false) {
+      if (err instanceof Errors.PageNotFound) {
+        res.sendStatus(404);
       }
-      console.error(kuler("Route error.", "red"), kuler(err.toString(), 'orangered'));
-      res.render('error.html', {
-          name: err.name,
-          message: err.message,
-          error: err
-      });
-  });
+      else if (err instanceof Errors.InvalidParameters) {
+        res.sendStatus(400);
+      }
+      else if (err instanceof Errors.Forbidden) {
+        res.sendStatus(403);
+      }
+      else {
+        res.sendStatus(500);
+      }
+    }
+    console.error(kuler("Route error.", "red"), kuler(err.toString(), 'orangered'));
+    res.render('error.html', {
+        name: err.name,
+        message: err.message,
+        error: err
+    });
+});
 
 
-  //
-  // Create HTTP server
-  //
-  //
-  var server = require('http').createServer(app)
-  server.listen(config.get('port'), function() {
-      online(null, server);
-  });
+//
+// Create HTTP server
+//
+//
+var server = require('http').createServer(app)
+server.listen(config.get('port'), function() {
+    online(null, server);
+});
 
 }

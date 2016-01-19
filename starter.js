@@ -123,10 +123,25 @@ module.exports = function(warmup) {
         else {
           config.set('port', newport);
           warmup(config, function(online) {
+              //
+              // Load conf file attached to dataPath
+              //
+              var dateConfig;
+              try {
+                var confile = path.normalize(config.get('dataPath')) + '.json';
+                if (fs.existsSync(confile)) {
+                  console.info(kuler('Load configuration file.', 'olive'), kuler(confile, 'limegreen'));
+                  config.merge(require(confile));
+                  config.set('dateConfig', fs.statSync(confile).mtime);
+                }
+              }
+              catch(e) {
+                return online(e);
+              }
+
               if (!config.has('baseURL')) {
                 config.set('baseURL', 'http://127.0.0.1:' + config.get('port'));
               }
-              config.set('Errors', require('./app/helpers/errors.js'));
 
               //
               // Default errors tracing
@@ -157,7 +172,7 @@ module.exports = function(warmup) {
               app(config, online);
 
 
-                    })
+          })
         }
     });
   }

@@ -13,7 +13,7 @@ module.exports = function(model) {
 
   model
   .declare('property', function(req, fill) {
-      var Errors = req.config.get('Errors');
+      var Errors = req.core.Errors;
       debug('req.body', req.body);
       var property = {
         name: req.routeParams.resourceName
