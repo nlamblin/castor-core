@@ -297,15 +297,15 @@ module.exports = function(config, online) {
 
 
   //
-  // Load access
+  // Load authorizations
   //
-  var access = new Hook('access')
-  access.from(viewPath, __dirname)
-  access.over(config.get('access'))
-  access.apply(function(hash, func, item) {
+  var authorizations = new Hook('authorizations')
+  authorizations.from(viewPath, __dirname)
+  authorizations.over(config.get('authorizations'))
+  authorizations.apply(function(hash, func, item) {
       core.acl.use(item.pattern, func(item.options));
   });
-  core.acl.use('* /**', require('./access/recall.js')());
+  core.acl.use('* /**', require('./authorizations/recall.js')());
 
 
 
