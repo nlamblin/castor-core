@@ -16,10 +16,18 @@ module.exports = function(router, core) {
 
   router.route('/-/login')
   .post(bodyParser.urlencoded({ extended: true}))
-  .post(passport.authenticate('local', { failureRedirect: '/-/login' }))
   .post(function(req, res, next) {
-      debug('user', req.user);
-      res.redirect('/');
+      var auth = function(err, user, info) {
+        if (err) {
+          return next(err);
+        }
+        if (!user) {
+          return res.redirect(req.get('Referer'));
+        }
+        debug('user', req.user);
+        res.redirect('/');
+      }
+      passport.authenticate('local', auth)(req, res, next);
   });
 
   router.route('/-/logout')
