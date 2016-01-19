@@ -85,7 +85,7 @@ ACL.prototype.route = function() {
         }
         else {
           debug('access denied', err, results);
-          next(new Errors.Forbidden('restrcited access'));
+          next(new Errors.Forbidden('restricted access'));
         }
     });
   }
