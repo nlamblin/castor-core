@@ -494,26 +494,41 @@ app.use(function(req, res, next) {
 // Route Errors handler
 //
 app.use(function errorsHandler(err, req, res, next) {
+    var statusCode;
     if (res.headersSent === false) {
-      if (err instanceof Errors.PageNotFound) {
-        res.sendStatus(404);
+      if (err instanceof Errors.PageNotFound || err instanceof Errors.TableNotFound) {
+        statusCode = 404;
       }
       else if (err instanceof Errors.InvalidParameters) {
-        res.sendStatus(400);
+        statusCode = 400;
       }
       else if (err instanceof Errors.Forbidden) {
-        res.sendStatus(403);
+        statusCode = 403;
       }
       else {
-        res.sendStatus(500);
+        statusCode = 500;
       }
     }
-    console.error(kuler("Route error.", "red"), kuler(err.toString(), 'orangered'));
-    res.render('error.html', {
-        name: err.name,
-        message: err.message,
-        error: err
-    });
+    res.status(statusCode);
+    console.error(kuler("Route error.", "red"), kuler(statusCode + ' - ' + err.toString(), 'orangered'));
+    if (req.accepts('html')) {
+      res.render('error.html', {
+          code: statusCode,
+          name: err.name,
+          message: err.message,
+          error: err
+      });
+      return;
+    }
+    if (req.accepts('json')) {
+      res.send({
+          code: statusCode,
+          name: err.name,
+          message: err.message,
+      });
+      return;
+    }
+    res.type('text').send(err.toString());
 });
 
 
