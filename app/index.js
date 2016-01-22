@@ -313,7 +313,8 @@ if (config.get('trustProxy') === true) {
   app.use(core.passport.initialize()); // Initialize Passport
   app.use(core.passport.session()); // Restore authentication state, if any, from the session.
   I18n.expressBind(app, {
-      locales: ['en', 'fr']
+      locales: ['en', 'fr'],
+      directory: path.resolve(viewPath, './locales')
   });
   app.use(require('./middlewares/i18n.js')());
 
