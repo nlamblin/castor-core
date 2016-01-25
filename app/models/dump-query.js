@@ -35,6 +35,14 @@ module.exports = function(model) {
         fill('json')
       }
   })
+  .append('firstOnly', function(req, fill) {
+      if (req.query.fo || req.query.firstOnly) {
+        fill(true);
+      }
+      else {
+        fill(false);
+      }
+  })
   .append('mimeType', function(req, fill) {
       if (this.extension === 'nq') {
         fill('application/n-quads');
@@ -84,6 +92,9 @@ module.exports = function(model) {
               })));
         }))
       }
+      else if (self.firstOnly) {
+        fill(JSONStream.stringify(false));
+      }
       else {
         fill(JSONStream.stringify());
       }
@@ -118,16 +129,26 @@ module.exports = function(model) {
       // Pipe Mongo cursor
       //
       var stream = this.mongoCursor.stream();
+      var cursor = stream;
+      var counter = 0;
 
 
       //
-      // Add Table info
+      // firstOnly && Add Table info
       //
       stream = stream
       .pipe(es.map(function (data, submit) {
-            data._table = self.table;
-            submit(null, data);
+            if (self.firstOnly && counter > 0) {
+              cursor.close();
+              submit();
+            }
+            else {
+              data._table = self.table;
+              submit(null, data);
+            }
+            ++counter;
       }))
+
 
       //
       // Break pipe for RAW format
@@ -281,6 +302,9 @@ module.exports = function(model) {
             });
       }));
 
+
+
+
       /*
       if (this.mimeType === 'text/html') {
         var template =
@@ -308,7 +332,8 @@ module.exports = function(model) {
         stream = stream.pipe(this.outputing)
       }
       */
-      stream = stream.pipe(this.outputing)
+
+     stream = stream.pipe(this.outputing)
 
       stream.pipe(res);
   });
