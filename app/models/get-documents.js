@@ -32,17 +32,21 @@ module.exports = function(model) {
       debug('mongoQuery', q);
       fill(q);
   })
-  .declare('mongoLimit', function(req, fill) {
-      var limit = qry.limit(req.query.limit).get('$limit');
-      fill(Number(limit === undefined ? 25 : limit));
-  })
   .append('mongoCursor', function(req, fill) {
       if (this.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
       var mongoSort = qry.orderBy(req.query.orderby).get('$orderby');
-      debug('mongoCursor on `' + this.collectionName + '`', this.mongoQuery, mongoSort);
-      fill(this.mongoDatabaseHandle.collection(this.collectionName).find(this.mongoQuery).sort(mongoSort).limit(this.mongoLimit));
+      var mongoLimit = Number(qry.limit(req.query.limit).get('$limit'));
+      var mongoOffset = Number(qry.get('$offset'));
+      var mongoCursor = this.mongoDatabaseHandle
+      .collection(this.collectionName)
+      .find(this.mongoQuery)
+      .sort(mongoSort)
+      .limit(Number.isNaN(mongoLimit) ? 25 : mongoLimit)
+      .skip(Number.isNaN(mongoOffset) ? 0 : mongoOffset);
+      // debug('mongoCursor on `' + this.collectionName + '`', this.mongoQuery, mongoSort, mongoLimit, mongoOffset);
+      fill(mongoCursor);
   })
   .append('mongoCounter', function(req, fill) {
       if (this.mongoDatabaseHandle instanceof Error) {
