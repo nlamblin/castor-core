@@ -136,7 +136,7 @@ module.exports = function(config, online) {
     if (fs.existsSync(config.get('dataPath'))) {
       console.info(kuler('Watching hot directory. ', 'olive'), kuler(config.get('dataPath'), 'limegreen'));
       core.loaders.forEach(function(loader) {
-          ldr.use(loader[0], loader[1](loader[2]));
+          ldr.use(loader[0], loader[1](loader[2], core));
       });
       ldr.sync(function(err) {
           if (err instanceof Error) {
@@ -262,7 +262,7 @@ var strategies = new Hook('strategies')
 strategies.from(viewPath, __dirname)
 strategies.over(config.get('strategies'))
 strategies.apply(function(hash, func, item) {
-    core.passport.use(func(item.options));
+    core.passport.use(func(item.options, core));
 });
 
 
@@ -273,7 +273,7 @@ var authorizations = new Hook('authorizations')
 authorizations.from(viewPath, __dirname)
 authorizations.over(config.get('authorizations'))
 authorizations.apply(function(hash, func, item) {
-    core.acl.use(item.pattern, func(item.options));
+    core.acl.use(item.pattern, func(item.options, core));
 });
 core.acl.use('* /**', require('./authorizations/recall.js')());
 
@@ -322,7 +322,7 @@ if (config.get('trustProxy') === true) {
   middlewares.from(viewPath, __dirname)
   middlewares.over(config.get('middlewares'))
   middlewares.apply(function(hash, func, item) {
-      app.use(item.path || hash, func(item.options || config, config));
+      app.use(item.path || hash, func(item.options, core));
   });
 }
 // catch(e) {
