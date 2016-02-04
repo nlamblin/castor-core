@@ -19,7 +19,7 @@
     "JSONStream": "^1.0.4",
     "async": "^1.4.2",
     "body-parser": "^1.13.2",
-    "browserify-middleware": "^6.0.0",
+    "browserify-middleware": "^7.0.0",
     "castor-load": "^4.3.0",
     "castor-render": "^1.1.0",
     "clone": "^1.0.2",
