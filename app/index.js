@@ -45,6 +45,7 @@ module.exports = function(config, online) {
       done(null, user);
   });
   core.passport.deserializeUser(function(user, done) {
+      debug('deserializeUser', user);
       done(null, user);
   });
 
@@ -308,10 +309,18 @@ if (config.get('trustProxy') === true) {
   });
   app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
   app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
-  app.use(require('cookie-parser')(__dirname));
-  app.use(require('express-session')());
+  app.use(require('cookie-parser')());
+  app.use(require('express-session')({
+        secret: 'keyboard cat',
+        resave: false,
+        saveUninitialized: false
+  }));
   app.use(core.passport.initialize()); // Initialize Passport
   app.use(core.passport.session()); // Restore authentication state, if any, from the session.
+  app.use(function (req, res, next) {
+      debug('user', req.user);
+      next();
+  });
   I18n.expressBind(app, {
       locales: ['en', 'fr'],
       directory: path.resolve(viewPath, './locales')
