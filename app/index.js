@@ -42,11 +42,10 @@ module.exports = function(config, online) {
   // Passport
   //
   core.passport.serializeUser(function(user, done) {
-      done(null, user);
+      done(null, JSON.stringify(user));
   });
   core.passport.deserializeUser(function(user, done) {
-      debug('deserializeUser', user);
-      done(null, user);
+      done(null, JSON.parse(user));
   });
 
 
@@ -299,7 +298,7 @@ if (config.get('trustProxy') === true) {
 //
 // Add middlewares to Express
 //
-//try
+try
 {
   app.use(function (req, res, next) {
       req.routeParams = {};
@@ -310,17 +309,9 @@ if (config.get('trustProxy') === true) {
   app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
   app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
   app.use(require('cookie-parser')());
-  app.use(require('express-session')({
-        secret: 'keyboard cat',
-        resave: false,
-        saveUninitialized: false
-  }));
-  app.use(core.passport.initialize()); // Initialize Passport
-  app.use(core.passport.session()); // Restore authentication state, if any, from the session.
-  app.use(function (req, res, next) {
-      debug('user', req.user);
-      next();
-  });
+  app.use(require('express-session')({ secret: __dirname, resave: false, saveUninitialized: false }));
+  app.use(passport.initialize());
+  app.use(passport.session());
   I18n.expressBind(app, {
       locales: ['en', 'fr'],
       directory: path.resolve(viewPath, './locales')
@@ -334,9 +325,9 @@ if (config.get('trustProxy') === true) {
       app.use(item.path || hash, func(item.options, core));
   });
 }
-// catch(e) {
-// return online(e);
-// }
+catch(e) {
+  return online(e);
+}
 
 
 
@@ -536,19 +527,19 @@ app.use(function errorsHandler(err, req, res, next) {
           name: err.name,
           message: err.message,
       });
-      return;
-    }
-    res.type('text').send(err.toString());
-});
+          return;
+        }
+        res.type('text').send(err.toString());
+    });
 
 
-//
-// Create HTTP server
-//
-//
-var server = require('http').createServer(app)
-server.listen(config.get('port'), function() {
-    online(null, server);
-});
+    //
+    // Create HTTP server
+    //
+    //
+    var server = require('http').createServer(app)
+    server.listen(config.get('port'), function() {
+        online(null, server);
+    });
 
-}
+  }
