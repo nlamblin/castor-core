@@ -26,6 +26,8 @@ module.exports = function(model) {
         property.type = types[req.body.propertyType];
         property.comment = req.body.propertyComment;
         property.label = req.body.propertyLabel;
+        property.language = req.body.propertyLanguage;
+        property.primary = req.body.propertyPrimary;
         property.value = req.body.propertyValue;
       }
       else if (req.body && req.body.propertyLabel && req.routeParams.columnName !== 'name') {
@@ -33,6 +35,8 @@ module.exports = function(model) {
         property.type = types[req.body.propertyType];
         property.comment = req.body.propertyComment;
         property.label = req.body.propertyLabel;
+        property.language = req.body.propertyLanguage;
+        property.primary = req.body.propertyPrimary;
         property.value = req.body.propertyValue;
       }
       else if (req.body && req.body[req.routeParams.columnName] == 'true' &&  req.routeParams.columnName !== 'name') {
@@ -70,6 +74,8 @@ module.exports = function(model) {
             "scheme": self.property.scheme,
             "type": self.property.type,
             "label" : self.property.label,
+            "language" : self.property.language,
+            "primary" : self.property.primary,
             "comment" : self.property.comment
           }
           extend(o11, self.property.value);

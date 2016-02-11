@@ -239,7 +239,6 @@ module.exports = function(model) {
             var doc = {}
             doc['@id'] = self.baseURL.concat("/").concat(data['_wid']);
             doc['@context'] = {}
-            debug('_columns', self.table._columns);
             Object.keys(self.table._columns).forEach(function(propertyName, index) {
                 var field = self.table._columns[propertyName];
                 if (field.type === null || field.type === undefined || typeof field.type !== 'string') {
