@@ -239,6 +239,7 @@ module.exports = function(model) {
             var doc = {}
             doc['@id'] = self.baseURL.concat("/").concat(data['_wid']);
             doc['@context'] = {}
+            debug('_columns', self.table._columns);
             Object.keys(self.table._columns).forEach(function(propertyName, index) {
                 var field = self.table._columns[propertyName];
                 if (field.type === null || field.type === undefined || typeof field.type !== 'string') {
@@ -251,6 +252,18 @@ module.exports = function(model) {
                 if (field.type !== undefined) {
                   doc['@context'][propertyName]['@type'] = field.type;
                 }
+                if (field.label !== undefined) {
+                  doc['@context'][propertyName]['@label'] = field.label;
+                }
+                if (field.language !== undefined) {
+                  doc['@context'][propertyName]['@language'] = field.language;
+                }
+
+                // @todo
+                // if (field.primary !== undefined) {
+                doc['@context'][propertyName]['@quality'] = 'primary';
+                // }
+
                 if (field.title !== undefined) {
                   doc['$' + propertyName] = data['$' + propertyName];
                 }
