@@ -193,7 +193,7 @@ module.exports = function(router, core) {
   // Public route
   //
   router.route(prefixURL + '/')
-  .get(check.query({'?alt' : ['json', 'raw']}))
+  .get(check.query({'?alt' : ['json', 'nq', 'csv']}))
   .get(function(req, res, next) {
       datamodel([core.models.page, core.models.mongo, core.models.getRoot])
       .apply(req, res, next);

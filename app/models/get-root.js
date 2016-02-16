@@ -19,6 +19,12 @@ module.exports = function(model) {
       else if (req.query.alt === 'json') {
         fill('application/json');
       }
+      else if (req.query.alt === 'nq') {
+        fill('application/n-quads');
+      }
+      else if (req.query.alt === 'csv') {
+        fill('text/csv');
+      }
       else {
         fill('text/html');
       }
@@ -56,37 +62,49 @@ module.exports = function(model) {
           if (table === null) {
             return fill(new Errors.TableNotFound('The root table does not exist.'));
           }
-          async.parallel([
-              function(callback) {
-                retrieve({
-                    pathname: '/index/' + table._wid + '/*',
-                    query: {
-                      alt :'json'
-                    }
-                }, callback);
-              },
-              function(callback) {
-                retrieve({
-                    pathname: '/' + table._wid + '/*',
-                    query: {
-                      alt :'json'
-                    }
-                }, callback);
-              }
-            ],
-            function(err, results) {
-              if (err) {
-                fill(err)
-              }
-              else {
-                results[0][0]._globals = {
-                  prefixKEY : req.config.get('prefixKEY'),
-                  prefixURL : req.config.get('prefixURL')
-                };
-                results[0][0]._documents = results[1];
-                fill(results[0][0]);
-              }
-          });
+          if (self.mimeType === 'text/csv' || self.mimeType === 'application/n-quads') {
+            fill({
+                port: req.config.get('port'),
+                pathname: '/' + table._wid + '/*',
+                query: {
+                  alt : req.query.alt
+                }
+            });
+          }
+          else {
+            async.parallel([
+                function(callback) {
+                  retrieve({
+                      pathname: '/index/' + table._wid + '/*',
+                      query: {
+                        alt :'json'
+                      }
+                  }, callback);
+                },
+                function(callback) {
+                  retrieve({
+                      pathname: '/' + table._wid + '/*',
+                      query: {
+                        alt :'json'
+                      }
+                  }, callback);
+                }
+              ],
+              function(err, results) {
+                if (err) {
+                  fill(err)
+                }
+                else {
+                  results[0][0]._globals = {
+                    prefixKEY : req.config.get('prefixKEY'),
+                    prefixURL : req.config.get('prefixURL')
+                  };
+                  results[0][0]._documents = results[1];
+                  fill(results[0][0]);
+                }
+            });
+          }
+
       })
       .catch(fill);
   })
@@ -95,6 +113,9 @@ module.exports = function(model) {
       res.set('Content-Type', self.mimeType);
       if (self.mimeType === 'application/json') {
         res.send(self.table);
+      }
+      else if (self.mimeType === 'text/csv' || self.mimeType === 'application/n-quads') {
+        recall(self.table)(res, next);
       }
       else {
         return res.render("index.html", self.table);
