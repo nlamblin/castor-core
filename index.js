@@ -31,7 +31,7 @@ var path = require('path')
   //
   // Fix required config parameters
   //
-  config.fix('connectionURI',        config.get('connexionURI') || 'mongodb://localhost:27017/castor/');
+  config.fix('connectionURI',        config.get('connexionURI') || 'mongodb://localhost:27017/castor');
   config.fix('collectionName',       undefined); // auto
   config.fix('hooks',                 []);
   config.fix('hooksPath',            undefined);
