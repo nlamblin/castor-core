@@ -81,6 +81,7 @@ module.exports = function(warmup) {
     config.fix('concurrency',          os.cpus().length);
     config.fix('writeConcern',         1);
     config.fix('rootURL',              undefined);
+    config.fix('loginURL',            '/login.html');
     config.fix('delay',                250);
     config.fix('prefixURL',            ''); // ex: /server1
     config.fix('prefixKEY',            'ark:/XXX');

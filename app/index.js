@@ -23,6 +23,7 @@ var path = require('path')
   , ACL = require('./helpers/acl.js')
   , passport = require('passport')
   , Errors = require('./helpers/errors.js')
+  , querystring = require('querystring')
   ;
 
 module.exports = function(config, online) {
@@ -509,6 +510,9 @@ app.use(function errorsHandler(err, req, res, next) {
       else {
         statusCode = 500;
       }
+    }
+    if (req.user === undefined && statusCode === 403 && config.get('loginURL')) {
+      res.redirect(config.get('loginURL') + '?' + querystring.stringify({  'url' : req.originalUrl }));
     }
     res.status(statusCode);
     console.error(kuler("Route error.", "red"), kuler(statusCode + ' - ' + err.toString(), 'orangered'));

@@ -8,12 +8,11 @@ var path = require('path')
 module.exports = function(options) {
   options = options || {};
   return function (req, authorize) {
-    debug('user', req.user);
-      if (req.user !== undefined) {
-        authorize(null, true);
-      }
-      else {
-        authorize(null, false);
-      }
+    if (req.user !== undefined) {
+      authorize(null, true);
+    }
+    else {
+      authorize(null, false);
+    }
   }
 }

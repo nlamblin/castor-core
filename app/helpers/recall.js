@@ -13,11 +13,9 @@ module.exports = function(urlObjGlobal) {
   // @see https://nodejs.org/api/url.html#url_url_format_urlobj
   return function (urlObjLocal, callback) {
     var urlObj = {}, proxy, req, buf = '';
-    debug(urlObjLocal instanceof Stream);
     if (urlObjLocal instanceof Stream) {
       proxy = urlObjLocal;
       urlObjLocal = {};
-      debug('get', url.format(urlObj));
     }
     if (urlObjGlobal !== undefined) {
       extend (urlObj, urlObjGlobal, urlObjLocal);
