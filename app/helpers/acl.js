@@ -2,7 +2,7 @@
 'use strict';
 var path = require('path')
   , basename = path.basename(__filename, '.js')
-  , debug = require('debug')('castor:acl:' + basename)
+  , debug = require('debug')('castor:helpers:' + basename)
   , assert = require('assert')
   , util = require('util')
   , events = require('events')
@@ -69,7 +69,6 @@ ACL.prototype.route = function() {
 
     var list = self.bank.filter(match).map(get);
 
-    debug('access list', self.bank.filter(match));
     async.parallel(list, function(err, results) {
         results = results.filter(function(x) {return typeof x === 'boolean'})
         if (err) {

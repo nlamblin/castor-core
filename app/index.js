@@ -515,7 +515,8 @@ app.use(function errorsHandler(err, req, res, next) {
       res.redirect(config.get('loginURL') + '?' + querystring.stringify({  'url' : req.originalUrl }));
     }
     res.status(statusCode);
-    console.error(kuler("Route error.", "red"), kuler(statusCode + ' - ' + err.toString(), 'orangered'));
+    console.error(kuler("Route error for", "red"), req.originalUrl
+    , kuler(statusCode + ' - ' + err.toString(), 'orangered'), ' from ', req.get('referer'));
     if (req.accepts('html')) {
       res.render('error.html', {
           code: statusCode,
