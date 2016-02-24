@@ -84,7 +84,7 @@ module.exports = function(warmup) {
     config.fix('loginURL',            '/login.html');
     config.fix('delay',                250);
     config.fix('prefixURL',            ''); // ex: /server1
-    config.fix('prefixKEY',            'ark:/XXX');
+    config.fix('prefixKEY',            '=');
     config.fix('maxFileSize',          10485760); // 10 Mo
     config.fix('acceptFileTypes',      []);
     config.fix('heartrate',            5000);
