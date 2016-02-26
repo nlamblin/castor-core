@@ -191,6 +191,7 @@ module.exports = function(model) {
             delete newdoc._id;
             newdoc._from  = self.property.originalName;
             newdoc._wid = req.routeParams.resourceName;
+            newdoc._root = false
             newdoc.fid  = req.routeParams.resourceName;
             newdoc.number = 0;
             newdoc.state = "inserted";
