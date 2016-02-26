@@ -513,6 +513,7 @@ app.use(function errorsHandler(err, req, res, next) {
     }
     if (req.user === undefined && statusCode === 403 && config.get('loginURL')) {
       res.redirect(config.get('loginURL') + '?' + querystring.stringify({  'url' : req.originalUrl }));
+      return;
     }
     res.status(statusCode);
     console.error(kuler("Route error for", "red"), req.originalUrl
