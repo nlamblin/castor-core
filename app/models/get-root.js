@@ -28,6 +28,9 @@ module.exports = function(model) {
       else if (req.query.alt === 'tsv') {
         fill('text/tab-separated-values');
       }
+      else if (req.query.alt === 'xls') {
+        fill('application/vnd.ms-excel');
+      }
       else {
         fill('text/html');
       }
@@ -65,7 +68,10 @@ module.exports = function(model) {
           if (table === null) {
             return fill(new Errors.TableNotFound('The root table does not exist.'));
           }
-          if (self.mimeType === 'text/csv' || self.mimeType === 'text/tab-separated-values' || self.mimeType === 'application/n-quads') {
+          if (self.mimeType === 'text/csv'
+            || self.mimeType === 'text/tab-separated-values'
+            || self.mimeType === 'application/vnd.ms-excel'
+            || self.mimeType === 'application/n-quads') {
             fill({
                 port: req.config.get('port'),
                 pathname: '/' + table._wid + '/*',
@@ -117,7 +123,10 @@ module.exports = function(model) {
       if (self.mimeType === 'application/json') {
         res.send(self.table);
       }
-      else if (self.mimeType === 'text/csv' || self.mimeType === 'text/tab-separated-values' || self.mimeType === 'application/n-quads') {
+      else if (self.mimeType === 'text/csv'
+        || self.mimeType === 'text/tab-separated-values'
+        || self.mimeType === 'application/vnd.ms-excel'
+        || self.mimeType === 'application/n-quads') {
         recall(self.table)(res, next);
       }
       else {

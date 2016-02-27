@@ -13,6 +13,7 @@ var path = require('path')
   , LRU = require('lru-cache')
   , JBJ = require('jbj')
   , CSV = require('csv-string')
+  , Excel = require("exceljs")
   , async = require('async')
   , url = require('url')
   , jsonld = require('jsonld')
@@ -52,6 +53,9 @@ module.exports = function(model) {
       }
       else if (this.extension === 'tsv') {
         fill('text/tab-separated-values');
+      }
+      else if (this.extension === 'xls') {
+        fill('application/vnd.ms-excel');
       }
       else if (this.extension === 'raw') {
         fill('application/json');
@@ -100,8 +104,18 @@ module.exports = function(model) {
       else if (self.mimeType === 'text/tab-separated-values') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
         res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
-                return propertyName;
-              }), "\t"))
+          return propertyName;
+        }), "\t"))
+      }
+      else if (self.mimeType === 'application/vnd.ms-excel') {
+        res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+        var workbook = new Excel.stream.xlsx.WorkbookWriter({
+          stream: res
+        });
+        var worksheet = workbook.addWorksheet(self.table._label, "FFC0000");
+        worksheet.columns = Object.keys(self.table._columns).map(function(propertyName) {
+          return { header: self.table._columns[propertyName]['label'], key: propertyName, width: 33};
+        });
       }
       debug(this.extension, this.documentName)
 
@@ -351,6 +365,17 @@ module.exports = function(model) {
            return data[propertyName];
          }), "\t"));
        }))
+     }
+     else if (self.mimeType === 'application/vnd.ms-excel') {
+       stream = stream.pipe(es.map(function (data, submit) {
+         worksheet.addRow(data).commit();
+         submit();
+       }));
+       stream.on("end", function() {
+         worksheet.commit();
+         workbook.commit();
+       });
+       return;
      }
      else if (self.firstOnly) {
        stream = stream.pipe(JSONStream.stringify(false));

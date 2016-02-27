@@ -84,7 +84,7 @@ module.exports = function(router, core) {
   router.route(prefixURL + '/:resourceName/:star')
 
   .all(cors())
-  .get(check.query({'?alt' : ['csv', 'tsv', 'nq', 'json', 'raw'], '?where' : String, '?orderby' : String}))
+  .get(check.query({'?alt' : ['csv', 'tsv', 'xls', 'nq', 'json', 'raw'], '?where' : String, '?orderby' : String}))
   .get(function(req, res, next) {
       debug('get /:resourceName/:star', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.star === undefined) {
@@ -97,7 +97,7 @@ module.exports = function(router, core) {
   router.route(prefixURL + '/:resourceName/:documentName/:star')
 
   .all(cors())
-  .get(check.query({'?alt' : ['csv', 'tsv', 'nq', 'json', 'raw']}))
+  .get(check.query({'?alt' : ['csv', 'tsv', 'xls', 'nq', 'json', 'raw']}))
   .get(function(req, res, next) {
       debug('get /:resourceName/:documentName/:star', req.routeParams);
       if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined || req.routeParams.star === undefined) {
@@ -193,7 +193,7 @@ module.exports = function(router, core) {
   // Public route
   //
   router.route(prefixURL + '/')
-  .get(check.query({'?alt' : ['json', 'nq', 'csv', 'tsv']}))
+  .get(check.query({'?alt' : ['json', 'nq', 'csv', 'tsv', 'xls']}))
   .get(function(req, res, next) {
       datamodel([core.models.page, core.models.mongo, core.models.getRoot])
       .apply(req, res, next);
