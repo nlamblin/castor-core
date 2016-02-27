@@ -73,42 +73,6 @@ module.exports = function(model) {
       }
       fill(s.concat('.').concat(this.extension));
   })
-  .complete('outputing', function(req, fill) {
-      var self = this;
-      if (self.mimeType === 'application/n-quads') {
-        fill(es.map(function (data, submit) {
-              jsonld.toRDF(data, {format: 'application/nquads'}, function(err, out) {
-                  if (err) {
-                    console.error(err);
-                    submit(null, {});
-                  }
-                  else {
-                    submit(err, out);
-                  }
-              });
-        }))
-      }
-      else if (self.mimeType === 'text/csv') {
-        fill(es.map(function (data, submit) {
-              submit(null, CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
-                      return data[propertyName];
-              })));
-        }))
-      }
-      else if (self.mimeType === 'text/tab-separated-values') {
-        fill(es.map(function (data, submit) {
-              submit(null, CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
-                      return data[propertyName];
-                    }), "\t"));
-        }))
-      }
-      else if (self.firstOnly) {
-        fill(JSONStream.stringify(false));
-      }
-      else {
-        fill(JSONStream.stringify());
-      }
-  })
   .declare('baseURL', function(req, fill) {
       fill(String(req.config.get('baseURL')).replace(/\/+$/,''));
   })
@@ -361,13 +325,45 @@ module.exports = function(model) {
       }
       */
 
-     stream = stream.pipe(this.outputing)
+     if (self.mimeType === 'application/n-quads') {
+       stream = stream.pipe(es.map(function (data, submit) {
+         jsonld.toRDF(data, {format: 'application/nquads'}, function(err, out) {
+           if (err) {
+             console.error(err);
+             submit(null, {});
+           }
+           else {
+             submit(err, out);
+           }
+         });
+       }))
+     }
+     else if (self.mimeType === 'text/csv') {
+       stream = stream.pipe(es.map(function (data, submit) {
+         submit(null, CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
+           return data[propertyName];
+         })));
+       }))
+     }
+     else if (self.mimeType === 'text/tab-separated-values') {
+       stream = stream.pipe(es.map(function (data, submit) {
+         submit(null, CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
+           return data[propertyName];
+         }), "\t"));
+       }))
+     }
+     else if (self.firstOnly) {
+       stream = stream.pipe(JSONStream.stringify(false));
+     }
+     else {
+       stream = stream.pipe(JSONStream.stringify());
+     }
 
-      stream.pipe(res);
-  });
+     stream.pipe(res);
+   });
 
-  return model;
-}
+   return model;
+ }
 
 
 
