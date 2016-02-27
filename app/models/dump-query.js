@@ -75,7 +75,7 @@ module.exports = function(model) {
   })
   .complete('outputing', function(req, fill) {
       var self = this;
-      if (self.extension === 'nq') {
+      if (self.mimeType === 'application/n-quads') {
         fill(es.map(function (data, submit) {
               jsonld.toRDF(data, {format: 'application/nquads'}, function(err, out) {
                   if (err) {
@@ -88,14 +88,14 @@ module.exports = function(model) {
               });
         }))
       }
-      else if (self.extension === 'csv') {
+      else if (self.mimeType === 'text/csv') {
         fill(es.map(function (data, submit) {
               submit(null, CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
                       return data[propertyName];
               })));
         }))
       }
-      else if (self.extension === 'tsv') {
+      else if (self.mimeType === 'text/tab-separated-values') {
         fill(es.map(function (data, submit) {
               submit(null, CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
                       return data[propertyName];
