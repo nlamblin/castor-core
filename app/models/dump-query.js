@@ -120,20 +120,20 @@ module.exports = function(model) {
         debug('mongoCounter', self.mongoCounter);
         res.set('ETag', String('W/').concat(crypto.createHash('md5').update(String(self.mongoCounter)).digest('base64').replace(/=+$/, '')));
       }
-      res.set('Content-Type', this.mimeType);
+      res.set('Content-Type', self.mimeType);
       res.on('finish', function() {
           self.mongoDatabaseHandle.close();
       });
-      if (this.mimeType === 'application/n-quads') {
+      if (self.mimeType === 'application/n-quads') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
       }
-      else if (this.mimeType === 'text/csv') {
+      else if (self.mimeType === 'text/csv') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
         res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
                 return propertyName;
         })))
       }
-      else if (this.mimeType === 'text/tab-separated-values') {
+      else if (self.mimeType === 'text/tab-separated-values') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
         res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
                 return propertyName;
@@ -174,7 +174,7 @@ module.exports = function(model) {
               Object.keys(data).filter(function(key) { return key[0] !== '_' }).forEach(function(key) { delete data[key] });
               delete data._id;
               submit(null, data);
-        })).pipe(this.outputing).pipe(res);
+        })).pipe(JSONStream.stringify(self.firstOnly ? false : undefined)).pipe(res);
       }
 
       //
@@ -334,7 +334,7 @@ module.exports = function(model) {
 
 
       /*
-      if (this.mimeType === 'text/html') {
+      if (self.mimeType === 'text/html') {
         var template =
         String('{% extends "page.html" %}')
         .concat("\n")
