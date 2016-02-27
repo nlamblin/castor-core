@@ -50,6 +50,9 @@ module.exports = function(model) {
       else if (this.extension === 'csv') {
         fill('text/csv');
       }
+      else if (this.extension === 'tsv') {
+        fill('text/tab-separated-values');
+      }
       else if (this.extension === 'raw') {
         fill('application/json');
       }
@@ -92,6 +95,13 @@ module.exports = function(model) {
               })));
         }))
       }
+      else if (self.extension === 'tsv') {
+        fill(es.map(function (data, submit) {
+              submit(null, CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
+                      return data[propertyName];
+                    }), "\t"));
+        }))
+      }
       else if (self.firstOnly) {
         fill(JSONStream.stringify(false));
       }
@@ -114,14 +124,20 @@ module.exports = function(model) {
       res.on('finish', function() {
           self.mongoDatabaseHandle.close();
       });
-      if (this.mimeType === 'text/csv' || this.mimeType === 'application/n-quads') {
+      if (this.mimeType === 'application/n-quads') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
       }
-      if (this.mimeType === 'text/csv') {
+      else if (this.mimeType === 'text/csv') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
         res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
                 return propertyName;
         })))
+      }
+      else if (this.mimeType === 'text/tab-separated-values') {
+        res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+        res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
+                return propertyName;
+              }), "\t"))
       }
       debug(this.extension, this.documentName)
 
