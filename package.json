@@ -1,6 +1,6 @@
 {
   "name": "castor-core",
-  "version": "3.0.0-alpha.11",
+  "version": "3.0.0",
   "author": "Nicolas Thouvenin <nthouvenin@gmail.com>",
   "contributors": [],
   "description": "",
@@ -13,7 +13,7 @@
     "castor": "./bin/castor"
   },
   "scripts": {
-	  "lint": "jshint */**/*.js"
+    "lint": "jshint */**/*.js"
   },
   "bugs": {
     "url": "https://github.com/castorjs/castor-core/issues"
