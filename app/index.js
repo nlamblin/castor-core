@@ -328,7 +328,7 @@ try
       next();
   });
   app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
-  app.use(require('serve-favicon')(path.resolve(extensionPath, './favicon.ico')));
+  app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
   app.use(require('cookie-parser')());
   app.use(require('express-session')({ secret: __dirname, resave: false, saveUninitialized: false }));
   app.use(passport.initialize());
