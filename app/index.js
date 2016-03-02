@@ -33,6 +33,7 @@ module.exports = function(config, online) {
     models : {},
     connect : undefined,
     computer : undefined,
+    heart: undefined,
     passport : passport,
     acl : new ACL(),
     Errors : Errors
@@ -71,14 +72,25 @@ module.exports = function(config, online) {
   //
   //  create an heart & set heartrate
   //
-  var heart, pulse;
+  var pulse;
   try {
-    heart = require('./helpers/heart.js')(config.get('heartrate'));
-    pulse = heart.newPulse();
+    core.heart = require('./helpers/heart.js')(config.get('heartrate'));
+    pulse = core.heart.newPulse();
   }
   catch(e) {
     return online(e);
   }
+
+  var heartbeats = new Hook('heartbeats');
+  heartbeats.from(extensionPath, __dirname)
+  heartbeats.over(config.get('heartbeats'))
+  heartbeats.apply(function(hash, func, item) {
+    item.repeat = Number(item.repeat);
+    item.beat = Number(item.beat);
+    core.heart.createEvent(Number.isNaN(item.beat) ? 1 : item.beat, {repeat: Number.isNaN(item.repeat) ? 0 : item.repeat}, func(item.options, core));
+  });
+
+
 
 
   //
@@ -125,37 +137,39 @@ module.exports = function(config, online) {
   // HOT folder
   //
   var ldr, ldropts;
-  try {
-    ldropts = {
-      // "dateConfig" : config.get('dateConfig'),
-      "connexionURI" : config.get('connectionURI'),
-      "collectionName": config.get('collectionName'),
-      "concurrency" : config.get('concurrency'),
-      "delay" : config.get('delay'),
-      "maxFileSize" : config.get('maxFileSize'),
-      "writeConcern" : config.get('writeConcern'),
-      "ignore" : config.get('filesToIgnore')
-    }
-    ldr = new Loader(config.get('dataPath'), ldropts);
+  if (config.has('dataPath')) {
+    try {
+      ldropts = {
+        // "dateConfig" : config.get('dateConfig'),
+        "connexionURI" : config.get('connectionURI'),
+        "collectionName": config.get('collectionName'),
+        "concurrency" : config.get('concurrency'),
+        "delay" : config.get('delay'),
+        "maxFileSize" : config.get('maxFileSize'),
+        "writeConcern" : config.get('writeConcern'),
+        "ignore" : config.get('filesToIgnore')
+      }
+      ldr = new Loader(config.get('dataPath'), ldropts);
 
-    if (fs.existsSync(config.get('dataPath'))) {
-      console.info(kuler('Watching hot directory. ', 'olive'), kuler(config.get('dataPath'), 'limegreen'));
-      core.loaders.forEach(function(loader) {
+      if (fs.existsSync(config.get('dataPath'))) {
+        console.info(kuler('Watching hot directory. ', 'olive'), kuler(config.get('dataPath'), 'limegreen'));
+        core.loaders.forEach(function(loader) {
           ldr.use(loader[0], loader[1](loader[2], core));
-      });
-      ldr.sync(function(err) {
+        });
+        ldr.sync(function(err) {
           if (err instanceof Error) {
             console.error(kuler("Loader synchronization failed.", "red"), kuler(err.toString(), 'orangered'));
           }
           else {
             console.info(kuler('Files and Database are synchronised.', 'olive'));
           }
-      });
-      config.set('collectionName', ldr.options.collectionName);
+        });
+        config.set('collectionName', ldr.options.collectionName);
+      }
     }
-  }
-  catch(e) {
-    return online(e);
+    catch(e) {
+      return online(e);
+    }
   }
 
   //
@@ -236,7 +250,7 @@ try {
   var cptfunc = function(err, doc) {
     if (cptlock === undefined || cptlock === false) {
       cptlock = true;
-      heart.createEvent(2, {repeat: 1}, function() {
+      core.heart.createEvent(2, {repeat: 1}, function() {
           cptlock = false; // évite d'oublier un evenement pendant le calcul
           core.computer.run(function(err) {
               if (err instanceof Error) {
@@ -249,11 +263,13 @@ try {
       });
     }
   };
-  ldr.on('watching', cptfunc);
-  ldr.on('changed', cptfunc);
-  ldr.on('cancelled', cptfunc);
-  ldr.on('dropped', cptfunc);
-  ldr.on('added', cptfunc);
+  if (ldr !== undefined) {
+    ldr.on('watching', cptfunc);
+    ldr.on('changed', cptfunc);
+    ldr.on('cancelled', cptfunc);
+    ldr.on('dropped', cptfunc);
+    ldr.on('added', cptfunc);
+  }
 }
 catch(e) {
   return online(e);
