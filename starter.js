@@ -111,8 +111,8 @@ module.exports = function(warmup) {
 
 
     if (!fs.existsSync(config.get('dataPath'))) {
-      console.info(usage)
-      process.exit(1);
+      console.info(kuler('Hotfolder is disabled.', 'olive'),  kuler("No dataPath specified.", "orange"));
+      config.unset('dataPath');
     }
 
     portfinder.basePort = config.get('port');
@@ -124,10 +124,10 @@ module.exports = function(warmup) {
         else {
           config.set('port', newport);
           warmup(config, function(online) {
+            if (config.has('dataPath')) {
               //
               // Load conf file attached to dataPath
               //
-              var dateConfig;
               try {
                 var confile = path.normalize(config.get('dataPath')) + '.json';
                 if (fs.existsSync(confile)) {
@@ -139,42 +139,42 @@ module.exports = function(warmup) {
               catch(e) {
                 return online(e);
               }
+            }
+            if (!config.has('baseURL')) {
+              config.set('baseURL', 'http://127.0.0.1:' + config.get('port'));
+            }
 
-              if (!config.has('baseURL')) {
-                config.set('baseURL', 'http://127.0.0.1:' + config.get('port'));
-              }
-
-              //
-              // Default errors tracing
-              //
-              if (online === undefined || typeof online !== 'function') {
-                online = function(err, server) {
-                  if (err instanceof Error) {
-                    console.error(kuler("Unable to init the server.", "red"), kuler(err.toString(), 'orangered'));
-                    process.exit(3);
-                    return;
-                  }
-                  var pack = config.get('package');
-                  if (pack) {
-                    console.info(kuler('App detected.', 'olive'), kuler(pack.name + ' ' + pack.version, 'limegreen'));
-                  }
-                  if (argv['dry-run']) {
-                    console.info(String(' ').concat(util.inspect(config.config, { showHidden: false, depth: null, colors: true }).slice(1, -1).replace(/,\n/g, "\n").replace(/(\s\s\w+:) /g, "$1\t")));
-                    server.close(function() {
-                        console.info(kuler('Server is not started.', 'olive'),  kuler(config.get('baseURL') + "/", "limegreen"));
-                        process.exit(0);
-                    });
-                  }
-                  else {
-                    console.info(kuler('Server is listening.', 'olive'),  kuler(config.get('baseURL') + "/", "limegreen"));
-                  }
+            //
+            // Default errors tracing
+            //
+            if (online === undefined || typeof online !== 'function') {
+              online = function(err, server) {
+                if (err instanceof Error) {
+                  console.error(kuler("Unable to init the server.", "red"), kuler(err.toString(), 'orangered'));
+                  process.exit(3);
+                  return;
+                }
+                var pack = config.get('package');
+                if (pack) {
+                  console.info(kuler('App detected.', 'olive'), kuler(pack.name + ' ' + pack.version, 'limegreen'));
+                }
+                if (argv['dry-run']) {
+                  console.info(String(' ').concat(util.inspect(config.config, { showHidden: false, depth: null, colors: true }).slice(1, -1).replace(/,\n/g, "\n").replace(/(\s\s\w+:) /g, "$1\t")));
+                  server.close(function() {
+                    console.info(kuler('Server is not started.', 'olive'),  kuler(config.get('baseURL') + "/", "limegreen"));
+                    process.exit(0);
+                  });
+                }
+                else {
+                  console.info(kuler('Server is listening.', 'olive'),  kuler(config.get('baseURL') + "/", "limegreen"));
                 }
               }
-              app(config, online);
+            }
+            app(config, online);
 
 
           })
         }
-    });
-  }
+      });
+    }
 
