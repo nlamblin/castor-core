@@ -52,12 +52,16 @@ module.exports = function(config, online) {
 
 
   //
-  // Find & Detect view
+  // Find & Detect extensionPath & viewPath
   //
-  var viewPath;
+  var extensionPath, viewPath;
   try {
-    viewPath = require('./helpers/view.js')(config);
-    console.info(kuler('Set view directory. ', 'olive'), kuler(viewPath, 'limegreen'));
+    extensionPath = require('./helpers/view.js')(config);
+    console.info(kuler('Set extension directory. ', 'olive'), kuler(extensionPath, 'limegreen'));
+    viewPath = path.resolve(extensionPath, './views')
+    if (!fs.existsSync(viewPath)) {
+      viewPath = extensionPath
+    }
   }
   catch(e) {
     return online(e);
@@ -94,7 +98,7 @@ module.exports = function(config, online) {
   core.models.postTable = require('./models/post-table.js')
 
   var models = new Hook('models');
-  models.from(viewPath, __dirname)
+  models.from(extensionPath, __dirname)
   models.over(config.get('models'))
   models.apply(function(hash, func, item) {
       core.models[hash] = func;
@@ -108,7 +112,7 @@ module.exports = function(config, online) {
   core.loaders.push(['**/*', require('./loaders/prepend.js'), {}]);
 
   var loaders = new Hook('loaders');
-  loaders.from(viewPath, __dirname)
+  loaders.from(extensionPath, __dirname)
   loaders.over(config.get('loaders'))
   loaders.apply(function(hash, func, item) {
       core.loaders.push([item.pattern || '**/*', func, item.options]);
@@ -224,7 +228,7 @@ try {
   core.computer.use('merge', require('./operators/merge.js'));
 
   var operators = new Hook('operators')
-  operators.from(viewPath, __dirname)
+  operators.from(extensionPath, __dirname)
   operators.over(config.get('operators'))
   operators.apply(function(hash, func) {
       core.computer.use(hash, func);
@@ -260,7 +264,7 @@ catch(e) {
 // Load strategies for PassportJS
 //
 var strategies = new Hook('strategies')
-strategies.from(viewPath, __dirname)
+strategies.from(extensionPath, __dirname)
 strategies.over(config.get('strategies'))
 strategies.apply(function(hash, func, item) {
     core.passport.use(func(item.options, core));
@@ -271,7 +275,7 @@ strategies.apply(function(hash, func, item) {
 // Load authorizations
 //
 var authorizations = new Hook('authorizations')
-authorizations.from(viewPath, __dirname)
+authorizations.from(extensionPath, __dirname)
 authorizations.over(config.get('authorizations'))
 authorizations.apply(function(hash, func, item) {
     core.acl.use(item.pattern, func(item.options, core));
@@ -308,19 +312,19 @@ try
       next();
   });
   app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
-  app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
+  app.use(require('serve-favicon')(path.resolve(extensionPath, './favicon.ico')));
   app.use(require('cookie-parser')());
   app.use(require('express-session')({ secret: __dirname, resave: false, saveUninitialized: false }));
   app.use(passport.initialize());
   app.use(passport.session());
   I18n.expressBind(app, {
       locales: ['en', 'fr'],
-      directory: path.resolve(viewPath, './locales')
+      directory: path.resolve(extensionPath, './locales')
   });
   app.use(require('./middlewares/i18n.js')());
 
   var middlewares = new Hook('middlewares')
-  middlewares.from(viewPath, __dirname)
+  middlewares.from(extensionPath, __dirname)
   middlewares.over(config.get('middlewares'))
   middlewares.apply(function(hash, func, item) {
       app.use(item.path || hash, func(item.options, core));
@@ -358,7 +362,7 @@ require('nunjucks-markdown').register(env, config.get('markdown'));
 //
 //
 var filters = new Hook('filters')
-filters.from(viewPath, __dirname)
+filters.from(extensionPath, __dirname)
 filters.over(config.get('filters'))
 filters.apply(function(hash, func) {
     JBJ.use(func());
@@ -424,7 +428,6 @@ else {
 //
 // Define reserved routes : /libs, /assets, /
 //
-//
 app.route('/assets/*').all(ecstatic({
       root          : path.resolve(viewPath, './assets'),
       baseDir       : '/assets',
@@ -475,7 +478,7 @@ app.use(pageRouter);
 // Optionals routes
 //
 var routes = new Hook('routes')
-routes.from(viewPath, __dirname)
+routes.from(extensionPath, __dirname)
 routes.over(config.get('routes'))
 routes.apply(function(hash, func, item) {
     var router = express.Router();

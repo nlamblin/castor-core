@@ -13,7 +13,7 @@
     "castor": "./bin/castor"
   },
   "scripts": {
-	  "lint": "jshint --exclude-path node_modes */**/*.js"
+	  "lint": "jshint */**/*.js"
   },
   "bugs": {
     "url": "https://github.com/castorjs/castor-core/issues"
