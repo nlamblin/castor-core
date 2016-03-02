@@ -60,7 +60,7 @@ module.exports = function(config, online) {
     console.info(kuler('Set extension directory. ', 'olive'), kuler(extensionPath, 'limegreen'));
     viewPath = path.resolve(extensionPath, './views')
     if (!fs.existsSync(viewPath)) {
-      viewPath = extensionPath
+      viewPath = extensionPath;
     }
   }
   catch(e) {
@@ -342,7 +342,7 @@ catch(e) {
 // Define the view template engine
 //
 //
-var env = nunjucks.configure(viewPath, {
+var env = nunjucks.configure([viewPath, path.resolve(__dirname, './views/')], {
     autoescape: false,
     watch: false,
     express: app
