@@ -80,7 +80,6 @@ module.exports = function(config, online) {
   catch(e) {
     return online(e);
   }
-
   var heartbeats = new Hook('heartbeats');
   heartbeats.from(extensionPath, __dirname)
   heartbeats.over(config.get('heartbeats'))
@@ -89,7 +88,6 @@ module.exports = function(config, online) {
     item.beat = Number(item.beat);
     core.heart.createEvent(Number.isNaN(item.beat) ? 1 : item.beat, {repeat: Number.isNaN(item.repeat) ? 0 : item.repeat}, func(item.options, core));
   });
-
 
 
 

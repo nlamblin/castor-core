@@ -100,6 +100,7 @@ module.exports = function(warmup) {
     config.fix('filters',              []);
     config.fix('routes',               {});
     config.fix('loaders',              {});
+    config.fix('heartbeats',              {});
     config.fix('middlewares',          []);
     config.fix('resources',            {}); // for apiv1
     config.fix('operators',            {});
