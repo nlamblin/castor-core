@@ -14,14 +14,14 @@ var path = require('path')
 module.exports = function(warmup) {
 
   var argv = minimist(process.argv.slice(2), {
-      alias: {
-        n: 'dry-run',
-        h: 'help',
-        V: 'version',
-        v: 'verbose',
-        d: 'debug'
-      },
-      boolean: ['help', 'version', 'verbose', 'debug', 'dry-run']
+    alias: {
+      n: 'dry-run',
+      h: 'help',
+      V: 'version',
+      v: 'verbose',
+      d: 'debug'
+    },
+    boolean: ['help', 'version', 'verbose', 'debug', 'dry-run']
   });
 
   var appname = path.basename(process.argv[1])
@@ -45,6 +45,10 @@ module.exports = function(warmup) {
     " - $HOME/.config/" + appname + "/config",
     " - /etc/" + appname + "rc",
     " - /etc/" + appname + "/config",
+    " - " + process.cwd() + "/config.local.json",
+    " - " + process.cwd() + "/config.local.js",
+    " - {dataPath}.json",
+    " - {dataPath}.js",
   ].join("\n");
 
 
@@ -110,72 +114,80 @@ module.exports = function(warmup) {
 
     config.load(appname, argv);
 
-
     if (!fs.existsSync(config.get('dataPath'))) {
       console.info(kuler('Hotfolder is disabled.', 'olive'),  kuler("No dataPath specified.", "orange"));
       config.unset('dataPath');
     }
 
+    var localconfigs = [
+      path.normalize(path.join(process.cwd(), 'config.local.js')),
+      path.normalize(path.join(process.cwd(), 'config.local.json'))
+    ];
+    localconfigs.forEach(function(localfile) {
+      debug('localfile', localfile);
+      if (config.local(localfile)) {
+        console.info(kuler('Load local configuration file.', 'olive'), kuler(localfile, 'limegreen'));
+      }
+    });
+
     portfinder.basePort = config.get('port');
     portfinder.getPort(function (err, newport) {
-        if (err instanceof Error) {
-          console.error(kuler("Unable to get a free port. Try to stop some services.", "red"));
-          process.exit(2);
-        }
-        else {
-          config.set('port', newport);
-          warmup(config, function(online) {
-            if (config.has('dataPath')) {
-              //
-              // Load conf file attached to dataPath
-              //
-              try {
-                var confile = path.normalize(config.get('dataPath')) + '.json';
-                if (fs.existsSync(confile)) {
-                  console.info(kuler('Load configuration file.', 'olive'), kuler(confile, 'limegreen'));
-                  config.merge(require(confile));
-                  config.set('dateConfig', fs.statSync(confile).mtime);
-                }
+      if (err instanceof Error) {
+        console.error(kuler("Unable to get a free port. Try to stop some services.", "red"));
+        process.exit(2);
+      }
+      else {
+        config.set('port', newport);
+        warmup(config, function(online) {
+          //
+          // Load conf file attached to dataPath
+          //
+          if (config.has('dataPath')) {
+            var dataconfigs = [
+              path.normalize(config.get('dataPath')) + '.json',
+              path.normalize(config.get('dataPath')) + '.config'
+            ];
+            dataconfigs.forEach(function(datafile) {
+              if (config.local(datafile)) {
+                console.info(kuler('Load local configuration file.', 'olive'), kuler(datafile, 'limegreen'));
               }
-              catch(e) {
-                return online(e);
-              }
-            }
-            if (!config.has('baseURL')) {
-              config.set('baseURL', 'http://127.0.0.1:' + config.get('port'));
-            }
+            });
+          }
+          if (!config.has('baseURL')) {
+            config.set('baseURL', 'http://127.0.0.1:' + config.get('port'));
+          }
 
-            //
-            // Default errors tracing
-            //
-            if (online === undefined || typeof online !== 'function') {
-              online = function(err, server) {
-                if (err instanceof Error) {
-                  console.error(kuler("Unable to init the server.", "red"), kuler(err.toString(), 'orangered'));
-                  process.exit(3);
-                  return;
-                }
-                var pack = config.get('package');
-                if (pack) {
-                  console.info(kuler('App detected.', 'olive'), kuler(pack.name + ' ' + pack.version, 'limegreen'));
-                }
-                if (argv['dry-run']) {
-                  console.info(String(' ').concat(util.inspect(config.config, { showHidden: false, depth: null, colors: true }).slice(1, -1).replace(/,\n/g, "\n").replace(/(\s\s\w+:) /g, "$1\t")));
-                  server.close(function() {
-                    console.info(kuler('Server is not started.', 'olive'),  kuler(config.get('baseURL') + "/", "limegreen"));
-                    process.exit(0);
-                  });
-                }
-                else {
-                  console.info(kuler('Server is listening.', 'olive'),  kuler(config.get('baseURL') + "/", "limegreen"));
-                }
+          //
+          // Default errors tracing
+          //
+          if (online === undefined || typeof online !== 'function') {
+            online = function(err, server) {
+              if (err instanceof Error) {
+                console.error(kuler("Unable to init the server.", "red"), kuler(err.toString(), 'orangered'));
+                process.exit(3);
+                return;
+              }
+              var pack = config.get('package');
+              if (pack) {
+                console.info(kuler('App detected.', 'olive'), kuler(pack.name + ' ' + pack.version, 'limegreen'));
+              }
+              if (argv['dry-run']) {
+                console.info(String(' ').concat(util.inspect(config.config, { showHidden: false, depth: null, colors: true }).slice(1, -1).replace(/,\n/g, "\n").replace(/(\s\s\w+:) /g, "$1\t")));
+                server.close(function() {
+                  console.info(kuler('Server is not started.', 'olive'),  kuler(config.get('baseURL') + "/", "limegreen"));
+                  process.exit(0);
+                });
+              }
+              else {
+                console.info(kuler('Server is listening.', 'olive'),  kuler(config.get('baseURL') + "/", "limegreen"));
               }
             }
-            app(config, online);
+          }
+          app(config, online);
 
 
-          })
-        }
-      });
-    }
+        })
+      }
+    });
+  }
 

@@ -4,13 +4,15 @@
 var path   = require('path')
   , extend = require('extend')
   , objectPath = require("object-path")
-  ;
+  , loadjson = require("naked-json-require")
+  , fs = require('fs')
+;
 function Configurator() {
 
-    if (!(this instanceof Configurator)) {
-        return new Configurator();
-    }
-    this.config = {};
+  if (!(this instanceof Configurator)) {
+    return new Configurator();
+  }
+  this.config = {};
 }
 
 Configurator.prototype.fix = function fix(name, value) {
@@ -48,6 +50,19 @@ Configurator.prototype.load = function load(appname, customArgvParser) {
   require('rc')(appname, this.config, customArgvParser);
 };
 
+Configurator.prototype.local = function local(filename) {
+  try {
+    if (fs.existsSync(filename)) {
+      this.merge(loadjson(filename));
+      this.set('dateConfig', fs.statSync(filename).mtime);
+      return true;
+    }
+  }
+  catch(e) {
+    return e;
+  }
+}
+
 Configurator.prototype.merge = function merge(obj) {
   var self = this
   Object.keys(obj).forEach(function(key) {
@@ -73,9 +88,9 @@ Configurator.prototype.expose = function expose() {
   var conf = require('clone')(this.config);
   var tohide = ['dataPath', 'viewPath', 'collectionName', 'connectionURI', 'connexionURI', 'configs', 'config', '$0', '_', 'browserifyModules', 'collectionsIndexName', 'tempPath', 'theme', 'h', 'd', 'debug', 'help', 'version', 'v', 'verbose', 'V'];
   tohide.forEach(function(n) {
-      if (conf[n] !== undefined) {
-        delete conf[n];
-      }
+    if (conf[n] !== undefined) {
+      delete conf[n];
+    }
   });
   return conf;
 };
