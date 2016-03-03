@@ -4,11 +4,10 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
-  , Query = require('../helpers/query.js')
+  , mq = require('../helpers/query.js')
   ;
 
 module.exports = function(model) {
-  var qry = new Query();
   if (model === undefined) {
     model = require('datamodel')();
   }
@@ -22,30 +21,30 @@ module.exports = function(model) {
       }
   })
   .declare('mongoQuery', function(req, fill) {
-      var q = qry.where(req.query.where).get('$query');
-      if (req.routeParams.resourceName === 'index') {
-        q = { _wid: { $ne: "index" } }
-      }
-      q.state = {
-        $nin: [ "deleted", "hidden" ]
-      };
-      debug('mongoQuery', q);
-      fill(q);
+    var q = Object(mq(req.query, '$query', {}));
+    if (req.routeParams.resourceName === 'index') {
+      q = { _wid: { $ne: "index" } }
+    }
+    q.state = {
+      $nin: [ "deleted", "hidden" ]
+    };
+    debug('mongoQuery', q);
+    fill(q);
   })
   .append('mongoCursor', function(req, fill) {
       if (this.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
-      var mongoSort = qry.orderBy(req.query.orderby).get('$orderby');
-      var mongoLimit = Number(qry.limit(req.query.limit).get('$limit'));
-      var mongoOffset = Number(qry.get('$offset'));
+      var mongoSort = Object(mq(req.query, '$sort', {}));
+      var mongoLimit = Number(mq(req.query, '$limit',  10));
+      var mongoOffset = Number(mq(req.query, '$offset', 0));
       var mongoCursor = this.mongoDatabaseHandle
       .collection(this.collectionName)
       .find(this.mongoQuery)
       .sort(mongoSort)
       .limit(Number.isNaN(mongoLimit) ? 25 : mongoLimit)
       .skip(Number.isNaN(mongoOffset) ? 0 : mongoOffset);
-      // debug('mongoCursor on `' + this.collectionName + '`', this.mongoQuery, mongoSort, mongoLimit, mongoOffset);
+      debug('mongoCursor on `' + this.collectionName + '`', this.mongoQuery, mongoSort, mongoLimit, mongoOffset);
       fill(mongoCursor);
   })
   .append('mongoCounter', function(req, fill) {

@@ -5,11 +5,10 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
   , JBJ = require('jbj')
-  , Query = require('../helpers/query.js')
+  , mq = require('../helpers/query.js')
   ;
 
 module.exports = function(model) {
-  var qry = new Query();
   model
   .declare('collectionName', function(req, fill) {
       if (req.routeParams.resourceName === 'index') {
@@ -20,7 +19,7 @@ module.exports = function(model) {
       }
   })
   .declare('mongoQuery', function(req, fill) {
-      var q = qry.where(req.query.where).get('$query');
+      var q = Object(mq(req.query, '$query', {}));
       if (req.routeParams.resourceName === 'index') {
         q = { _wid: { $ne: "index" } }
       }

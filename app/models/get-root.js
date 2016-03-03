@@ -4,13 +4,11 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
-  , Query = require('../helpers/query.js')
   , recall = require('../helpers/recall.js')
   , async = require('async')
   ;
 
 module.exports = function(model) {
-  var qry = new Query();
   model
   .declare('mimeType', function(req, fill) {
       if (req.query.alt === 'raw') {
