@@ -68,10 +68,10 @@ module.exports = function(model) {
         if (req.config.has('dataPath')) {
           index = {
             // @todo Idéalement il faudrait inserer ce document avec castor-load
-            "fid": "hotfolder",       // pour être compatible castor-load
+            "fid": req.config.get('collectionName'),       // pour être compatible castor-load
             "number": 0,          // pour être compatible castor-load
             "state": "inserted",  // pour être compatible castor-load
-            "_wid": "hotfolder",
+            "_wid": req.config.get('collectionName'),
             "_label": "Hotfolder",
             "_text": "The hot folder is continuously monitored, and when files are copied or dropped into it, they are automatically processed",
             "_hash": null,
