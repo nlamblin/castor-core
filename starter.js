@@ -145,7 +145,7 @@ module.exports = function(warmup) {
           if (config.has('dataPath')) {
             var dataconfigs = [
               path.normalize(config.get('dataPath')) + '.json',
-              path.normalize(config.get('dataPath')) + '.config'
+              path.normalize(config.get('dataPath')) + '.js'
             ];
             dataconfigs.forEach(function(datafile) {
               if (config.local(datafile)) {
@@ -184,8 +184,6 @@ module.exports = function(warmup) {
             }
           }
           app(config, online);
-
-
         })
       }
     });

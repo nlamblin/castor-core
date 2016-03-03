@@ -54,7 +54,6 @@
     "minimist": "^1.1.1",
     "mongodb": "^2.0.36",
     "morgan": "^1.6.1",
-    "naked-json-require": "^1.0.1",
     "nunjucks": "^2.3.0",
     "nunjucks-markdown": "^1.1.0",
     "object-path": "^0.9.2",

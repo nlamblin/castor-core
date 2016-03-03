@@ -4,7 +4,6 @@
 var path   = require('path')
   , extend = require('extend')
   , objectPath = require("object-path")
-  , loadjson = require("naked-json-require")
   , fs = require('fs')
 ;
 function Configurator() {
@@ -53,7 +52,7 @@ Configurator.prototype.load = function load(appname, customArgvParser) {
 Configurator.prototype.local = function local(filename) {
   try {
     if (fs.existsSync(filename)) {
-      this.merge(loadjson(filename));
+      this.merge(require(filename));
       this.set('dateConfig', fs.statSync(filename).mtime);
       return true;
     }
