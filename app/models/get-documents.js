@@ -4,7 +4,7 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
-  , mq = require('../helpers/query.js')
+  , mqs = require('mongodb-querystring')
   ;
 
 module.exports = function(model) {
@@ -21,7 +21,7 @@ module.exports = function(model) {
       }
   })
   .declare('mongoQuery', function(req, fill) {
-    var q = Object(mq(req.query, '$query', {}));
+    var q = mqs.create(req.query).$query();
     if (req.routeParams.resourceName === 'index') {
       q = { _wid: { $ne: "index" } }
     }
@@ -35,9 +35,10 @@ module.exports = function(model) {
       if (this.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
-      var mongoSort = Object(mq(req.query, '$sort', {}));
-      var mongoLimit = Number(mq(req.query, '$limit',  10));
-      var mongoOffset = Number(mq(req.query, '$offset', 0));
+      var q = mqs.create(req.query);
+      var mongoSort = q.$sort();
+      var mongoLimit = q.$limit(10);
+      var mongoOffset = q.$offset(0);
       var mongoCursor = this.mongoDatabaseHandle
       .collection(this.collectionName)
       .find(this.mongoQuery)
