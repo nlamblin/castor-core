@@ -5,29 +5,28 @@ var basename     = path.basename(__filename, '.js')
 var debug        = require('debug')('castor:' + basename)
 var assert       = require('assert');
 var process      = require('process');
-var app          = require('../app');
-var Configurator = require('../configurator.js');
-var server       = null;
+
 
 describe('Operators', function () {
 
+  var server = null;
+
   before(function(done) {
-    var config       = new Configurator();
-    config.fix('connectionURI', 'mongodb://localhost:27017/castor-core-test');
-    config.fix('dataPath',      path.resolve(__dirname, 'dataset'));
-    config.fix('viewPath',      '..');
 
-    process.chdir('..');
+    process.chdir(__dirname);
 
-    app(config, function (err, castorServer) {
-      if (err) {
-        debug("err",err);
-        process.exit(1);
-      }
-      server = castorServer;
-      done(err);
+    require('../starter.js')(function(config, start) {
+      start(function(err, serv) {
+        server = serv;
+        // Because some module removes console.log
+        console.log = console.info;
+        done(err);
+      });
     })
+
   });
+
+  //////////////////////////////////
 
   describe('distinct', function () {
 
@@ -37,6 +36,7 @@ describe('Operators', function () {
 
   });
 
+  //////////////////////////////////
   after(function(done) {
     server.close(function(err) {
       done(err);
