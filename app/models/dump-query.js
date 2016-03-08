@@ -251,12 +251,9 @@ module.exports = function(model) {
                 if (field.language !== undefined) {
                   doc['@context'][propertyName]['@language'] = field.language;
                 }
-
-                // @todo
-                // if (field.primary !== undefined) {
-                doc['@context'][propertyName]['@quality'] = 'primary';
-                // }
-
+                if (field.primary === true || field.primary === "true") {
+                  doc['@context'][propertyName]['@quality'] = 'primary';
+                }
                 if (field.title !== undefined) {
                   doc['$' + propertyName] = data['$' + propertyName];
                 }
