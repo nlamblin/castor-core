@@ -185,18 +185,17 @@ module.exports = function(warmup) {
           }
           var srv = app(config, online);
 
-          function exitOnSignal(signal) {
-            process.on(signal, function() {
-              srv.close(function() {
-                console.info(kuler('Server is stopped .', 'olive'),  kuler('Caught ' + signal + ' exiting', "limegreen"));
-                process.exit(1);
-              });
-            });
-          }
-          // exit on CTRL+C
-          exitOnSignal('SIGINT');
-          exitOnSignal('SIGTERM');
+          process.on('SIGINT', function() {
+            console.info(kuler('Server is killed.', 'olive'),  kuler('Caught SIGINT exiting', "limegreen"));
+            process.exit(1);
+          });
 
+          process.on('SIGTERM', function() {
+            srv.close(function() {
+              console.info(kuler('Server is stopped .', 'olive'),  kuler('Caught SIGTERM exiting', "limegreen"));
+              process.exit(1);
+            });
+          });
         })
       }
     });
