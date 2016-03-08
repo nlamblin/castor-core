@@ -44,10 +44,10 @@ module.exports = function(config, online) {
   // Passport
   //
   core.passport.serializeUser(function(user, done) {
-      done(null, JSON.stringify(user));
+    done(null, JSON.stringify(user));
   });
   core.passport.deserializeUser(function(user, done) {
-      done(null, JSON.parse(user));
+    done(null, JSON.parse(user));
   });
 
 
@@ -111,7 +111,7 @@ module.exports = function(config, online) {
   models.from(extensionPath, __dirname)
   models.over(config.get('models'))
   models.apply(function(hash, func, item) {
-      core.models[hash] = func;
+    core.models[hash] = func;
   });
 
 
@@ -125,7 +125,7 @@ module.exports = function(config, online) {
   loaders.from(extensionPath, __dirname)
   loaders.over(config.get('loaders'))
   loaders.apply(function(hash, func, item) {
-      core.loaders.push([item.pattern || '**/*', func, item.options]);
+    core.loaders.push([item.pattern || '**/*', func, item.options]);
   });
   core.loaders.push(['**/*', require('./loaders/document.js'), { stylesheet: config.get('documentFields') }]);
   core.loaders.push(['**/*', require('./loaders/append.js'), {}]);
@@ -181,338 +181,343 @@ module.exports = function(config, online) {
     return MongoClient.connect(config.get('connectionURI'));
   }
   try {
-    core.connect().then(function(db) {
-        db.collection(config.get('collectionName')).then(function(coll) {
-            debug('indexes', coll);
-            var usfs = config.get('documentFields');
-            core.indexes = Object.keys(usfs)
-            .filter(function(i) { return (i !== '$text') && (usfs[i].noindex !== true); })
-            .map(function(i) {var j = {}; j[i.replace('$','')] = 1; return j;})
-            ;
-          async.map(core.indexes, function(i, cb) {
-              coll.ensureIndex(i, { w: config.get('writeConcern')}, function(err, indexName) {
-                  if (err instanceof Error) {
-                    console.error(kuler("Unable to create the index.", "red"), kuler(err.toString(), 'orangered'));
-                  }
-                  else {
-                    console.info(kuler('Index added.', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
-                  }
-                  cb(err, indexName);
-              });
-            }, function(e, ret) {
-              if (e) {
-                throw e;
-              }
-              db.close();
+    core.connect()
+    .then(function(db) {
+      db.collection(config.get('collectionName'))
+      .then(function(coll) {
+        debug('indexes', coll);
+        var usfs = config.get('documentFields');
+        core.indexes = Object.keys(usfs)
+        .filter(function(i) {
+          return (i !== '$text') && (usfs[i].noindex !== true);
+        })
+        .map(function(i) {
+          var j = {}; j[i.replace('$','')] = 1; return j;
+        });
+        async.map(core.indexes, function(i, cb) {
+          coll.ensureIndex(i, { w: config.get('writeConcern')}, function(err, indexName) {
+            if (err instanceof Error) {
+              console.error(kuler("Unable to create the index.", "red"), kuler(err.toString(), 'orangered'));
+            }
+            else {
+              console.info(kuler('Index added.', 'olive'), kuler(Object.keys(i)[0] + '/' + indexName, 'limegreen'));
+            }
+            cb(err, indexName);
           });
+        }, function(e, ret) {
+          if (e) {
+            throw e;
+          }
+          db.close();
+        });
       }).catch(function(e) {
-          throw e;
+        throw e;
       });
-  }).catch(function(e) {
+    }).catch(function(e) {
       throw e;
-  });
-}
-catch(e) {
-  return online(e);
-}
-
-
-//
-// Define Computer
-//
-var cptlock, cptopts;
-try {
-  cptopts = {
-    "port": config.get('port'),
-    "connectionURI" : config.get('connectionURI'),
-    "collectionName": config.get('collectionName'),
-    "concurrency" : config.get('concurrency')
+    });
   }
-  core.computer = new Computer(config.get('corpusFields'), cptopts) ;
+  catch(e) {
+    return online(e);
+  }
 
-  core.computer.use('count', require('./operators/count.js'));
-  core.computer.use('catalog', require('./operators/catalog.js'));
-  core.computer.use('distinct', require('./operators/distinct.js'));
-  core.computer.use('ventilate', require('./operators/ventilate.js'));
-  core.computer.use('total', require('./operators/total.js'));
-  core.computer.use('graph', require('./operators/graph.js'));
-  core.computer.use('groupby', require('./operators/groupby.js'));
-  core.computer.use('merge', require('./operators/merge.js'));
 
-  var operators = new Hook('operators')
-  operators.from(extensionPath, __dirname)
-  operators.over(config.get('operators'))
-  operators.apply(function(hash, func) {
+  //
+  // Define Computer
+  //
+
+  var cptlock, cptopts;
+  try {
+    cptopts = {
+      "port": config.get('port'),
+      "connectionURI" : config.get('connectionURI'),
+      "collectionName": config.get('collectionName'),
+      "concurrency" : config.get('concurrency')
+    }
+    core.computer = new Computer(config.get('corpusFields'), cptopts) ;
+
+    core.computer.use('count', require('./operators/count.js'));
+    core.computer.use('catalog', require('./operators/catalog.js'));
+    core.computer.use('distinct', require('./operators/distinct.js'));
+    core.computer.use('ventilate', require('./operators/ventilate.js'));
+    core.computer.use('total', require('./operators/total.js'));
+    core.computer.use('graph', require('./operators/graph.js'));
+    core.computer.use('groupby', require('./operators/groupby.js'));
+    core.computer.use('merge', require('./operators/merge.js'));
+
+    var operators = new Hook('operators')
+    operators.from(extensionPath, __dirname)
+    operators.over(config.get('operators'))
+    operators.apply(function(hash, func) {
       core.computer.use(hash, func);
-  });
-  var cptfunc = function(err, doc) {
-    if (cptlock === undefined || cptlock === false) {
-      cptlock = true;
-      core.heart.createEvent(2, {repeat: 1}, function() {
+    });
+    var cptfunc = function(err, doc) {
+      if (cptlock === undefined || cptlock === false) {
+        cptlock = true;
+        core.heart.createEvent(2, {repeat: 1}, function() {
           cptlock = false; // évite d'oublier un evenement pendant le calcul
           core.computer.run(function(err) {
-              if (err instanceof Error) {
-                console.error(kuler("Unable to compute some fields.", "red"), kuler(err.toString(), 'orangered'));
-              }
-              else {
-                console.info(kuler('Corpus fields computed.', 'olive'));
-              }
+            if (err instanceof Error) {
+              console.error(kuler("Unable to compute some fields.", "red"), kuler(err.toString(), 'orangered'));
+            }
+            else {
+              console.info(kuler('Corpus fields computed.', 'olive'));
+            }
           });
-      });
+        });
+      }
+    };
+    if (ldr !== undefined) {
+      ldr.on('watching', cptfunc);
+      ldr.on('changed', cptfunc);
+      ldr.on('cancelled', cptfunc);
+      ldr.on('dropped', cptfunc);
+      ldr.on('added', cptfunc);
     }
-  };
-  if (ldr !== undefined) {
-    ldr.on('watching', cptfunc);
-    ldr.on('changed', cptfunc);
-    ldr.on('cancelled', cptfunc);
-    ldr.on('dropped', cptfunc);
-    ldr.on('added', cptfunc);
   }
-}
-catch(e) {
-  return online(e);
-}
+  catch(e) {
+    return online(e);
+  }
 
 
-//
-// Load strategies for PassportJS
-//
-var strategies = new Hook('strategies')
-strategies.from(extensionPath, __dirname)
-strategies.over(config.get('strategies'))
-strategies.apply(function(hash, func, item) {
+  //
+  // Load strategies for PassportJS
+  //
+  var strategies = new Hook('strategies')
+  strategies.from(extensionPath, __dirname)
+  strategies.over(config.get('strategies'))
+  strategies.apply(function(hash, func, item) {
     core.passport.use(func(item.options, core));
-});
+  });
 
 
-//
-// Load authorizations
-//
-var authorizations = new Hook('authorizations')
-authorizations.from(extensionPath, __dirname)
-authorizations.over(config.get('authorizations'))
-authorizations.apply(function(hash, func, item) {
+  //
+  // Load authorizations
+  //
+  var authorizations = new Hook('authorizations')
+  authorizations.from(extensionPath, __dirname)
+  authorizations.over(config.get('authorizations'))
+  authorizations.apply(function(hash, func, item) {
     core.acl.use(item.pattern, func(item.options, core));
-});
-core.acl.use('* /**', require('./authorizations/recall.js')());
+  });
+  core.acl.use('* /**', require('./authorizations/recall.js')());
 
 
 
-//
-// define WEB Server
-//
-var app = express();
+  //
+  // define WEB Server
+  //
+  var app = express();
 
 
 
-//
-// is it behind a proxy,
-//
-if (config.get('trustProxy') === true) {
-  app.enable('trust proxy');
-}
+  //
+  // is it behind a proxy,
+  //
+  if (config.get('trustProxy') === true) {
+    app.enable('trust proxy');
+  }
 
 
 
-//
-// Add middlewares to Express
-//
-try
-{
-  app.use(function (req, res, next) {
+  //
+  // Add middlewares to Express
+  //
+  try {
+    app.use(function (req, res, next) {
       req.routeParams = {};
       req.config = config;
       req.core = core;
       next();
-  });
-  app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
-  app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
-  app.use(require('cookie-parser')());
-  app.use(require('express-session')({ secret: __dirname, resave: false, saveUninitialized: false }));
-  app.use(passport.initialize());
-  app.use(passport.session());
-  I18n.expressBind(app, {
+    });
+    app.use(require('morgan')(config.get('logFormat'), { stream : process.stderr }));
+    app.use(require('serve-favicon')(path.resolve(viewPath, './favicon.ico')));
+    app.use(require('cookie-parser')());
+    app.use(require('express-session')({ secret: __dirname, resave: false, saveUninitialized: false }));
+    app.use(passport.initialize());
+    app.use(passport.session());
+    I18n.expressBind(app, {
       locales: ['en', 'fr'],
       directory: path.resolve(extensionPath, './locales')
-  });
-  app.use(require('./middlewares/i18n.js')());
+    });
+    app.use(require('./middlewares/i18n.js')());
 
-  var middlewares = new Hook('middlewares')
-  middlewares.from(extensionPath, __dirname)
-  middlewares.over(config.get('middlewares'))
-  middlewares.apply(function(hash, func, item) {
+    var middlewares = new Hook('middlewares')
+    middlewares.from(extensionPath, __dirname)
+    middlewares.over(config.get('middlewares'))
+    middlewares.apply(function(hash, func, item) {
       app.use(item.path || hash, func(item.options, core));
-  });
-}
-catch(e) {
-  return online(e);
-}
+    });
+  }
+  catch(e) {
+    return online(e);
+  }
 
 
 
 
 
-//
-// Define the view template engine
-//
-//
-var env = nunjucks.configure([viewPath, path.resolve(__dirname, './views/')], {
+  //
+  // Define the view template engine
+  //
+  //
+  var env = nunjucks.configure([viewPath, path.resolve(__dirname, './views/')], {
     autoescape: false,
     watch: false,
     express: app
-});
+  });
 
 
 
-//
-// "Tags" for nunjucks
-//
-//
-require('nunjucks-markdown').register(env, config.get('markdown'));
+  //
+  // "Tags" for nunjucks
+  //
+  //
+  require('nunjucks-markdown').register(env, config.get('markdown'));
 
 
-//
-// JBJ
-//
-//
-var filters = new Hook('filters')
-filters.from(extensionPath, __dirname)
-filters.over(config.get('filters'))
-filters.apply(function(hash, func) {
+  //
+  // JBJ
+  //
+  //
+  var filters = new Hook('filters')
+  filters.from(extensionPath, __dirname)
+  filters.over(config.get('filters'))
+  filters.apply(function(hash, func) {
     JBJ.use(func());
-});
-Object.keys(JBJ.filters).forEach(function(filterName) {
+  });
+  Object.keys(JBJ.filters).forEach(function(filterName) {
     env.addFilter(filterName, JBJ.filters[filterName]);
-});
-JBJ.register('local:', protocols('local', config));
-JBJ.register('http:', protocols('http', config));
-JBJ.register('https:', protocols('https', config));
+  });
+  JBJ.register('local:', protocols('local', config));
+  JBJ.register('http:', protocols('http', config));
+  JBJ.register('https:', protocols('https', config));
 
-//
-// Add some vars in req
-//
-app.use(function (req, res, next) {
+  //
+  // Add some vars in req
+  //
+  app.use(function (req, res, next) {
     res.renderString = function(input, options, callback) {
       var context = {}
       extend(context, res.locals)
       extend(context, options)
       env.renderString(input, context, function(err, output) {
-          if (callback !== undefined) {
-            callback(err, output);
+        if (callback !== undefined) {
+          callback(err, output);
+        }
+        else {
+          if (err) {
+            throw err;
           }
           else {
-            if (err) {
-              throw err;
-            }
-            else {
-              res.write(output);
-              res.end();
-            }
+            res.write(output);
+            res.end();
           }
+        }
       });
     }
     next();
-});
+  });
 
-//
-// Set JS modules for the browser
-//
-//
-var modules = config.get('browserifyModules');
-if (Array.isArray(modules) && modules.length > 0) {
-  app.get('/libs.js', browserify(modules, {
-        debug: true
-  }));
-  app.get('/bundle.js', function(req, res) {
+  //
+  // Set JS modules for the browser
+  //
+  //
+  var modules = config.get('browserifyModules');
+  if (Array.isArray(modules) && modules.length > 0) {
+    app.get('/libs.js', browserify(modules, {
+      debug: true
+    }));
+    app.get('/bundle.js', function(req, res) {
       console.warn('Depretacted route, use /libs.js');
       res.redirect(301, '/libs.js');
-  });
-}
-else {
-  app.get('/libs.js', function(req, res, next) {
+    });
+  }
+  else {
+    app.get('/libs.js', function(req, res, next) {
       next(new Errors.PageNotFound('Not Found'));
-  });
-  app.get('/bundle.js', function(req, res, next) {
+    });
+    app.get('/bundle.js', function(req, res, next) {
       next(new Errors.PageNotFound('Not Found'));
-  });
-}
+    });
+  }
 
 
 
-//
-// Define reserved routes : /libs, /assets, /
-//
-app.route('/assets/*').all(ecstatic({
-      root          : path.resolve(viewPath, './assets'),
-      baseDir       : '/assets',
-      cache         : 3600,
-      showDir       : true,
-      autoIndex     : true,
-      humanReadable : true,
-      si            : false,
-      defaultExt    : 'html',
-      gzip          : false
-}));
-app.route('/libs/*').all(ecstatic({
-      root          : path.resolve(viewPath, './libs'),
-      baseDir       : '/libs',
-      cache         : 3600,
-      showDir       : true,
-      autoIndex     : true,
-      humanReadable : true,
-      si            : false,
-      defaultExt    : 'html',
-      gzip          : false
-}));
+  //
+  // Define reserved routes : /libs, /assets, /
+  //
+  app.route('/assets/*').all(ecstatic({
+    root          : path.resolve(viewPath, './assets'),
+    baseDir       : '/assets',
+    cache         : 3600,
+    showDir       : true,
+    autoIndex     : true,
+    humanReadable : true,
+    si            : false,
+    defaultExt    : 'html',
+    gzip          : false
+  }));
+  app.route('/libs/*').all(ecstatic({
+    root          : path.resolve(viewPath, './libs'),
+    baseDir       : '/libs',
+    cache         : 3600,
+    showDir       : true,
+    autoIndex     : true,
+    humanReadable : true,
+    si            : false,
+    defaultExt    : 'html',
+    gzip          : false
+  }));
 
-if (config.get('rootURL') !== undefined) {
-  app.route('/').all(function(req, res) {
+  if (config.get('rootURL') !== undefined) {
+    app.route('/').all(function(req, res) {
       res.redirect(config.get('rootURL'));
-  });
-}
+    });
+  }
 
 
-//
-// Access for route
-//
-app.route('/*').all(core.acl.route());
+  //
+  // Access for route
+  //
+  app.route('/*').all(core.acl.route());
 
 
 
 
-//
-// Mandatory route
-//
+  //
+  // Mandatory route
+  //
 
-var pageRouter = express.Router();
-require('./routes/page.js')(pageRouter, core)
-app.use(pageRouter);
+  var pageRouter = express.Router();
+  require('./routes/page.js')(pageRouter, core)
+  app.use(pageRouter);
 
-//
-// Optionals routes
-//
-var routes = new Hook('routes')
-routes.from(extensionPath, __dirname)
-routes.over(config.get('routes'))
-routes.apply(function(hash, func, item) {
+  //
+  // Optionals routes
+  //
+  var routes = new Hook('routes')
+  routes.from(extensionPath, __dirname)
+  routes.over(config.get('routes'))
+  routes.apply(function(hash, func, item) {
     var router = express.Router();
     func(router, core)
     app.use(router);
-});
+  });
 
-//
-// catch 404 and forward to error handler
-//
-app.use(function(req, res, next) {
+  //
+  // catch 404 and forward to error handler
+  //
+  app.use(function(req, res, next) {
     next(new Errors.PageNotFound('Not Found'));
-});
+  });
 
 
 
-//
-// Route Errors handler
-//
-app.use(function errorsHandler(err, req, res, next) {
+  //
+  // Route Errors handler
+  //
+  app.use(function errorsHandler(err, req, res, next) {
     var statusCode;
     if (res.headersSent === false) {
       if (err instanceof Errors.PageNotFound || err instanceof Errors.TableNotFound) {
@@ -533,36 +538,38 @@ app.use(function errorsHandler(err, req, res, next) {
       return;
     }
     res.status(statusCode);
-    console.error(kuler("Route error for", "red"), req.originalUrl
-    , kuler(statusCode + ' - ' + err.toString(), 'orangered'), ' from ', req.get('referer'));
+    console.error(kuler("Route error for", "red"), req.originalUrl, kuler(statusCode + ' - ' + err.toString(), 'orangered'), ' from ', req.get('referer'));
     if (req.accepts('html')) {
       res.render('error.html', {
-          code: statusCode,
-          name: err.name,
-          message: err.message,
-          error: err
+        code: statusCode,
+        name: err.name,
+        message: err.message,
+        error: err
       });
       return;
     }
     if (req.accepts('json')) {
       res.send({
-          code: statusCode,
-          name: err.name,
-          message: err.message,
+        code: statusCode,
+        name: err.name,
+        message: err.message,
       });
-          return;
-        }
-        res.type('text').send(err.toString());
-    });
+      return;
+
+    }
+    res.type('text').send(err.toString());
+  });
 
 
-    //
-    // Create HTTP server
-    //
-    //
-    var server = require('http').createServer(app)
-    server.listen(config.get('port'), function() {
-        online(null, server);
-    });
+  //
+  // Create HTTP server
+  //
+  //
+  var server = require('http').createServer(app)
+  server.listen(config.get('port'), function() {
+    online(null, server);
+  });
 
-  }
+
+  return server;
+}

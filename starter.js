@@ -183,7 +183,20 @@ module.exports = function(warmup) {
               }
             }
           }
-          app(config, online);
+          var srv = app(config, online);
+
+          function exitOnSignal(signal) {
+            process.on(signal, function() {
+              srv.close(function() {
+                console.info(kuler('Server is stopped .', 'olive'),  kuler('Caught ' + signal + ' exiting', "limegreen"));
+                process.exit(1);
+              });
+            });
+          }
+          // exit on CTRL+C
+          exitOnSignal('SIGINT');
+          exitOnSignal('SIGTERM');
+
         })
       }
     });
