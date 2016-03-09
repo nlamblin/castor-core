@@ -24,6 +24,7 @@ var path = require('path')
   , passport = require('passport')
   , Errors = require('./helpers/errors.js')
   , querystring = require('querystring')
+  , datamodel = require('datamodel')
   ;
 
 module.exports = function(config, online) {
@@ -95,6 +96,7 @@ module.exports = function(config, online) {
   // Models
   //
   core.models.page = require('./models/page.js')
+  core.models.init = require('./models/init.js')
   core.models.mongo = require('./models/mongo.js')
   core.models.reduceTable = require('./models/reduce-table.js')
   core.models.getRoot = require('./models/get-root.js')
@@ -113,6 +115,18 @@ module.exports = function(config, online) {
   models.apply(function(hash, func, item) {
     core.models[hash] = func;
   });
+
+
+  //
+  // Check Database & Collections Index
+  //
+  datamodel([core.models.mongo, core.models.init])
+  .apply(core)
+  .then(function(res) {
+    if (res.initState) {
+      console.info(kuler('Collections index initialized.', 'olive'), kuler(core.config.get('collectionsIndexName'), 'limegreen'));
+    }
+  }).catch(online);
 
 
   //

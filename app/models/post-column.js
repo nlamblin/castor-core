@@ -58,7 +58,7 @@ module.exports = function(model) {
   })
   .append('mongoResult', function(req, fill) {
       var self = this;
-      if (self.mongoCollectionsIndexHandle instanceof Error) {
+      if (self.mongoDatabaseHandle instanceof Error) {
         return fill([]);
       }
       var q = {
@@ -81,7 +81,7 @@ module.exports = function(model) {
           extend(o11, self.property.value);
           o1['$set']["_columns." + self.property.name] = o11;
           debug('update', q, o11);
-          self.mongoCollectionsIndexHandle.update(q, o1).then(fill).catch(fill);
+          self.mongoDatabaseHandle.collectionsIndex().update(q, o1).then(fill).catch(fill);
         }
         else {
           debug('Dropped!');
@@ -96,7 +96,7 @@ module.exports = function(model) {
           "$unset" : f2
         }
         debug("update column", q, o2);
-        self.mongoCollectionsIndexHandle.update(q, o2).then(miseajour).catch(fill);
+        self.mongoDatabaseHandle.collectionsIndex().update(q, o2).then(miseajour).catch(fill);
       }
       else {
         miseajour();

@@ -11,13 +11,14 @@ module.exports = function(model) {
   model
   .append('field', function(req, fill) {
       var Errors = req.core.Errors;
-      if (this.mongoCollectionsIndexHandle instanceof Error) {
+      var self = this;
+      if (self.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
       var q = {
           "_wid" : 'index'
       }
-      this.mongoCollectionsIndexHandle.findOne(q).then(function(doc) {
+      self.mongoDatabaseHandle.collectionsIndex().findOne(q).then(function(doc) {
           if (doc._columns._wid === undefined) {
             fill(new Errors.PropertyNotFound('`http://purl.org/dc/elements/1.1/identifier` is missing.'));
           }
@@ -27,13 +28,14 @@ module.exports = function(model) {
       }).catch(fill);
   })
   .append('doc', function(req, fill) {
-      if (this.mongoCollectionsIndexHandle instanceof Error) {
+      var self = this;
+      if (self.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
       var q = {
           "_wid" : req.routeParams.resourceName
       }
-      this.mongoCollectionsIndexHandle.findOne(q).then(fill).catch(fill);
+      self.mongoDatabaseHandle.collectionsIndex().findOne(q).then(fill).catch(fill);
   })
   .complete('value', function(req, fill) {
       var self = this;

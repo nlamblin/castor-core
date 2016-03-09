@@ -11,14 +11,14 @@ module.exports = function(model) {
   .append('table', function(req, fill) {
       var Errors = req.core.Errors;
       var self = this;
-      if (self.mongoCollectionsIndexHandle instanceof Error) {
+      if (self.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
-      self.mongoCollectionsIndexHandle.findOne({
+      self.mongoDatabaseHandle.collectionsIndex().findOne({
           "_wid" : req.routeParams.resourceName
       }).then(function(doc) {
           if (doc === null && req.routeParams.resourceName === 'index') {
-            self.mongoCollectionsIndexHandle.insertOne(self.indexDescription).then(function() {
+            self.mongoDatabaseHandle.collectionsIndex().insertOne(self.indexDescription).then(function() {
                 fill(self.indexDescription);
             }).catch(fill);
           }

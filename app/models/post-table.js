@@ -117,7 +117,7 @@ module.exports = function(model) {
         query = {
           _wid: self.property.previousName
         }
-        self.mongoCollectionsIndexHandle.deleteOne(query).then(function(r) {
+        self.mongoDatabaseHandle.collectionsIndex().deleteOne(query).then(function(r) {
             self.mongoDatabaseHandle.listCollections({name: self.property.previousName}).next().then(function(collinfo) {
                 self.mongoDatabaseHandle.dropCollection(self.property.previousName).catch(function(e) {
                     console.warn(e.toString(), self.property.previousName);
@@ -148,7 +148,7 @@ module.exports = function(model) {
         }
 
         debug('update table', query, operation);
-        self.mongoCollectionsIndexHandle.updateOne(query, operation).then(fill).catch(fill);
+        self.mongoDatabaseHandle.collectionsIndex().updateOne(query, operation).then(fill).catch(fill);
       }
       else if (self.action === "rename") {
         query = {
@@ -169,7 +169,7 @@ module.exports = function(model) {
           operation['$set']._template = self.property.template;
         }
         debug('rename table', query, operation);
-        self.mongoCollectionsIndexHandle.updateOne(query, operation).then(function(r) {
+        self.mongoDatabaseHandle.collectionsIndex().updateOne(query, operation).then(function(r) {
             self.mongoDatabaseHandle.listCollections({name: self.property.previousName}).next().then(function(collinfo) {
                 self.mongoDatabaseHandle.renameCollection(self.property.previousName, self.property.name).catch(function(e) {
                     console.warn(e.toString(), self.property.previousName);
@@ -187,7 +187,7 @@ module.exports = function(model) {
           _wid: self.property.originalName
         };
         debug('clone table', query);
-        self.mongoCollectionsIndexHandle.findOne(query).then(function(newdoc) {
+        self.mongoDatabaseHandle.collectionsIndex().findOne(query).then(function(newdoc) {
             delete newdoc._id;
             newdoc._from  = self.property.originalName;
             newdoc._wid = req.routeParams.resourceName;
@@ -196,7 +196,7 @@ module.exports = function(model) {
             newdoc.number = 0;
             newdoc.state = "inserted";
             debug('newdoc', newdoc);
-            self.mongoCollectionsIndexHandle.insertOne(newdoc).then(function() {
+            self.mongoDatabaseHandle.collectionsIndex().insertOne(newdoc).then(function() {
                 async.map(req.core.indexes, function(i, cb) {
                     self.mongoDatabaseHandle.createIndex(req.routeParams.resourceName, i, { w: req.config.get('writeConcern')}, function(err, indexName) {
                         if (err instanceof Error) {
@@ -216,7 +216,7 @@ module.exports = function(model) {
       }
       else {
         debug('add table', query, operation);
-        self.mongoCollectionsIndexHandle.insertOne(self.doc).then(function() {
+        self.mongoDatabaseHandle.collectionsIndex().insertOne(self.doc).then(function() {
             async.map(req.core.indexes, function(i, cb) {
                 self.mongoDatabaseHandle.createIndex(req.routeParams.resourceName, i, { w: req.config.get('writeConcern')}, function(err, indexName) {
                   if (err instanceof Error) {

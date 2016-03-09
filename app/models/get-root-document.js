@@ -24,10 +24,10 @@ module.exports = function(model) {
   .append('template', function(req, fill) {
       var Errors = req.core.Errors;
       var self = this;
-      if (self.mongoCollectionsIndexHandle instanceof Error) {
+      if (self.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
-      self.mongoCollectionsIndexHandle.findOne({
+      self.mongoDatabaseHandle.collectionsIndex().findOne({
           "_wid" : "index"
       }).then(function(doc) {
           if (doc === null) {
@@ -41,14 +41,14 @@ module.exports = function(model) {
   .append('table', function(req, fill) {
       var Errors = req.core.Errors;
       var self = this;
-      if (self.mongoCollectionsIndexHandle instanceof Error) {
+      if (self.mongoDatabaseHandle instanceof Error) {
         return fill();
       }
       var retrieve = recall({
           port: req.config.get('port')
       });
 
-      self.mongoCollectionsIndexHandle.findOne({
+      self.mongoDatabaseHandle.collectionsIndex().findOne({
           "_root" : true
       }).then(function(table) {
           if (table === null) {
