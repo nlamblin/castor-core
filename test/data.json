@@ -1,4 +1,8 @@
 {
     "connectionURI": "mongodb://localhost:27017/castortest",
-    "verbose": true
+    "verbose": true,
+    "loaders": [{
+        "pattern": "**/*.csv",
+        "require": "castor-load-csv"
+    }]
 }
