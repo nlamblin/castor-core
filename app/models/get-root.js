@@ -26,7 +26,7 @@ module.exports = function(model) {
       else if (req.query.alt === 'tsv') {
         fill('text/tab-separated-values');
       }
-      else if (req.query.alt === 'xls') {
+      else if (req.query.alt === 'xls' || req.query.alt === 'xlsx') {
         fill('application/vnd.ms-excel');
       }
       else {

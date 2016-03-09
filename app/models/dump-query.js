@@ -54,7 +54,7 @@ module.exports = function(model) {
       else if (this.extension === 'tsv') {
         fill('text/tab-separated-values');
       }
-      else if (this.extension === 'xls') {
+      else if (this.extension === 'xls' || this.extension === 'xlsx') {
         fill('application/vnd.ms-excel');
       }
       else if (this.extension === 'raw') {
