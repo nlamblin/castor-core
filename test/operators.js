@@ -12,6 +12,7 @@ describe('Operators', function () {
 
   var server = null;
 
+  // Run mocha --delay to make it wait more than 2000ms
   before(function(done) {
 
     process.chdir(__dirname);
