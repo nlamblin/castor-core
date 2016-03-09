@@ -4,5 +4,8 @@
     "loaders": [{
         "pattern": "**/*.csv",
         "require": "castor-load-csv"
-    }]
+    }],
+	"routes" : [
+		"table.js"
+	]
 }
