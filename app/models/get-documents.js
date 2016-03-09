@@ -36,7 +36,7 @@ module.exports = function(model) {
         return fill();
       }
       var q = mqs.create(req.query);
-      var mongoSort = q.$sort();
+      var mongoSort = q.$orderby();
       var mongoLimit = q.$limit(10);
       var mongoOffset = q.$offset(0);
       var mongoCursor = this.mongoDatabaseHandle
@@ -45,7 +45,7 @@ module.exports = function(model) {
       .sort(mongoSort)
       .limit(Number.isNaN(mongoLimit) ? 25 : mongoLimit)
       .skip(Number.isNaN(mongoOffset) ? 0 : mongoOffset);
-      debug('mongoCursor on `' + this.collectionName + '`', this.mongoQuery, mongoSort, mongoLimit, mongoOffset);
+      debug('mongoCursor on `' + this.collectionName + '`', this.mongoQuery, 'order by', mongoSort, 'limit', mongoLimit, 'skip', mongoOffset);
       fill(mongoCursor);
   })
   .append('mongoCounter', function(req, fill) {

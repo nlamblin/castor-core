@@ -183,7 +183,19 @@ module.exports = function(warmup) {
               }
             }
           }
-          app(config, online);
+          var srv = app(config, online);
+
+          process.on('SIGINT', function() {
+            console.info(kuler('Server is killed.', 'olive'),  kuler('Caught SIGINT exiting', "limegreen"));
+            process.exit(1);
+          });
+
+          process.on('SIGTERM', function() {
+            srv.close(function() {
+              console.info(kuler('Server is stopped .', 'olive'),  kuler('Caught SIGTERM exiting', "limegreen"));
+              process.exit(1);
+            });
+          });
         })
       }
     });
