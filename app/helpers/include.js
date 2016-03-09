@@ -10,6 +10,7 @@ var path = require('path')
   ;
 
 module.exports = function(basedirs, modname, req) {
+  debug(basedirs, modname);
   req = req === false ? false : true;
   if (modname === undefined) {
     modname = basedirs;
