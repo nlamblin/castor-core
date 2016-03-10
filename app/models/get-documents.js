@@ -37,7 +37,7 @@ module.exports = function(model) {
       }
       var q = mqs.create(req.query);
       var mongoSort = q.$orderby();
-      var mongoLimit = q.$limit(10);
+      var mongoLimit = q.$limit(0);
       var mongoOffset = q.$offset(0);
       var mongoCursor = this.mongoDatabaseHandle
       .collection(this.collectionName)
