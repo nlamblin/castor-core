@@ -98,13 +98,13 @@ module.exports = function(model) {
       else if (self.mimeType === 'text/csv') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
         res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
-                return propertyName;
+          return self.table._columns[propertyName]['label'];
         })))
       }
       else if (self.mimeType === 'text/tab-separated-values') {
         res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
         res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
-          return propertyName;
+          return self.table._columns[propertyName]['label'];
         }), "\t"))
       }
       else if (self.mimeType === 'application/vnd.ms-excel') {
