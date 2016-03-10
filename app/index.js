@@ -484,7 +484,7 @@ module.exports = function(config, online) {
     gzip          : false
   }));
 
-  if (config.get('rootURL') !== undefined) {
+  if (config.get('rootURL') !== undefined && config.get('rootURL') !== '/') {
     app.route('/').all(function(req, res) {
       res.redirect(config.get('rootURL'));
     });
