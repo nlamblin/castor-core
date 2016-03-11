@@ -398,7 +398,7 @@ module.exports = function(config, online) {
   filters.from(extensionPath, __dirname)
   filters.over(config.get('filters'))
   filters.apply(function(hash, func) {
-    JBJ.use(func());
+    JBJ.use(func);
   });
   Object.keys(JBJ.filters).forEach(function(filterName) {
     env.addFilter(filterName, JBJ.filters[filterName]);
