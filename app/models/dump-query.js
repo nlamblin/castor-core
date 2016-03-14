@@ -365,7 +365,11 @@ module.exports = function(model) {
      }
      else if (self.mimeType === 'application/vnd.ms-excel') {
        stream = stream.pipe(es.map(function (data, submit) {
-         worksheet.addRow(data).commit();
+         var row = {};
+         Object.keys(self.table._columns).forEach(function(propertyName) {
+           row[propertyName] = data[propertyName];
+         });
+         worksheet.addRow(row).commit();
          submit();
        }));
        stream.on("end", function() {
