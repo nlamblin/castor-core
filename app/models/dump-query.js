@@ -96,7 +96,12 @@ module.exports = function(model) {
     fill(s.concat('.').concat(this.extension));
   })
   .declare('baseURL', function(req, fill) {
-    fill(String(req.config.get('baseURL')).replace(/\/+$/,''));
+    if (req.config.get('trustProxy')) {
+      fill('http://' + req.hostname);
+    }
+    else {
+      fill(String(req.config.get('baseURL')).replace(/\/+$/,''));
+    }
   })
   .send(function(res, next) {
     var self = this;
