@@ -98,7 +98,7 @@ module.exports = function(config, online) {
   core.models.page = require('./models/page.js')
   core.models.init = require('./models/init.js')
   core.models.mongo = require('./models/mongo.js')
-  core.models.reduceTable = require('./models/reduce-table.js')
+  // core.models.reduceTable = require('./models/reduce-table.js')
   core.models.getRoot = require('./models/get-root.js')
   core.models.getRootDocument = require('./models/get-root-document.js')
   core.models.getTable = require('./models/get-table.js')
@@ -258,6 +258,7 @@ module.exports = function(config, online) {
     core.computer.use('graph', require('./operators/graph.js'));
     core.computer.use('groupby', require('./operators/groupby.js'));
     core.computer.use('merge', require('./operators/merge.js'));
+    core.computer.use('labelize', require('./operators/labelize.js'));
 
     var operators = new Hook('operators')
     operators.from(extensionPath, __dirname)

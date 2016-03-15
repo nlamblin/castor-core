@@ -116,7 +116,13 @@ module.exports = function(router, core) {
       if (req.routeParams.resourceName === undefined || req.routeParams.dollar === undefined) {
         return next();
       }
-      datamodel([core.models.mongo, core.models.reduceTable])
+      req.query.$query = {
+        _wid : req.routeParams.resourceName
+      }
+      req.query.field = '_label';
+      req.routeParams.resourceName = 'index';
+      req.routeParams.operator = core.computer.operator('labelize');
+      datamodel([core.models.mongo, core.models.computeDocuments])
       .apply(req, res, next);
   });
 

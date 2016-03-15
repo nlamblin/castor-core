@@ -5,7 +5,7 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
   , JBJ = require('jbj')
-  , mq = require('../helpers/query.js')
+  , mqs = require('mongodb-querystring')
   ;
 
 module.exports = function(model) {
@@ -19,11 +19,15 @@ module.exports = function(model) {
       }
   })
   .declare('mongoQuery', function(req, fill) {
-      var q = Object(mq(req.query, '$query', {}));
-      if (req.routeParams.resourceName === 'index') {
-        q = { _wid: { $ne: "index" } }
-      }
-      fill(q);
+    var q = mqs.create(req.query).$query();
+    if (req.routeParams.resourceName === 'index') {
+      q = { _wid: { $ne: "index" } }
+    }
+    q.state = {
+      $nin: [ "deleted", "hidden" ]
+    };
+    debug('mongoQuery', q);
+    fill(q);
   })
   .declare('field', function(req, fill) {
       /*
