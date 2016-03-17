@@ -47,7 +47,6 @@ module.exports = function(model) {
     else {
       baseURL = String(req.config.get('baseURL')).replace(/\/+$/,'');
     }
-    debug('baseURI', baseURL + prefixKEY);
     if (prefixKEY === '') {
       fill(baseURL);
     }
@@ -345,8 +344,8 @@ module.exports = function(model) {
                 submit(null, {});
               }
               else {
-                out.split('\n').forEach(function(triplet) {
-                  worksheet.addRow(triplet.split(' ')).commit();
+                out.split('.\n').forEach(function(triplet) {
+                  worksheet.addRow(CSV.parse(triplet, ' ').pop()).commit();
                 });
                 submit();
               }
