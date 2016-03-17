@@ -28,29 +28,6 @@ module.exports = function(model) {
   .declare('documentName', function(req, fill) {
       fill(req.routeParams.documentName);
   })
-  .declare('syntax', function(req, fill) {
-    if (req.query.alt === 'nq' || req.query.alt === 'nq.xlsx') {
-      fill('rdf');
-    }
-    else if (req.query.alt) {
-      fill('array');
-    }
-    else {
-      fill('raw')
-    }
-  })
-  .declare('extension', function(req, fill) {
-    if (req.query.alt === 'nq.xlsx') {
-      fill('xlsx');
-    }
-    else if (req.query.alt) {
-
-      fill(req.query.alt);
-    }
-    else {
-      fill('json')
-    }
-  })
   .append('firstOnly', function(req, fill) {
     if (req.query.fo || req.query.firstOnly) {
       fill(true);
@@ -58,42 +35,6 @@ module.exports = function(model) {
     else {
       fill(false);
     }
-  })
-  .append('mimeType', function(req, fill) {
-    if (this.extension === 'nq') {
-      fill('application/n-quads');
-    }
-    else if (this.extension === 'csv') {
-      fill('text/csv');
-    }
-    else if (this.extension === 'tsv') {
-      fill('text/tab-separated-values');
-    }
-    else if (this.extension === 'xls' || this.extension === 'xlsx') {
-      fill('application/vnd.ms-excel');
-    }
-    else if (this.extension === 'raw') {
-      fill('application/json');
-    }
-    /*
-     else if (this.extension === 'html') {
-       fill('text/html');
-     }
-     */
-    else {
-      fill('application/json');
-    }
-  })
-  .append('fileName', function(req, fill) {
-    var d = new Date()
-    var s = d.toJSON().substring(0, 10).concat('-').concat(req.routeParams.resourceName);
-    if (this.documentName) {
-      s = s.concat('.').concat(this.documentName)
-    }
-    if (req.query.alt === 'nq.xlsx') {
-      s = s.concat('-nq')
-    }
-    fill(s.concat('.').concat(this.extension));
   })
   .declare('baseURL', function(req, fill) {
     if (req.config.get('trustProxy')) {

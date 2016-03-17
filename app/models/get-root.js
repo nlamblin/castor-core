@@ -10,29 +10,6 @@ var path = require('path')
 
 module.exports = function(model) {
   model
-  .declare('mimeType', function(req, fill) {
-      if (req.query.alt === 'raw') {
-        fill('application/json');
-      }
-      else if (req.query.alt === 'json') {
-        fill('application/json');
-      }
-      else if (req.query.alt === 'nq') {
-        fill('application/n-quads');
-      }
-      else if (req.query.alt === 'csv') {
-        fill('text/csv');
-      }
-      else if (req.query.alt === 'tsv') {
-        fill('text/tab-separated-values');
-      }
-      else if (req.query.alt === 'xls' || req.query.alt === 'xlsx') {
-        fill('application/vnd.ms-excel');
-      }
-      else {
-        fill('text/html');
-      }
-  })
   .append('template', function(req, fill) {
       var Errors = req.core.Errors;
       var self = this;

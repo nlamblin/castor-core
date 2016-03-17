@@ -87,7 +87,7 @@ module.exports = function(router, core) {
       return next();
     }
     req.query.alt = req.query.alt === undefined ? 'html' : req.query.alt;
-    datamodel([core.models.page, core.models.mongo, core.models.getRootDocument])
+    datamodel([core.models.page, core.models.alt, core.models.mongo, core.models.getRootDocument])
     .apply(req, res, next);
   });
 
@@ -118,7 +118,7 @@ module.exports = function(router, core) {
       return next();
     }
     req.query.alt = req.query.alt === undefined ? 'html' : req.query.alt;
-    datamodel([core.models.page, core.models.mongo, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
+    datamodel([core.models.page, core.models.alt, core.models.mongo, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
     .apply(req, res, next);
   });
 
@@ -128,7 +128,10 @@ module.exports = function(router, core) {
   //
   router.route(prefixURL + '/')
   .get(function(req, res, next) {
-    datamodel([core.models.page, core.models.mongo, core.models.getRoot])
+    if (req.query.alt === undefined) {
+      req.query.alt = 'html';
+    }
+    datamodel([core.models.page, core.models.alt, core.models.mongo, core.models.getRoot])
     .apply(req, res, next);
   });
 
@@ -142,7 +145,7 @@ module.exports = function(router, core) {
       return next();
     }
     debug('get /:resourceName/:star', req.routeParams);
-    datamodel([core.models.mongo, core.models.getTable, core.models.getDocuments, core.models.dumpQuery])
+    datamodel([core.models.mongo, core.models.alt, core.models.getTable, core.models.getDocuments, core.models.dumpQuery])
     .apply(req, res, next);
   });
 
@@ -154,7 +157,7 @@ module.exports = function(router, core) {
       return next();
     }
     debug('get /:resourceName/:documentName/:star', req.routeParams);
-    datamodel([core.models.mongo, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
+    datamodel([core.models.mongo, core.models.alt, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
     .apply(req, res, next);
   });
 

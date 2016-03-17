@@ -98,6 +98,7 @@ module.exports = function(config, online) {
   core.models.page = require('./models/page.js')
   core.models.init = require('./models/init.js')
   core.models.mongo = require('./models/mongo.js')
+  core.models.alt = require('./models/alt-parameter.js')
   // core.models.reduceTable = require('./models/reduce-table.js')
   core.models.getRoot = require('./models/get-root.js')
   core.models.getRootDocument = require('./models/get-root-document.js')
