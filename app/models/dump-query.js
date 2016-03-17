@@ -345,7 +345,7 @@ module.exports = function(model) {
               }
               else {
                 out.split('.\n').forEach(function(triplet) {
-                  worksheet.addRow(CSV.parse(triplet, ' ').pop()).commit();
+                  worksheet.addRow(CSV.parse(triplet.replace(" ", "@").replace(" ", "@"), "@").pop()).commit();
                 });
                 submit();
               }
