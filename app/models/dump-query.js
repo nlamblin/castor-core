@@ -36,20 +36,29 @@ module.exports = function(model) {
       fill(false);
     }
   })
-  .declare('baseURL', function(req, fill) {
+  .complete('baseURI', function(req, fill) {
+    var baseURL, prefixKEY = req.config.get('prefixKEY');
+    if (prefixKEY === undefined || this.collectionName === req.config.get('collectionsIndexName')) {
+      prefixKEY = '';
+    }
     if (req.config.get('trustProxy')) {
-      fill('http://' + req.hostname);
+      baseURL = 'http://' + req.hostname;
     }
     else {
-      fill(String(req.config.get('baseURL')).replace(/\/+$/,''));
+      baseURL = String(req.config.get('baseURL')).replace(/\/+$/,'');
+    }
+    debug('baseURI', baseURL + prefixKEY);
+    if (prefixKEY === '') {
+      fill(baseURL);
+    }
+    else {
+      fill(baseURL.concat('/').concat(prefixKEY));
     }
   })
   .send(function(res, next) {
     var self = this;
 
-
     if (self.mongoCounter) {
-      debug('mongoCounter', self.mongoCounter);
       res.set('ETag', String('W/').concat(crypto.createHash('md5').update(String(self.mongoCounter)).digest('base64').replace(/=+$/, '')));
     }
     res.set('Content-Type', self.mimeType);
@@ -83,7 +92,6 @@ module.exports = function(model) {
         });
       }
     }
-    debug(this.extension, this.documentName)
 
     //
     // Pipe Mongo cursor
@@ -197,7 +205,7 @@ module.exports = function(model) {
       //
       stream = stream.pipe(es.map(function (data, submit) {
         var doc = {}
-        doc['@id'] = self.baseURL.concat("/").concat(data['_wid']);
+        doc['@id'] = self.baseURI.concat("/").concat(data['_wid']);
         doc['@context'] = {}
         Object.keys(self.table._columns).forEach(function(propertyName, index) {
           var field = self.table._columns[propertyName];
@@ -246,7 +254,7 @@ module.exports = function(model) {
               urls.push(url.format(urlObj));
             }
             else {
-              urls.push(self.baseURL.concat(urlObj.pathname).concat('/$'));
+              urls.push(self.baseURI.concat('/').concat(urlObj.pathname).concat('/$'));
             }
             keys.push(key);
           }
