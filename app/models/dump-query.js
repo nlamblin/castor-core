@@ -37,7 +37,13 @@ module.exports = function(model) {
     }
   })
   .complete('baseURI', function(req, fill) {
-    var baseURL, prefixKEY = req.config.get('prefixKEY');
+    var baseURL, prefixKEY;
+    if (this.table._root === true) {
+      prefixKEY = req.config.get('prefixKEY');
+    }
+    else {
+      prefixKEY = this.table._wid;
+    }
     if (prefixKEY === undefined || this.collectionName === req.config.get('collectionsIndexName')) {
       prefixKEY = '';
     }
@@ -116,17 +122,6 @@ module.exports = function(model) {
       ++counter;
     }))
 
-
-    //
-    // Break pipe for RAW format
-    //
-    if (this.extension === 'raw') {
-      return stream.pipe(es.map(function (data, submit) {
-        Object.keys(data).filter(function(key) { return key[0] !== '_' }).forEach(function(key) { delete data[key] });
-        delete data._id;
-        submit(null, data);
-      })).pipe(JSONStream.stringify(self.firstOnly ? false : undefined)).pipe(res);
-    }
 
     //
     // Compute column field with a title
@@ -232,22 +227,27 @@ module.exports = function(model) {
           }
           doc[propertyName] = data[propertyName] || null;
         });
-        submit(null, doc);
+        if (data._content === undefined) {
+          data._content = {};
+        }
+        data._content.jsonld = doc;
+        submit(null, data);
       }));
       //
       // Resolve Resource Link
       //
       stream = stream.pipe(es.map(function (data, submit) {
-        var urls = [], keys = [];
-        Object.keys(data["@context"]).forEach(function(key) {
-          if (data["@context"][key]
-            && typeof data["@context"][key] === 'object'
-            && data["@context"][key]["@type"]
-            && data["@context"][key]["@type"] === "@id"
-            && data[key]
-            && typeof data[key] === 'string'
+        var urls = [], keys = [], doc = data._content.jsonld;
+
+        Object.keys(doc["@context"]).forEach(function(key) {
+          if (doc["@context"][key]
+            && typeof doc["@context"][key] === 'object'
+            && doc["@context"][key]["@type"]
+            && doc["@context"][key]["@type"] === "@id"
+            && doc[key]
+            && typeof doc[key] === 'string'
           ) {
-            var urlObj = url.parse(data[key]);
+            var urlObj = url.parse(doc[key]);
             if (urlObj.host !== null) {
               urlObj.pathname = urlObj.pathname.concat('/$');
               urls.push(url.format(urlObj));
@@ -272,11 +272,30 @@ module.exports = function(model) {
               return submit(err);
             }
             results.forEach(function(item, index) {
-              data['$'+keys[index]] = item;
+              doc['$'+keys[index]] = item;
             });
-            submit(null, data)
+            submit(null, data);
+
           });
         }));
+
+        //
+        // Break pipe for RAW format
+        //
+        if (this.extension === 'raw') {
+          return stream.pipe(es.map(function (data, submit) {
+            Object.keys(data).filter(function(key) { return key[0] !== '_' }).forEach(function(key) { delete data[key] });
+            delete data._id;
+            data._uri = self.baseURI.concat("/").concat(data['_wid']);
+            submit(null, data);
+          })).pipe(JSONStream.stringify(self.firstOnly ? false : undefined)).pipe(res);
+        }
+        else {
+          return stream.pipe(es.map(function (data, submit) {
+            submit(null, data._content.jsonld);
+          })).pipe(JSONStream.stringify(self.firstOnly ? false : undefined)).pipe(res);
+        }
+
 
 
 
