@@ -65,6 +65,9 @@ module.exports = function(model) {
               if (err) {
                 fill(err)
               }
+              else if (results[1][0] === undefined) {
+                fill(new Errors.PageNotFound('No ressource'));
+              }
               else {
                 results[1][0]._table = results[0][0];
                 fill(results[1][0]);
