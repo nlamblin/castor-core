@@ -10,92 +10,80 @@ var path = require('path')
 
 module.exports = function(model) {
   model
-  .append('template', function(req, fill) {
-      var Errors = req.core.Errors;
-      var self = this;
-      if (self.mongoDatabaseHandle instanceof Error) {
-        return fill();
-      }
-      self.mongoDatabaseHandle.collectionsIndex().findOne({
-          "_wid" : "index"
-      }).then(function(doc) {
-          if (doc === null) {
-            fill(new Errors.TableNotFound('The root table does not exist.'));
-          }
-          else  {
-            fill(doc._template);
-          }
-      }).catch(fill);
+  .declare('template', function(req, fill) {
+    fill("item.html");
   })
-  .append('table', function(req, fill) {
-      var Errors = req.core.Errors;
-      var self = this;
-      if (self.mongoDatabaseHandle instanceof Error) {
-        return fill();
-      }
-      var retrieve = recall({
-          port: req.config.get('port')
-      });
+  .append('locals', function(req, fill) {
+    var Errors = req.core.Errors;
+    var self = this;
+    if (self.mongoDatabaseHandle instanceof Error) {
+      return fill();
+    }
+    var retrieve = recall({
+      port: req.config.get('port')
+    });
 
-      self.mongoDatabaseHandle.collectionsIndex().findOne({
-          "_root" : true
-      }).then(function(table) {
-          if (table === null) {
-            return fill(new Errors.TableNotFound('The root table does not exist.'));
+    self.mongoDatabaseHandle.collectionsIndex().findOne({
+      "_root" : true
+    }).then(function(table) {
+      if (table === null) {
+        return fill(new Errors.TableNotFound('The root table does not exist.'));
+      }
+      if (self.mimeType === 'text/html') {
+        async.parallel([
+          function(callback) {
+            retrieve({
+              pathname: '/index/' + table._wid + '/*',
+              query: {
+                alt :'raw'
+              }
+            }, callback);
+          },
+          function(callback) {
+            retrieve({
+              pathname: '/' + table._wid + '/' + req.routeParams.documentName + '/',
+              query: {
+                alt :'raw'
+              }
+            }, callback);
           }
-          async.parallel([
-              function(callback) {
-                retrieve({
-                    pathname: '/index/' + table._wid + '/*',
-                    query: {
-                      alt :'json'
-                    }
-                }, callback);
-              },
-              function(callback) {
-                retrieve({
-                    pathname: '/' + table._wid + '/' + req.routeParams.documentName + '/',
-                    query: {
-                      alt :'json'
-                    }
-                }, callback);
-              }
-            ],
-            function(err, results) {
-              if (err) {
-                fill(err)
-              }
-              else if (results[1][0] === undefined) {
-                fill(new Errors.PageNotFound('No ressource'));
-              }
-              else {
-                results[1][0]._table = results[0][0];
-                fill(results[1][0]);
-              }
-          });
-      })
-      .catch(fill);
-  })
-  .send(function(res, next) {
-      var self = this;
-      res.set('Content-Type', self.mimeType);
-      if (self.mimeType === 'application/json') {
-        res.send(self.table);
+        ],
+        function(err, results) {
+          if (err) {
+            fill(err)
+          }
+          else if (results[1][0] === undefined) {
+            fill(new Errors.PageNotFound('No ressource'));
+          }
+          else {
+            results[1][0]._table = results[0][0];
+            fill(results[1][0]);
+          }
+        });
       }
       else {
-        return res.render("item.html", self.table);
-        /*
-        var template =
-        String('{% extends "item.html" %}')
-        .concat("\n")
-        .concat('{% block body %}')
-        .concat("\n")
-        .concat(self.template)
-        .concat("\n")
-        .concat('{% endblock %}');
-        res.renderString(self.template, self.table);
-        */
+        fill({
+          port: req.config.get('port'),
+          pathname: '/' + table._wid + '/' + req.routeParams.documentName + '/*',
+          query: {
+            alt : req.query.alt
+          }
+        });
       }
+    })
+    .catch(fill);
+  })
+  .send(function(res, next) {
+    var self = this;
+   // res.set('Content-Type', 'application/json');
+    // return res.send(self.locals);
+    res.set('Content-Type', self.mimeType);
+    if (self.mimeType === 'text/html') {
+      return res.render(self.template, self.locals);
+    }
+    else {
+      recall(self.locals)(res, next);
+    }
   });
   return model;
 }
