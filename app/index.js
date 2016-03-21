@@ -522,6 +522,15 @@ module.exports = function(config, online) {
   });
 
   //
+  // Mandatory route
+  //
+  var restRouter = express.Router();
+  require('./routes/rest.js')(restRouter, core)
+  app.use(restRouter);
+
+
+
+  //
   // catch 404 and forward to error handler
   //
   app.use(function(req, res, next) {

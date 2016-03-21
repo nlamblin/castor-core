@@ -41,7 +41,7 @@ module.exports = function(model) {
           },
           function(callback) {
             retrieve({
-              pathname: '/' + table._wid + '/' + req.routeParams.documentName + '/',
+              pathname: '/' + table._wid + '/' + req.routeParams.documentName + '/*',
               query: {
                 alt :'raw'
               }
