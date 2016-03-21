@@ -403,7 +403,7 @@ module.exports = function(config, online) {
     JBJ.use(func);
   });
   Object.keys(JBJ.filters).forEach(function(filterName) {
-    env.addFilter(filterName, JBJ.filters[filterName]);
+    env.addFilter(filterName, JBJ.filters[filterName], true);
   });
   JBJ.register('local:', protocols('local', config));
   JBJ.register('http:', protocols('http', config));
