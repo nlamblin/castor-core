@@ -57,11 +57,14 @@ module.exports = function(model) {
           exp : self.field
         }
       }
-      debug('collectionName', self.collectionName);
-      debug('mapReduce', opts);
+      // debug('run', 'db.getCollection(\'' + self.collectionName + '\').mapReduce(', req.routeParams.operator.map.toString(), ',', req.routeParams.operator.reduce, ',', opts,')');
       self.mongoDatabaseHandle.collection(self.collectionName).mapReduce(req.routeParams.operator.map, req.routeParams.operator.reduce, opts).then(function(output) {
+         // debug('outputing', output);
           if (output.results) {
             fill(output.results);
+          }
+          else if (Array.isArray(output)) {
+            fill(output);
           }
           else {
             fill(new Error('No result.'));

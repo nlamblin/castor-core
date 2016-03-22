@@ -67,7 +67,7 @@ module.exports = function(router, core) {
     next();
   });
 
-  
+
   //
   // table "root" & his rows
   //
