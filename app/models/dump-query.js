@@ -213,17 +213,8 @@ module.exports = function(model) {
           if (field.type !== undefined) {
             doc['@context'][propertyName]['@type'] = field.type;
           }
-          if (field.label !== undefined) {
-            doc['@context'][propertyName]['@label'] = field.label;
-          }
           if (field.language !== undefined) {
             doc['@context'][propertyName]['@language'] = field.language;
-          }
-          if (field.primary === true || field.primary === "true") {
-            doc['@context'][propertyName]['@quality'] = 'primary';
-          }
-          if (field.title !== undefined) {
-            doc['$' + propertyName] = data['$' + propertyName];
           }
           doc[propertyName] = data[propertyName] || null;
         });

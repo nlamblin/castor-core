@@ -4,12 +4,8 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:routes:' + basename)
-  , express = require('express')
-  , assert = require('assert')
   , datamodel = require('datamodel')
-  , Errors = require('../helpers/errors.js')
   , cors = require('cors')
-  , slashes = require("connect-slashes")
   ;
 
 
