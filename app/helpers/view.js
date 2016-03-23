@@ -12,25 +12,29 @@ var path = require('path')
 
 module.exports = function(config) {
 
-  var themename;
+  var themefile, themedirs = []
   if (config.has('theme')) {
-    themename = config.get('theme')
+    themedirs.push(config.get('theme'));
   }
   else if (config.has('viewPath')) {
-    themename = config.get('viewPath')
+    themedirs.push(config.get('viewPath'))
   }
-  else {
-    themename =  'views';
+  themedirs.push(process.cwd());
+  themedirs.push(process.env.HOME);
+  themedirs.push(path.resolve(__dirname, '..', 'views'));
+
+  try {
+    themefile = include(themedirs, 'castor.js', false)
   }
-  var themedirs = [
-        process.cwd(),
-        process.env.HOME,
-        path.resolve(__dirname, '..', 'views')
-      ]
-    , themefile = include(themedirs, themename, false)
-    , themepath = path.dirname(themefile)
-    , themeconf = require(themefile) || {}
+  catch(e) {
+  }
+  if (themefile === undefined) {
+    themefile = include(themedirs, 'index.js', false)
+  }
+
+  var themepath = path.dirname(themefile)
     , themepack = path.join(themepath, 'package.json')
+    , themeconf = require(themefile) || {}
     ;
 
   if (fs.existsSync(themepack)) {
@@ -38,20 +42,21 @@ module.exports = function(config) {
   }
   if (Array.isArray(themeconf.browserifyModules)) {
     var browserifyDirs = [
-      path.join(themepath, 'node_modules')
+      path.join(themepath, 'node_modules'),
+      themepath
     ];
 
     themeconf.browserifyModules = themeconf.browserifyModules.map(function(modulename) {
-        var modulefile, moduledesc = {};
-        modulefile = include(browserifyDirs, modulename, false);
-        moduledesc[modulefile] = {expose : modulename};
-        return moduledesc;
-      }
-    );
-  }
-  else {
-    themeconf.browserifyModules = [];
-  }
-  config.merge(themeconf);
-  return themepath;
+      var modulefile, moduledesc = {};
+      modulefile = include(browserifyDirs, modulename, false);
+      moduledesc[modulefile] = {expose : modulename};
+      return moduledesc;
+    }
+  );
+}
+else {
+  themeconf.browserifyModules = [];
+}
+config.merge(themeconf);
+return themepath;
 };
