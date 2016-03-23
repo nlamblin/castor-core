@@ -403,7 +403,18 @@ module.exports = function(config, online) {
     JBJ.use(func);
   });
   Object.keys(JBJ.filters).forEach(function(filterName) {
-    env.addFilter(filterName, JBJ.filters[filterName], true);
+    env.addFilter(filterName, function(filterInput, filterStylesheet, filterCallback) {
+      if (filterCallback === undefined) {
+        filterCallback = filterStylesheet;
+      }
+      var filterFunc = JBJ.filters[filterName];
+      if (filterFunc.length === 3) {
+        filterFunc(filterInput, filterStylesheet, filterCallback);
+      }
+      else {
+        filterCallback(null, filterFunc(filterInput, filterStylesheet));
+      }
+    }, true);
   });
   JBJ.register('local:', protocols('local', config));
   JBJ.register('http:', protocols('http', config));
