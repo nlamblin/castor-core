@@ -23,11 +23,18 @@ module.exports = function(config) {
   themedirs.push(process.env.HOME);
   themedirs.push(path.resolve(__dirname, '..', 'views'));
 
-  try {
-    themefile = include(themedirs, 'castor.js', false)
+  if (themefile === undefined) {
+    try {
+      themefile = include(themedirs, 'castor.config.js', false)
+    } catch(e) {}
   }
-  catch(e) {
+
+  if (themefile === undefined) {
+    try {
+      themefile = include(themedirs, 'castor.js', false)
+    } catch(e) { }
   }
+
   if (themefile === undefined) {
     themefile = include(themedirs, 'index.js', false)
   }
