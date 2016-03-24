@@ -70,6 +70,10 @@ module.exports = function(config, online) {
     return online(e);
   }
 
+  var assetsPath = [path.resolve(extensionPath, './assets'), path.resolve(viewPath, './assets')].filter(fs.existsSync).shift();
+  if (assetsPath === undefined) {
+    return online(e);
+  }
 
   //
   //  create an heart & set heartrate
@@ -483,10 +487,10 @@ module.exports = function(config, online) {
     if (!Array.isArray(webpackConfig.entry)) {
       webpackConfig.entry = webpackConfig.entry !== undefined ? [webpackConfig.entry] : [];
     }
-    webpackConfig.entry.push(path.resolve(extensionPath, './client.js'));
+    webpackConfig.entry.push(path.resolve(extensionPath, './src'));
     webpackConfig.context = extensionPath;
     webpackConfig.output = {
-      path: path.resolve(viewPath, './assets'),
+      path: assetsPath,
       filename: 'bundle.js',
       publicPath: '/assets/'
     };
@@ -552,7 +556,7 @@ module.exports = function(config, online) {
   // Define reserved routes : /libs, /assets, /
   //
   app.route('/assets/*').all(ecstatic({
-    root          : path.resolve(viewPath, './assets'),
+    root          : assetsPath,
     baseDir       : '/assets',
     cache         : 3600,
     showDir       : true,
@@ -563,7 +567,7 @@ module.exports = function(config, online) {
     gzip          : false
   }));
   app.route('/libs/*').all(ecstatic({
-    root          : path.resolve(viewPath, './libs'),
+    root          : [path.resolve(extensionPath, './libs'), path.resolve(viewPath, './libs')].filter(fs.existsSync).shift(),
     baseDir       : '/libs',
     cache         : 3600,
     showDir       : true,
