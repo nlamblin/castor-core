@@ -68,9 +68,7 @@
     "short-hash": "^1.0.0",
     "shortid": "^2.2.2",
     "traverse": "^0.6.6",
-    "webpack": "^1.12.14",
-    "webpack-dev-middleware": "^1.2.0",
-    "webpack-hot-middleware": "^2.4.1"
+    "webpack": "^1.12.14"
   },
   "license": "MIT",
   "devDependencies": {
