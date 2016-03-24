@@ -25,6 +25,7 @@ var path = require('path')
   , Errors = require('./helpers/errors.js')
   , querystring = require('querystring')
   , datamodel = require('datamodel')
+  , webpack = require('webpack')
   ;
 
 module.exports = function(config, online) {
@@ -449,7 +450,6 @@ module.exports = function(config, online) {
   //
   // Set JS modules for the browser
   //
-  //
   var modules = config.get('browserifyModules');
   if (Array.isArray(modules) && modules.length > 0) {
     app.get('/libs.js', browserify(modules, {
@@ -469,6 +469,83 @@ module.exports = function(config, online) {
     });
   }
 
+
+  //
+  // Webpack,
+  //
+  var webpackConfigFile = path.resolve(extensionPath, './webpack.config.js')
+  if (fs.existsSync(webpackConfigFile)) {
+    var webpackConfig = require(webpackConfigFile);
+
+    //
+    // fixed options
+    //
+    if (!Array.isArray(webpackConfig.entry)) {
+      webpackConfig.entry = webpackConfig.entry !== undefined ? [webpackConfig.entry] : [];
+    }
+    webpackConfig.entry.push(path.resolve(extensionPath, './client.js'));
+    webpackConfig.context = extensionPath;
+    webpackConfig.output = {
+      path: path.resolve(viewPath, './assets'),
+      filename: 'bundle.js',
+      publicPath: '/assets/'
+    };
+    if (webpackConfig.resolveLoader === undefined) {
+      webpackConfig.resolveLoader = {}
+    }
+    webpackConfig.resolveLoader.root = path.resolve(extensionPath, './node_modules');
+    if (!Array.isArray(webpackConfig.plugins)) {
+      webpackConfig.plugins = [];
+    }
+    webpackConfig.plugins.push(new webpack.optimize.OccurrenceOrderPlugin());
+    webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
+    webpackConfig.plugins.push(new webpack.NoErrorsPlugin());
+
+
+    if (process.env.NODE_ENV === 'production') {
+      webpackConfig.devtool = 'source-map'
+      // http://vuejs.github.io/vue-loader/workflow/production.html
+      webpackConfig.plugins = (webpackConfig.plugins || []).concat([
+        new webpack.DefinePlugin({
+          'process.env': {
+            NODE_ENV: '"production"'
+          }
+        }),
+        new webpack.optimize.UglifyJsPlugin({
+          compress: {
+            warnings: false
+          }
+        }),
+        new webpack.optimize.OccurenceOrderPlugin()
+      ])
+    }
+    else {
+      webpackConfig.plugins = (webpackConfig.plugins || []).concat([
+        new webpack.optimize.OccurenceOrderPlugin(),
+        new webpack.HotModuleReplacementPlugin(),
+        new webpack.NoErrorsPlugin()
+      ]);
+    }
+
+
+    var compiler = webpack(webpackConfig);
+
+    compiler.run(function(err, stats) {
+      if (err) {
+        return online(e);
+      }
+      else {
+        console.info(kuler('Webpack stats :', 'olive'));
+        console.info(stats.toString({
+          colors: true,
+          modules: false,
+          children: false,
+          chunks: false,
+          chunkModules: false
+        }));
+      }
+    });
+  }
 
 
   //
@@ -590,22 +667,22 @@ module.exports = function(config, online) {
         name: err.name,
         message: err.message,
       });
-      return;
+        return;
 
-    }
-    res.type('text').send(err.toString());
-  });
-
-
-  //
-  // Create HTTP server
-  //
-  //
-  var server = require('http').createServer(app)
-  server.listen(config.get('port'), function() {
-    online(null, server);
-  });
+      }
+      res.type('text').send(err.toString());
+    });
 
 
-  return server;
-}
+    //
+    // Create HTTP server
+    //
+    //
+    var server = require('http').createServer(app)
+    server.listen(config.get('port'), function() {
+      online(null, server);
+    });
+
+
+    return server;
+  }
