@@ -566,17 +566,21 @@ module.exports = function(config, online) {
     defaultExt    : 'html',
     gzip          : false
   }));
-  app.route('/libs/*').all(ecstatic({
-    root          : [path.resolve(extensionPath, './libs'), path.resolve(viewPath, './libs')].filter(fs.existsSync).shift(),
-    baseDir       : '/libs',
-    cache         : 3600,
-    showDir       : true,
-    autoIndex     : true,
-    humanReadable : true,
-    si            : false,
-    defaultExt    : 'html',
-    gzip          : false
-  }));
+
+  var libsPath = [path.resolve(extensionPath, './libs'), path.resolve(viewPath, './libs')].filter(fs.existsSync).shift();
+  if (assetsPath !== undefined) {
+    app.route('/libs/*').all(ecstatic({
+      root          : libsPath,
+      baseDir       : '/libs',
+      cache         : 3600,
+      showDir       : true,
+      autoIndex     : true,
+      humanReadable : true,
+      si            : false,
+      defaultExt    : 'html',
+      gzip          : false
+    }));
+  }
 
   if (config.get('rootURL') !== undefined && config.get('rootURL') !== '/') {
     app.route('/').all(function(req, res) {
