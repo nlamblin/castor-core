@@ -105,6 +105,7 @@ module.exports = function(model) {
     var cursor = stream;
     var counter = 0;
 
+    debug('syntax', self.syntax);
 
     //
     // firstOnly && Add Table info
@@ -278,8 +279,32 @@ module.exports = function(model) {
 
         //
         // Break pipe for RAW format
-        //
-        if (this.syntax === 'raw') {
+        // 
+        if (self.syntax === 'jbj') {
+          stream = stream.pipe(es.map(function (data, submit) {
+            if (typeof self.stylesheet === 'object') {
+              data['___marker'] = true;
+              JBJ.render(self.stylesheet, data, function(err, out) {
+                if (err) {
+                  delete data.___marker;
+                  submit(err);
+                }
+                else if (out !== null && typeof out === 'object' && out.___marker === true)  { // no transformation
+                  delete data.___marker;
+                  submit(err, undefined);
+                }
+                else {
+                  delete data.___marker;
+                  submit(err, out);
+                }
+              });
+            }
+            else {
+              submit(null, data);
+            }
+          })).pipe(JSONStream.stringify(self.firstOnly ? false : undefined)).pipe(res);
+        }
+        else if (this.syntax === 'raw') {
           return stream.pipe(es.map(function (data, submit) {
             delete data._id;
             data._uri = self.baseURI.concat("/").concat(data['_wid']);
@@ -294,7 +319,7 @@ module.exports = function(model) {
 
 
 
-
+        
 
         /*
          if (self.mimeType === 'text/html') {

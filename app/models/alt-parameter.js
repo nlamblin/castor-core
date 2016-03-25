@@ -4,11 +4,15 @@
 var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
+  , mqs = require('mongodb-querystring')
   ;
 
 
 module.exports = function(model) {
   model
+  .declare('query', function(req, fill) {
+    fill(mqs.create(req.query));
+  })
   .declare('syntax', function(req, fill) {
     if (req.query.alt === 'xls') {
       fill('xlsx');
@@ -27,6 +31,9 @@ module.exports = function(model) {
     if (req.query.alt === 'nq.xlsx') {
       fill('xlsx');
     }
+    if (req.query.alt === 'jbj') {
+      fill('json');
+    }
     else if (req.query.alt) {
       fill(req.query.alt);
     }
@@ -35,7 +42,10 @@ module.exports = function(model) {
     }
   })
   .declare('mimeType', function(req, fill) {
-    if (req.query.alt === 'raw') {
+    if (req.query.alt === 'jbj') {
+      fill('application/json');
+    }
+    else if (req.query.alt === 'raw') {
       fill('application/json');
     }
     else if (req.query.alt === 'json') {
@@ -61,6 +71,14 @@ module.exports = function(model) {
     }
     else {
       fill('application/json');
+    }
+  })
+  .prepend('stylesheet', function(req, fill) { 
+    if (this.syntax === 'jbj') {
+      fill(this.query.get('$transform', {}));
+    }
+    else {
+      fill();
     }
   })
   .prepend('fileName', function(req, fill) {
