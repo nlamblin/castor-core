@@ -91,7 +91,7 @@ module.exports = function(model) {
         stream: res
       });
       var worksheet = workbook.addWorksheet(self.table._label, "FFC0000");
-      if (self.syntax === 'array') {
+      if (self.syntax === 'xlsx' || self.syntax === 'xlsx.nq') {
         worksheet.columns = Object.keys(self.table._columns).map(function(propertyName) {
           return { header: self.table._columns[propertyName]['label'], key: propertyName, width: 33};
         });
@@ -135,12 +135,15 @@ module.exports = function(model) {
         data['___marker'] = true;
         JBJ.render(field.title, data, function(err, out) {
           if (err) {
+            delete data.___marker;
             callback(err);
           }
           else if (out !== null && typeof out === 'object' && out.___marker === true)  { // no transformation
+            delete data.___marker;
             callback(err, undefined);
           }
           else {
+            delete data.___marker;
             callback(err, out);
           }
         });
@@ -168,12 +171,15 @@ module.exports = function(model) {
           if (typeof field === 'object') {
             JBJ.render(field, data, function(err, out) {
               if (err) {
+                delete data.___marker;
                 callback(err);
               }
               else if (typeof out === 'object' && out.___marker === true)  { // no transformation
+                delete data.___marker;
                 callback(err, undefined);
               }
               else {
+                delete data.___marker;
                 callback(err, out);
               }
             });
@@ -273,9 +279,8 @@ module.exports = function(model) {
         //
         // Break pipe for RAW format
         //
-        if (this.extension === 'raw') {
+        if (this.syntax === 'raw') {
           return stream.pipe(es.map(function (data, submit) {
-            Object.keys(data).filter(function(key) { return key[0] !== '_' }).forEach(function(key) { delete data[key] });
             delete data._id;
             data._uri = self.baseURI.concat("/").concat(data['_wid']);
             submit(null, data);
@@ -319,7 +324,7 @@ module.exports = function(model) {
          }
          */
 
-        if (self.mimeType === 'application/n-quads') {
+        if (self.syntax === 'nq') {
           stream = stream.pipe(es.map(function (data, submit) {
             jsonld.toRDF(data, {format: 'application/nquads'}, function(err, out) {
               if (err) {
@@ -332,21 +337,21 @@ module.exports = function(model) {
             });
           }))
         }
-        else if (self.mimeType === 'text/csv') {
+        else if (self.syntax === 'csv') {
           stream = stream.pipe(es.map(function (data, submit) {
             submit(null, CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
               return data[propertyName];
             })));
           }))
         }
-        else if (self.mimeType === 'text/tab-separated-values') {
+        else if (self.syntax === 'tsv') {
           stream = stream.pipe(es.map(function (data, submit) {
             submit(null, CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
               return data[propertyName];
             }), "\t"));
           }))
         }
-        else if (self.mimeType === 'application/vnd.ms-excel' && self.syntax === 'rdf') {
+        else if (self.syntax === 'nq.xlsx') {
           stream = stream.pipe(es.map(function (data, submit) {
             jsonld.toRDF(data, {format: 'application/nquads'}, function(err, out) {
               if (err) {
@@ -367,7 +372,7 @@ module.exports = function(model) {
           });
           return;
         }
-        else if (self.mimeType === 'application/vnd.ms-excel' && self.syntax === 'array') {
+        else if (self.syntax === 'xlsx') {
           stream = stream.pipe(es.map(function (data, submit) {
             var row = {};
             Object.keys(self.table._columns).forEach(function(propertyName) {

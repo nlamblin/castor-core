@@ -10,14 +10,17 @@ var path = require('path')
 module.exports = function(model) {
   model
   .declare('syntax', function(req, fill) {
-    if (req.query.alt === 'nq' || req.query.alt === 'nq.xlsx') {
-      fill('rdf');
+    if (req.query.alt === 'xls') {
+      fill('xlsx');
+    }
+    else if (req.query.alt === 'json') {
+      fill('raw');
     }
     else if (req.query.alt) {
-      fill('array');
+      fill(req.query.alt);
     }
     else {
-      fill('raw')
+      fill('jsonld');
     }
   })
   .declare('extension', function(req, fill) {
@@ -36,6 +39,9 @@ module.exports = function(model) {
       fill('application/json');
     }
     else if (req.query.alt === 'json') {
+      fill('application/json');
+    }
+    else if (req.query.alt === 'jsonld') {
       fill('application/json');
     }
     else if (req.query.alt === 'nq') {
