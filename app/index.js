@@ -26,11 +26,13 @@ var path = require('path')
   , querystring = require('querystring')
   , datamodel = require('datamodel')
   , webpack = require('webpack')
+  , objectPath = require("object-path")
   ;
 
 module.exports = function(config, online) {
 
   var core = {
+    states : { },
     config : config,
     models : {},
     connect : undefined,
@@ -156,6 +158,7 @@ module.exports = function(config, online) {
   //
   var ldr, ldropts;
   if (config.has('dataPath')) {
+    objectPath.set(core.states, 'hotfolder.first.syncOver', false);
     try {
       ldropts = {
         // "dateConfig" : config.get('dateConfig'),
@@ -272,7 +275,7 @@ module.exports = function(config, online) {
     operators.apply(function(hash, func) {
       core.computer.use(hash, func);
     });
-    var cptfunc = function(err, doc) {
+    var cptfunc = function() {
       if (cptlock === undefined || cptlock === false) {
         cptlock = true;
         core.heart.createEvent(2, {repeat: 1}, function() {
@@ -283,17 +286,45 @@ module.exports = function(config, online) {
             }
             else {
               console.info(kuler('Corpus fields computed.', 'olive'));
+              objectPath.set(core.states, 'hotfolder.first.syncOver', true);
             }
           });
         });
       }
     };
     if (ldr !== undefined) {
-      ldr.on('watching', cptfunc);
-      ldr.on('changed', cptfunc);
-      ldr.on('cancelled', cptfunc);
-      ldr.on('dropped', cptfunc);
-      ldr.on('added', cptfunc);
+      ldr.on('browseOver', function (found) {
+        objectPath.set(core.states, 'hotfolder.last.browseOver', found);
+      });
+      ldr.on('watching', function (err, doc) {
+        objectPath.set(core.states, 'hotfolder.last.watching', doc);
+        cptfunc();
+      });
+      ldr.on('checked', function (err, doc) {
+        objectPath.set(core.states, 'hotfolder.last.checked', doc);
+        cptfunc();
+      });
+      ldr.on('cancelled', function (err, doc) {
+        objectPath.set(core.states, 'hotfolder.last.cancelled', doc);
+        cptfunc();
+      });
+      ldr.on('added', function (err, doc) {
+        objectPath.set(core.states, 'hotfolder.last.added', doc);
+        cptfunc();
+      });
+      ldr.on('changed', function (err, doc) {
+        objectPath.set(core.states, 'hotfolder.last.changed', doc);
+        cptfunc();
+      });
+      ldr.on('dropped', function (err, doc) {
+        objectPath.set(core.states, 'hotfolder.last.dropped', doc);
+        cptfunc();
+      });
+      ldr.on('saved', function (doc) {
+        objectPath.set(core.states, 'hotfolder.last.saved', doc);
+        cptfunc();
+      });
+
     }
   }
   catch(e) {

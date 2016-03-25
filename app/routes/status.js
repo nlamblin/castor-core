@@ -6,15 +6,13 @@ var path = require('path')
   , debug = require('debug')('castor:routes:' + basename)
   ;
 
-module.exports = function(router) {
+module.exports = function(router, core) {
 
   router.route('/-/v3/status.js(on|)')
   .get(function (req, res) {
     res.set('Content-Type', 'text/javascript');
-    var data = {
-      uptime : process.uptime()
-    }
-      res.jsonp(data);
+    core.states.uptime = process.uptime();
+    res.jsonp(core.states);
   });
 
 }
