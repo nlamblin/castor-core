@@ -360,8 +360,9 @@ module.exports = function(config, online) {
   // define WEB Server
   //
   var app = express();
-
-
+  
+  // http://expressjs.com/en/api.html#app.locals 
+  app.locals = config.expose();
 
   //
   // is it behind a proxy,
