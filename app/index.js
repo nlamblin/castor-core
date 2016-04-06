@@ -360,8 +360,8 @@ module.exports = function(config, online) {
   // define WEB Server
   //
   var app = express();
-  
-  // http://expressjs.com/en/api.html#app.locals 
+
+  // http://expressjs.com/en/api.html#app.locals
   app.locals = config.expose();
 
   //
@@ -530,6 +530,10 @@ module.exports = function(config, online) {
       webpackConfig.resolveLoader = {}
     }
     webpackConfig.resolveLoader.root = path.resolve(extensionPath, './node_modules');
+    if (webpackConfig.resolve=== undefined) {
+      webpackConfig.resolve = {}
+    }
+    webpackConfig.resolve.modulesDirectories = [path.resolve(extensionPath, './node_modules')];
     if (!Array.isArray(webpackConfig.plugins)) {
       webpackConfig.plugins = [];
     }
