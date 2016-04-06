@@ -65,12 +65,7 @@ module.exports = function(model) {
       self.mongoDatabaseHandle.collectionsIndex().findOne({
           "_wid" : req.routeParams.resourceName
       }).then(function(doc) {
-          if (doc === null && req.routeParams.resourceName === 'index') {
-            self.mongoDatabaseHandle.collectionsIndex().insertOne(self.indexDescription).then(function() {
-                fill(self.indexDescription);
-            }).catch(fill);
-          }
-          else if (doc === null) {
+        if (doc === null) {
             self.defaultDescription.fid = req.routeParams.resourceName;
             self.defaultDescription._wid = req.routeParams.resourceName;
             self.defaultDescription._label = 'Table ' + req.routeParams.resourceName;
