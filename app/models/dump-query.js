@@ -105,7 +105,7 @@ module.exports = function(model) {
     var cursor = stream;
     var counter = 0;
 
-    debug('syntax', self.syntax);
+    debug('syntax', self.syntax, self.stylesheet);
 
     //
     // firstOnly && Add Table info
@@ -279,7 +279,7 @@ module.exports = function(model) {
 
         //
         // Break pipe for RAW format
-        // 
+        //
         if (self.syntax === 'jbj') {
           stream = stream.pipe(es.map(function (data, submit) {
             if (typeof self.stylesheet === 'object') {
@@ -319,7 +319,7 @@ module.exports = function(model) {
 
 
 
-        
+
 
         /*
          if (self.mimeType === 'text/html') {

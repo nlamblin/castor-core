@@ -109,8 +109,12 @@ module.exports = function(warmup) {
     config.fix('resources',            {}); // for apiv1
     config.fix('operators',            {});
     config.fix('browserifyModules',    []);
-    config.fix('corpusFields',         {});
-    config.fix('documentFields',       {});
+    config.fix('corpusFields',         {});  // JBJ stylesheet to compute fields
+    config.fix('publicFields',         {});  // JBJ stylesheet to expose fields with 'alt=dry'
+    config.fix('documentFields',       {});  // JBJ stylesheet to generate new fields at load
+    // List of allowed values for 'alt=' parameter
+    config.fix('allowedAltValues',     ['dry', 'csv', 'json', 'jbj', 'xls', 'tsv']); 
+
 
     config.load(appname, argv);
 

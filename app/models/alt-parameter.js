@@ -14,11 +14,17 @@ module.exports = function(model) {
     fill(mqs.create(req.query));
   })
   .declare('syntax', function(req, fill) {
+    if (req.config.get('allowedAltValues').indexOf(req.query.alt) === -1) {
+      req.query.alt = 'jsonld';
+    }
     if (req.query.alt === 'xls') {
       fill('xlsx');
     }
     else if (req.query.alt === 'json') {
       fill('raw');
+    }
+    else if (req.query.alt === 'dry') {
+      fill('jbj');
     }
     else if (req.query.alt) {
       fill(req.query.alt);
@@ -28,10 +34,16 @@ module.exports = function(model) {
     }
   })
   .declare('extension', function(req, fill) {
+    if (req.config.get('allowedAltValues').indexOf(req.query.alt) === -1) {
+      req.query.alt = 'json';
+    }
     if (req.query.alt === 'nq.xlsx') {
       fill('xlsx');
     }
-    if (req.query.alt === 'jbj') {
+    else if (req.query.alt === 'dry') {
+      fill('json');
+    }
+    else if (req.query.alt === 'jbj') {
       fill('json');
     }
     else if (req.query.alt) {
@@ -42,7 +54,13 @@ module.exports = function(model) {
     }
   })
   .declare('mimeType', function(req, fill) {
+    if (req.config.get('allowedAltValues').indexOf(req.query.alt) === -1) {
+      req.query.alt = 'json';
+    }
     if (req.query.alt === 'jbj') {
+      fill('application/json');
+    }
+    else if (req.query.alt === 'dry') {
       fill('application/json');
     }
     else if (req.query.alt === 'raw') {
@@ -73,9 +91,12 @@ module.exports = function(model) {
       fill('application/json');
     }
   })
-  .prepend('stylesheet', function(req, fill) { 
-    if (this.syntax === 'jbj') {
+  .prepend('stylesheet', function(req, fill) {
+    if (req.query.alt === 'jbj') {
       fill(this.query.get('$transform', {}));
+    }
+    else if (req.query.alt === 'dry') {
+      fill(req.config.get('publicFields'));
     }
     else {
       fill();
