@@ -66,6 +66,46 @@ module.exports = function(warmup) {
       console.log = require('debug')('console:log');
     }
 
+    var defaultColumns = {
+      "_wid" : {
+        "label" : "URI",
+        "scheme": "https://www.w3.org/ns/rdfa#uri",
+        "title" : {
+          "get" : "_wid"
+        }
+      },
+      "title" : {
+        "label" : "Title",
+        "scheme": "https://schema.org/title",
+        "type": "https://www.w3.org/TR/xmlschema-2/#string",
+        "get": "_label"
+      }
+    }
+    var hotfolderColumns = {
+      "_wid" : {
+        "label" : "URI",
+        "scheme": "https://www.w3.org/ns/rdfa#uri",
+        "title" : {
+          "get" : "_wid"
+        }
+      }
+    }
+    var indexColumns = {
+      "title" : {
+        "label" : "Title",
+        "scheme": "https://schema.org/title",
+        "type": "https://www.w3.org/TR/xmlschema-2/#string",
+        "get": "_label"
+      },
+      "description" : {
+        "label" : "Description",
+        "scheme": "https://schema.org/description",
+        "type": "https://www.w3.org/TR/xmlschema-2/#string",
+        "get": "_text"
+      }
+    }
+
+
     //
     // Default config parameters
     //
@@ -104,7 +144,7 @@ module.exports = function(warmup) {
     config.fix('filters',              []);
     config.fix('routes',               {});
     config.fix('loaders',              {});
-    config.fix('heartbeats',              {});
+    config.fix('heartbeats',           {});
     config.fix('middlewares',          []);
     config.fix('resources',            {}); // for apiv1
     config.fix('operators',            {});
@@ -113,8 +153,10 @@ module.exports = function(warmup) {
     config.fix('publicFields',         {});  // JBJ stylesheet to expose fields with 'alt=dry'
     config.fix('documentFields',       {});  // JBJ stylesheet to generate new fields at load
     // List of allowed values for 'alt=' parameter
-    config.fix('allowedAltValues',     ['dry', 'csv', 'json', 'jbj', 'xls', 'tsv']); 
-
+    config.fix('allowedAltValues',     ['dry', 'csv', 'jsonld', 'jbj', 'xls', 'tsv']);
+    config.fix('hotfolderColumns',     hotfolderColumns);
+    config.fix('defaultColumns',       defaultColumns);
+    config.fix('indexColumns',         indexColumns);
 
     config.load(appname, argv);
 
@@ -123,6 +165,9 @@ module.exports = function(warmup) {
       config.unset('dataPath');
     }
 
+    // Le chargement de la config local pourrait se faire après le chargement du castor.config.js (cf. app/helpers/view.js)
+    // mais le fichier local ne peut pas venir casser la configuration de castor.config.js
+    // il est plutot la pour ajouter de nouveaux paramètres propre à l'application
     var localconfigs = [
       path.normalize(path.join(process.cwd(), 'config.local.js')),
       path.normalize(path.join(process.cwd(), 'config.local.json'))

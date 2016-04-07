@@ -18,42 +18,7 @@ module.exports = function(model) {
       "_text": "This is the default description for all tables that are not registered in the index.",
       "_hash": null,
       "_template": null,
-      "_root": true,
-      "_columns" : {
-        "_wid" : {
-          //
-          // Mandatory Column for the reduce system
-          //
-          "label" : "URI",
-          "scheme": "https://www.w3.org/ns/rdfa#uri",
-          "comment" : "A mandatory column for \"dollar\" URLs",
-          "title" : {
-            "get" : "_label"
-          }
-        },
-        "title" : {
-          "label" : "Title",
-          "scheme": "https://schema.org/title",
-          "type": "https://www.w3.org/TR/xmlschema-2/#string",
-          "get": "_label"
-        },
-        "description" : {
-          "label" : "Description",
-          "scheme": "https://schema.org/description",
-          "type": "https://www.w3.org/TR/xmlschema-2/#string",
-          "get": "_text"
-        },
-        "url" : {
-          "label" : "URL",
-          "scheme": "http://schema.org/url",
-          "type": "http://www.w3.org/TR/xmlschema-2/#anyURI",
-          "get": ["baseURL", "_wid"],
-          "join": "/"
-          // "title": {
-          // "get" : "_wid"
-          // }
-        }
-      }
+      "_root": true
     });
   })
   .append('table', function(req, fill) {
@@ -69,10 +34,27 @@ module.exports = function(model) {
             self.defaultDescription.fid = req.routeParams.resourceName;
             self.defaultDescription._wid = req.routeParams.resourceName;
             self.defaultDescription._label = 'Table ' + req.routeParams.resourceName;
+            if (req.routeParams.resourceName === req.config.get('collectionName')) {
+              self.defaultDescription._columns = req.config.get('hotfolderColumns')
+            }
+            else if (req.routeParams.resourceName === 'index') {
+              self.defaultDescription._columns = req.config.get('hotfolderColumns')
+            }
+            else {
+              self.defaultDescription._columns = req.config.get('defaultColumns')
+            }
             fill(self.defaultDescription);
           }
           else if (doc._columns === undefined) {
-            doc._columns = []
+            if (req.routeParams.resourceName === req.config.get('collectionName')) {
+              doc._columns = req.config.get('hotfolderColumns')
+            }
+            else if (req.routeParams.resourceName === 'index') {
+              doc._columns = req.config.get('hotfolderColumns')
+            }
+            else {
+              doc._columns = req.config.get('defaultColumns')
+            }
             fill(doc);
           }
           else {

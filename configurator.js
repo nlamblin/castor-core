@@ -62,6 +62,14 @@ Configurator.prototype.local = function local(filename) {
   }
 }
 
+Configurator.prototype.replace = function merge(obj) {
+  var self = this
+  Object.keys(obj).forEach(function(key) {
+    self.config[key] = obj[key];
+  });
+};
+
+
 Configurator.prototype.merge = function merge(obj) {
   var self = this
   Object.keys(obj).forEach(function(key) {

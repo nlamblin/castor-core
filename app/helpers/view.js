@@ -64,6 +64,6 @@ module.exports = function(config) {
 else {
   themeconf.browserifyModules = [];
 }
-config.merge(themeconf);
+config.replace(themeconf);
 return themepath;
 };
