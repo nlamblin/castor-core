@@ -104,7 +104,32 @@ module.exports = function(warmup) {
         "get": "_text"
       }
     }
+    var driedFields = {
+      "$id": {
+        "get": "_wid"
+      },
+      "$label": {
+        "get": [
+          "title",
+          "_label",
+          "_wid"
+        ],
+        "deduplicate" : true,
+        "first": true
+      },
+      "$columns": {
+        "get": [
+          "_columns",
+          "_table._columns"
+        ],
+        "first": true,
+        "foreach": {
+          "get": "label"
+        }
 
+      },
+      "mask": "id,label,columns"
+    }
 
     //
     // Default config parameters
@@ -150,7 +175,7 @@ module.exports = function(warmup) {
     config.fix('operators',            {});
     config.fix('browserifyModules',    []);
     config.fix('corpusFields',         {});  // JBJ stylesheet to compute fields
-    config.fix('publicFields',         {});  // JBJ stylesheet to expose fields with 'alt=dry'
+    config.fix('driedFields',         driedFields);  // JBJ stylesheet to expose fields with 'alt=dry'
     config.fix('documentFields',       {});  // JBJ stylesheet to generate new fields at load
     // List of allowed values for 'alt=' parameter
     config.fix('allowedAltValues',     ['dry', 'csv', 'jsonld', 'jbj', 'xls', 'tsv']);

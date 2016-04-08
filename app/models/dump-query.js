@@ -127,6 +127,7 @@ module.exports = function(model) {
     //
     // Compute column field with a title
     //
+    /*
     stream = stream.pipe(es.map(function (data, submit) {
       var titleFields =  Object.keys(self.table._columns).filter(function(propertyName) {
         return self.table._columns[propertyName].title !== undefined && self.table._columns[propertyName].title !== null && typeof self.table._columns[propertyName].title === 'object'
@@ -161,6 +162,7 @@ module.exports = function(model) {
         submit(null, data);
       });
     }))
+    */
     //
     // Transform field with JBJ
     //

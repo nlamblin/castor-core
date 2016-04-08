@@ -96,7 +96,7 @@ module.exports = function(model) {
       fill(this.query.get('$transform', {}));
     }
     else if (req.query.alt === 'dry') {
-      fill(req.config.get('publicFields'));
+      fill(req.config.get('driedFields'));
     }
     else {
       fill();

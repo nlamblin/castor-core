@@ -4,6 +4,7 @@
 var path   = require('path')
   , extend = require('extend')
   , objectPath = require("object-path")
+  , clone = require('clone')
   , fs = require('fs')
 ;
 function Configurator() {
@@ -21,6 +22,17 @@ Configurator.prototype.fix = function fix(name, value) {
 Configurator.prototype.get = function get(path) {
   return objectPath.get(this.config, path);
 };
+
+Configurator.prototype.copy = function copy(path) {
+  var val = this.get(path);
+  if (val) {
+    return clone(val);
+  }
+  else {
+    return val;
+  }
+};
+
 
 Configurator.prototype.has = function has(path) {
   if (!objectPath.has(this.config, path)) {
@@ -92,7 +104,7 @@ Configurator.prototype.merge = function merge(obj) {
 
 
 Configurator.prototype.expose = function expose() {
-  var conf = require('clone')(this.config);
+  var conf = clone(this.config);
   var tohide = ['dataPath', 'viewPath', 'collectionName', 'connectionURI', 'connexionURI', 'configs', 'config', '$0', '_', 'browserifyModules', 'collectionsIndexName', 'tempPath', 'theme', 'h', 'd', 'debug', 'help', 'version', 'v', 'verbose', 'V'];
   tohide.forEach(function(n) {
     if (conf[n] !== undefined) {
