@@ -34,28 +34,13 @@ module.exports = function(model) {
             self.defaultDescription.fid = req.routeParams.resourceName;
             self.defaultDescription._wid = req.routeParams.resourceName;
             self.defaultDescription._label = 'Table ' + req.routeParams.resourceName;
-            if (req.routeParams.resourceName === req.config.get('collectionName')) {
-              self.defaultDescription._columns = req.config.copy('hotfolderColumns')
-            }
-            else if (req.routeParams.resourceName === 'index') {
-              self.defaultDescription._columns = req.config.copy('hotfolderColumns')
+            if (req.routeParams.resourceName === 'index') {
+              self.defaultDescription._columns = req.config.copy('indexColumns')
             }
             else {
               self.defaultDescription._columns = req.config.copy('defaultColumns')
             }
             fill(self.defaultDescription);
-          }
-          else if (doc._columns === undefined) {
-            if (req.routeParams.resourceName === req.config.copy('collectionName')) {
-              doc._columns = req.config.copy('hotfolderColumns')
-            }
-            else if (req.routeParams.resourceName === 'index') {
-              doc._columns = req.config.copy('hotfolderColumns')
-            }
-            else {
-              doc._columns = req.config.copy('defaultColumns')
-            }
-            fill(doc);
           }
           else {
             fill(doc);

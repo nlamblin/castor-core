@@ -81,15 +81,6 @@ module.exports = function(warmup) {
         "get": "_label"
       }
     }
-    var hotfolderColumns = {
-      "_wid" : {
-        "label" : "URI",
-        "scheme": "https://www.w3.org/ns/rdfa#uri",
-        "title" : {
-          "get" : "_wid"
-        }
-      }
-    }
     var indexColumns = {
       "title" : {
         "label" : "Title",
@@ -179,8 +170,9 @@ module.exports = function(warmup) {
     config.fix('documentFields',       {});  // JBJ stylesheet to generate new fields at load
     // List of allowed values for 'alt=' parameter
     config.fix('allowedAltValues',     ['dry', 'csv', 'jsonld', 'jbj', 'xls', 'tsv']);
-    config.fix('hotfolderColumns',     hotfolderColumns);
+    // Defaults colonnes for all collections except the collectionsIndex
     config.fix('defaultColumns',       defaultColumns);
+    // Defaults colonnes for the collectionsIndex
     config.fix('indexColumns',         indexColumns);
 
     config.load(appname, argv);

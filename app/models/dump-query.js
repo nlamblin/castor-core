@@ -25,6 +25,9 @@ module.exports = function(model) {
     , agent = new EU(cache);
 
   model
+  .declare('config', function(req, fill) {
+      fill(req.config);
+  })
   .declare('documentName', function(req, fill) {
       fill(req.routeParams.documentName);
   })
@@ -63,41 +66,6 @@ module.exports = function(model) {
   .send(function(res, next) {
     var self = this;
 
-    if (self.mongoCounter) {
-      res.set('ETag', String('W/').concat(crypto.createHash('md5').update(String(self.mongoCounter)).digest('base64').replace(/=+$/, '')));
-    }
-    res.set('Content-Type', self.mimeType);
-    res.on('finish', function() {
-      self.mongoDatabaseHandle.close();
-    });
-    if (self.mimeType === 'application/n-quads') {
-      res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
-    }
-    else if (self.mimeType === 'text/csv') {
-      res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
-      res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
-        return self.table._columns[propertyName]['label'];
-      })))
-    }
-    else if (self.mimeType === 'text/tab-separated-values') {
-      res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
-      res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
-        return self.table._columns[propertyName]['label'];
-      }), "\t"))
-    }
-    else if (self.mimeType === 'application/vnd.ms-excel') {
-      res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
-      var workbook = new Excel.stream.xlsx.WorkbookWriter({
-        stream: res
-      });
-      var worksheet = workbook.addWorksheet(self.table._label, "FFC0000");
-      if (self.syntax === 'xlsx' || self.syntax === 'xlsx.nq') {
-        worksheet.columns = Object.keys(self.table._columns).map(function(propertyName) {
-          return { header: self.table._columns[propertyName]['label'], key: propertyName, width: 33};
-        });
-      }
-    }
-
     //
     // Pipe Mongo cursor
     //
@@ -108,23 +76,77 @@ module.exports = function(model) {
     debug('syntax', self.syntax, self.stylesheet);
 
     //
-    // firstOnly && Add Table info
+    // checkup & complete
+    //
+    stream = stream
+    .pipe(es.map(function (data, submit) {
+      // Add table info
+      data._table = self.table;
+
+      // check columns
+      if (data._table._columns === undefined) {
+        if (data._wid === 'index') {
+          data._table._columns = self.config.copy('indexColumns')
+        }
+        else {
+          data._table._columns = self.config.copy('defaultColumns')
+        }
+      }
+      submit(null, data);
+    }))
+
+
+    //
+    // firstOnly
     //
     stream = stream
     .pipe(es.map(function (data, submit) {
       if (self.firstOnly && counter > 0) {
         cursor.close();
         submit();
+        return;
       }
-      else {
-        data._table = self.table;
-        submit(null, data);
+      else if (counter === 0) {
+        if (self.mongoCounter) {
+          res.set('ETag', String('W/').concat(crypto.createHash('md5').update(String(self.mongoCounter)).digest('base64').replace(/=+$/, '')));
+        }
+        res.set('Content-Type', self.mimeType);
+        res.on('finish', function() {
+          self.mongoDatabaseHandle.close();
+        });
+        if (self.mimeType === 'application/n-quads') {
+          res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+        }
+        else if (self.mimeType === 'text/csv') {
+          res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+          res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
+            return self.table._columns[propertyName]['label'];
+          })))
+        }
+        else if (self.mimeType === 'text/tab-separated-values') {
+          res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+          res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
+            return self.table._columns[propertyName]['label'];
+          }), "\t"))
+        }
+        else if (self.mimeType === 'application/vnd.ms-excel') {
+          res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+          var workbook = new Excel.stream.xlsx.WorkbookWriter({
+            stream: res
+          });
+          var worksheet = workbook.addWorksheet(self.table._label, "FFC0000");
+          if (self.syntax === 'xlsx' || self.syntax === 'xlsx.nq') {
+            worksheet.columns = Object.keys(self.table._columns).map(function(propertyName) {
+              return { header: self.table._columns[propertyName]['label'], key: propertyName, width: 33};
+            });
+          }
+        }
       }
+      submit(null, data);
       ++counter;
     }))
 
-
-    //
+       //
     // Compute column field with a title
     //
     /*
