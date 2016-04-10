@@ -14,8 +14,8 @@ module.exports = function(model) {
     fill(mqs.create(req.query));
   })
   .declare('syntax', function(req, fill) {
-    if (req.config.get('allowedAltValues').indexOf(req.query.alt) === -1) {
-      req.query.alt = 'jsonld';
+    if (req.query.alt === undefined || req.config.get('allowedAltValues').indexOf(req.query.alt) === -1) {
+      req.query.alt = 'min';
     }
     if (req.query.alt === 'xls') {
       fill('xlsx');
@@ -26,16 +26,19 @@ module.exports = function(model) {
     else if (req.query.alt === 'dry') {
       fill('jbj');
     }
+    else if (req.query.alt === 'min') {
+      fill('jbj');
+    }
     else if (req.query.alt) {
       fill(req.query.alt);
     }
     else {
-      fill('jsonld');
+      fill('jbj');
     }
   })
   .declare('extension', function(req, fill) {
-    if (req.config.get('allowedAltValues').indexOf(req.query.alt) === -1) {
-      req.query.alt = 'json';
+    if (req.query.alt === undefined || req.config.get('allowedAltValues').indexOf(req.query.alt) === -1) {
+      req.query.alt = 'min';
     }
     if (req.query.alt === 'nq.xlsx') {
       fill('xlsx');
@@ -54,8 +57,8 @@ module.exports = function(model) {
     }
   })
   .declare('mimeType', function(req, fill) {
-    if (req.config.get('allowedAltValues').indexOf(req.query.alt) === -1) {
-      req.query.alt = 'json';
+    if (req.query.alt === undefined || req.config.get('allowedAltValues').indexOf(req.query.alt) === -1) {
+      req.query.alt = 'min';
     }
     if (req.query.alt === 'jbj') {
       fill('application/json');
@@ -92,11 +95,30 @@ module.exports = function(model) {
     }
   })
   .prepend('stylesheet', function(req, fill) {
+    debug('req.query.alt', req.query.alt, req.query.alt === 'min');
     if (req.query.alt === 'jbj') {
       fill(this.query.get('$transform', {}));
     }
     else if (req.query.alt === 'dry') {
       fill(req.config.get('driedFields'));
+    }
+    else if (req.query.alt === 'min') {
+      fill({
+        "$_id": {
+          "get": "_wid"
+        },
+        "$value": {
+          "get": [
+            "title",
+            "_label",
+            "_wid"
+          ],
+          "deduplicate" : true,
+          "first": true,
+          "default" : "n/a"
+        },
+        "mask": "_id,value"
+      });
     }
     else {
       fill();

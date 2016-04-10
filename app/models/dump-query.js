@@ -30,6 +30,9 @@ module.exports = function(model) {
   })
   .declare('documentName', function(req, fill) {
       fill(req.routeParams.documentName);
+    })
+  .declare('fieldName', function(req, fill) {
+    fill(req.routeParams.fieldName);
   })
   .append('firstOnly', function(req, fill) {
     if (req.query.fo || req.query.firstOnly) {
@@ -80,6 +83,12 @@ module.exports = function(model) {
     //
     stream = stream
     .pipe(es.map(function (data, submit) {
+      // Add column info
+      if (self.collectionName === self.config.get('collectionsIndexName')) {
+        if (data._columns === undefined) {
+          data._columns = self.config.copy('defaultColumns')
+        }
+      }
       // Add table info
       data._table = self.table;
 
@@ -301,10 +310,22 @@ module.exports = function(model) {
           });
         }));
 
+
+
         //
-        // Break pipe for RAW format
+        // Break pipe for
         //
-        if (self.syntax === 'jbj') {
+        if (self.fieldName !== undefined) {
+          stream = stream
+          .pipe(es.map(function (data, submit) {
+            data = {
+              _id : self.fieldName,
+              value : 'toto'
+            }
+            submit(null, data);
+          })).pipe(JSONStream.stringify(self.firstOnly ? false : undefined)).pipe(res);
+        }
+        else if (self.syntax === 'jbj') {
           stream = stream.pipe(es.map(function (data, submit) {
             if (typeof self.stylesheet === 'object') {
               data['___marker'] = true;

@@ -47,6 +47,18 @@ module.exports = function(router, core) {
     next();
   });
 
+  router.param('fieldName', function(req, res, next, value) {
+    if (value !== '*' && value !== '$') {
+      req.routeParams.fieldName = value;
+    }
+    else {
+      req.routeParams.fieldName = undefined;
+    }
+    next();
+  });
+
+
+
   router.param('star', function(req, res, next, value) {
     if (value === '*') {
       req.routeParams.star = value;
@@ -124,6 +136,20 @@ module.exports = function(router, core) {
       return next();
     }
     debug('get /:resourceName/:documentName/:star', req.routeParams);
+    datamodel([core.models.mongo, core.models.alt, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
+    .apply(req, res, next);
+  });
+
+  //
+  // REST API : Values of field
+  //
+  router.route(prefixURL + '/:resourceName/:documentName/:dollar:fieldName')
+  .all(cors())
+  .get(function(req, res, next) {
+    if (req.routeParams.resourceName === undefined || req.routeParams.documentName === undefined || req.routeParams.dollar === undefined || req.routeParams.fieldName === undefined) {
+      return next();
+    }
+    debug('get /:resourceName/:documentName/:dollar:fieldName', req.routeParams);
     datamodel([core.models.mongo, core.models.alt, core.models.getTable, core.models.getDocument, core.models.dumpQuery])
     .apply(req, res, next);
   });
