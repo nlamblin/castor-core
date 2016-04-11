@@ -17,6 +17,7 @@ var path = require('path')
   , async = require('async')
   , url = require('url')
   , jsonld = require('jsonld')
+  , objectPath = require("object-path")
   ;
 
 module.exports = function(model) {
@@ -320,7 +321,7 @@ module.exports = function(model) {
           .pipe(es.map(function (data, submit) {
             data = {
               _id : self.fieldName,
-              value : 'toto'
+              value : objectPath.get(data, self.fieldName)
             }
             submit(null, data);
           })).pipe(JSONStream.stringify(self.firstOnly ? false : undefined)).pipe(res);
