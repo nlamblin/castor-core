@@ -106,6 +106,7 @@ module.exports = function(config, online) {
   core.models.init = require('./models/init.js')
   core.models.mongo = require('./models/mongo.js')
   core.models.alt = require('./models/alt-parameter.js')
+  core.models.typ = require('./models/typ-parameter.js')
   // core.models.reduceTable = require('./models/reduce-table.js')
   core.models.getRoot = require('./models/get-root.js')
   core.models.getRootDocument = require('./models/get-root-document.js')
@@ -114,8 +115,9 @@ module.exports = function(config, online) {
   core.models.getDocuments = require('./models/get-documents.js')
   core.models.dumpQuery = require('./models/dump-query.js')
   core.models.computeDocuments = require('./models/compute-documents.js')
-  core.models.postColumn = require('./models/post-column.js')
-  core.models.postTable = require('./models/post-table.js')
+  core.models.postColumn = require('./models/post-column.js') // DEPRECATED
+  core.models.postTable = require('./models/post-table.js') // DEPRECATED
+  core.models.loadTable = require('./models/load-table.js')
 
   var models = new Hook('models');
   models.from(extensionPath, __dirname)

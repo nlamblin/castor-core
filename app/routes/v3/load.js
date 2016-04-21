@@ -75,7 +75,7 @@ module.exports = function(router, core) {
       "ignore" : core.config.get('filesToIgnore'),
       "watch" : false
     };
-
+    debug('options', options);
     // Be careful, at this time, loader code should be different ! cf. https://github.com/castorjs/castor-load/blob/master/lib/mount.js#L58
 
     var ldr = new Loader(__dirname, options);
