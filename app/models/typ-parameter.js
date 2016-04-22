@@ -27,8 +27,11 @@ module.exports = function(model) {
     if (req.query.typ === undefined || req.config.get('allowedTypValues').indexOf(req.query.typ) === -1) {
       return fill(new Errors.InvalidParameters('typ= not allowed.'));
     }
-    else {
+    else if (req.body && typeof req.body === 'object') {
       fill(req.body[req.query.typ]);
+    }
+    else {
+      fill({});
     }
   })
   .declare('extension', function(req, fill) {

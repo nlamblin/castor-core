@@ -142,6 +142,8 @@ module.exports = function(warmup) {
     config.fix('corpusFields',         {});  // JBJ stylesheet to compute fields
     config.fix('driedFields',          {});  // JBJ stylesheet to expose fields with 'alt=dry'
     config.fix('documentFields',       {});  // JBJ stylesheet to generate new fields at load
+    // List of allowed values for 'typ=' parameter
+    config.fix('allowedTypValues',     ['uri', 'keyboard', 'file', 'fork']);
     // List of allowed values for 'alt=' parameter
     config.fix('allowedAltValues',     ['dry', 'csv', 'jsonld', 'jbj', 'xls', 'tsv', 'html']);
     // Defaults colonnes for all collections except the collectionsIndex

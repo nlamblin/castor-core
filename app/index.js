@@ -23,6 +23,7 @@ var path = require('path')
   , ACL = require('./helpers/acl.js')
   , passport = require('passport')
   , Errors = require('./helpers/errors.js')
+  , Agent = require('./helpers/agent.js')
   , querystring = require('querystring')
   , datamodel = require('datamodel')
   , webpack = require('webpack')
@@ -38,6 +39,7 @@ module.exports = function(config, online) {
     connect : undefined,
     computer : undefined,
     heart: undefined,
+    agent : new Agent(config.get('port')),
     passport : passport,
     acl : new ACL(),
     Errors : Errors

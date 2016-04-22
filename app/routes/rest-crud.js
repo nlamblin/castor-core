@@ -5,6 +5,7 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:routes:' + basename)
   , datamodel = require('datamodel')
+  , bodyParser = require('body-parser')
   , cors = require('cors')
   ;
 
@@ -38,11 +39,14 @@ module.exports = function(router, core) {
   //
   router.route(prefixURL + '/:resourceName')
   .all(cors())
+  .post(bodyParser.json()) // for this.$http.post (vue-resource)
+  .post(bodyParser.urlencoded({ extended: true})) // for $.ajax (jquery)
   .post(function(req, res, next) {
     if (req.routeParams.resourceName === undefined) {
       return next();
     }
     debug('post /:resourceName', req.routeParams);
+    debug('post body', req.body);
     datamodel([core.models.mongo, core.models.typ, core.models.loadTable])
     .apply(req, res, next);
   });
