@@ -8,6 +8,7 @@ var path = require('path')
   , datamodel = require('datamodel')
   , mqs = require('mongodb-querystring')
   , Loader = require('castor-load')
+  , JBJ = require('jbj')
   ;
 
 module.exports = function(model) {
@@ -54,7 +55,7 @@ module.exports = function(model) {
       if (typeof self.stylesheet !== 'object') {
         return submit(null, input);
       }
-      JBJ.render(stylesheet, input, submit);
+      JBJ.render(self.stylesheet, input, submit);
     });
     var c = 0;
     self.loaderFiles.forEach(function (file) {
