@@ -52,7 +52,11 @@ module.exports = function(model) {
     self.mongoDatabaseHandle.collectionsIndex( {strict:true}, function(err, coll) {
       if (err) {
         self.mongoDatabaseHandle.collectionsIndex( function(err, newcoll) {
-          newcoll.insertMany([self.indexDescription, self.hotfolderDescription]).then(function() {
+          var descs = [self.indexDescription]
+          if (req.config.has('dataPath')) {
+            descs.push(self.hotfolderDescription)
+          }
+          newcoll.insertMany(descs).then(function() {
             self.mongoDatabaseHandle.createIndex(req.config.get('collectionsIndexName'),
               {_wid:1},
               {unique:true, background:false, w:1}
