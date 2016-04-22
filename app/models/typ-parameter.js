@@ -5,6 +5,7 @@ var path = require('path')
   , basename = path.basename(__filename, '.js')
   , debug = require('debug')('castor:models:' + basename)
   , mqs = require('mongodb-querystring')
+  , URL = require('url')
   ;
 
 
@@ -15,8 +16,11 @@ module.exports = function(model) {
   })
   .declare('type', function(req, fill) {
     var Errors = req.core.Errors;
-    if (req.query.typ === undefined || req.config.get('allowedTypValues').indexOf(req.query.typ) === -1) {
+    if (req.config.get('allowedTypValues').indexOf(req.query.typ) === -1) {
       return fill(new Errors.InvalidParameters('typ= not allowed.'));
+    }
+    else if(req.query.typ === undefined) {
+      fill('fake');
     }
     else {
       fill(req.query.typ);
@@ -24,22 +28,25 @@ module.exports = function(model) {
   })
   .declare('input', function(req, fill) {
     var Errors = req.core.Errors;
-    if (req.query.typ === undefined || req.config.get('allowedTypValues').indexOf(req.query.typ) === -1) {
-      return fill(new Errors.InvalidParameters('typ= not allowed.'));
+    if (req.query.typ === 'file') {
+      fill(req.body.file);
     }
-    else if (req.body && typeof req.body === 'object') {
-      fill(req.body[req.query.typ]);
+    else if (req.query.typ === 'uri') {
+      fill(req.body.uri);
     }
-    else {
-      fill({});
+    else if (req.query.typ === 'fork') {
+      fill(req.body.origin);
+    }
+    else { // typ === fake
+      fill(req.body.content);
     }
   })
-  .declare('extension', function(req, fill) {
-    if (req.body.extension === undefined || req.config.get('acceptFileTypes').indexOf(req.body.extension) === -1) {
-      req.body.extension = 'json';
+  .declare('filename', function(req, fill) {
+    if (req.body.filename === undefined) {
+      fill(String(Date.now()).concat('.json'));
     }
     else {
-      fill(req.body.extension);
+      fill(req.body.filename);
     }
   })
  .prepend('stylesheet', function(req, fill) {
@@ -51,7 +58,7 @@ module.exports = function(model) {
      var p = require('os').tmpdir(); // upload go to tmpdir
      fs.readdir(p, function (err, files) {
        if (err) {
-         throw err;
+         fill(err);
        }
        fill(files.map(function (file) {
          return path.join(p, file);
@@ -61,25 +68,23 @@ module.exports = function(model) {
        }));
      });
    }
-   else if (self.type === 'keyboard') {
-     fill([url.format({
+   else if (self.type === 'fake') {
+     fill([URL.format({
        protocol: "http",
        hostname: "127.0.0.1",
-       port: core.config.get('port'),
-       pathname: "/-/v3/echo/keyboard." + self.extension,
-       query: {
-         plain : self.input
-       }
+       port: req.core.config.get('port'),
+       pathname: "/-/echo/fake.json",
+       query: self.input
      })]);
    }
    else if (self.type === 'uri') {
      fill([input]);
    }
    else if (self.type === 'fork' && typeof self.input === 'string') {
-     fill([url.format({
+     fill([URL.format({
        protocol: "http",
        hostname: "127.0.0.1",
-       port: core.config.get('port'),
+       port: req.core.config.get('port'),
        pathname: "/" + self.input + '/*',
        query: {
          alt: "raw"

@@ -46,7 +46,6 @@ module.exports = function(router, core) {
       return next();
     }
     debug('post /:resourceName', req.routeParams);
-    debug('post body', req.body);
     datamodel([core.models.mongo, core.models.typ, core.models.loadTable])
     .apply(req, res, next);
   });

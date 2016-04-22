@@ -7,6 +7,7 @@ var path = require('path')
   , debug = require('debug')('castor:models:' + basename)
   , datamodel = require('datamodel')
   , mqs = require('mongodb-querystring')
+  , Loader = require('castor-load')
   ;
 
 module.exports = function(model) {
@@ -21,6 +22,7 @@ module.exports = function(model) {
       }
   })
   .prepend('loaderOptions', function(req, fill) {
+    var self = this;
     fill({
       "collectionName" : self.collectionName,
       "connexionURI" : req.core.config.get('connectionURI'),
@@ -57,15 +59,11 @@ module.exports = function(model) {
     var c = 0;
     self.loaderFiles.forEach(function (file) {
       c++;
+      debug('push', file);
       ldr.push(file, {}, {}, function(doc) {
-        if (self.type == 'forked') {
-          doc.filename = 'forked.json';
-          doc.extension = 'json';
-        }
-        else {
-          doc.filename = doc.fid + '.' + self.extension;
-          doc.extension = self.extension;
-        }
+        doc.filename = self.filename;
+        doc.extension = path.extname(self.filename).replace('.', '');
+        doc.typ = self.type;
       });
     })
     fill(c);
