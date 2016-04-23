@@ -103,7 +103,7 @@ module.exports = function(warmup) {
     var config = new Configurator();
     config.fix('connectionURI',        'mongodb://localhost:27017/' + appname);
     config.fix('connexionURI',         config.get('connectionURI'));
-    config.fix('collectionsIndexName', 'px_index');
+    config.fix('collectionsIndexName', 'index');
     config.fix('collectionName',       'hotfolder');
     config.fix('debug',                false);
     config.fix('trustProxy',           false);
