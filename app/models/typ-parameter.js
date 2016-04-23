@@ -20,7 +20,7 @@ module.exports = function(model) {
       return fill(new Errors.InvalidParameters('typ= not allowed.'));
     }
     else if(req.query.typ === undefined) {
-      fill('fake');
+      fill('form');
     }
     else {
       fill(req.query.typ);
@@ -37,16 +37,16 @@ module.exports = function(model) {
     else if (req.query.typ === 'fork') {
       fill(req.body.origin);
     }
-    else { // typ === fake
-      fill(req.body.content);
+    else { // typ === form
+      fill(req.body);
     }
   })
   .declare('filename', function(req, fill) {
-    if (req.body.filename === undefined) {
+    if (req.query.filename === undefined) {
       fill(String(Date.now()).concat('.json'));
     }
     else {
-      fill(req.body.filename);
+      fill(req.query.filename);
     }
   })
  .prepend('stylesheet', function(req, fill) {
@@ -68,12 +68,12 @@ module.exports = function(model) {
        }));
      });
    }
-   else if (self.type === 'fake') {
+   else if (self.type === 'form') {
      fill([URL.format({
        protocol: "http",
        hostname: "127.0.0.1",
        port: req.core.config.get('port'),
-       pathname: "/-/echo/fake.json",
+       pathname: "/-/echo/form.json",
        query: self.input
      })]);
    }
