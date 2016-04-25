@@ -125,22 +125,22 @@ module.exports = function(model) {
           self.mongoDatabaseHandle.close();
         });
         if (self.mimeType === 'application/n-quads') {
-          res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+          res.setHeader('Content-disposition', 'attachment; filename=' + self.fileName);
         }
         else if (self.mimeType === 'text/csv') {
-          res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+          res.setHeader('Content-disposition', 'attachment; filename=' + self.fileName);
           res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
             return self.table._columns[propertyName]['label'];
           })))
         }
         else if (self.mimeType === 'text/tab-separated-values') {
-          res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+          res.setHeader('Content-disposition', 'attachment; filename=' + self.fileName);
           res.write(CSV.stringify(Object.keys(self.table._columns).map(function(propertyName) {
             return self.table._columns[propertyName]['label'];
           }), "\t"))
         }
         else if (self.mimeType === 'application/vnd.ms-excel') {
-          res.setHeader('Content-disposition', 'attachment; filename=' + this.fileName);
+          res.setHeader('Content-disposition', 'attachment; filename=' + self.fileName);
           var workbook = new Excel.stream.xlsx.WorkbookWriter({
             stream: res
           });
