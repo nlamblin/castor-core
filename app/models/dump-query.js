@@ -75,6 +75,7 @@ module.exports = function(model) {
     //
     var stream = this.mongoCursor.stream();
     var cursor = stream;
+    var workbook, worksheet;
     var counter = 0;
 
     debug('syntax', self.syntax, self.stylesheet);
@@ -141,10 +142,10 @@ module.exports = function(model) {
         }
         else if (self.mimeType === 'application/vnd.ms-excel') {
           res.setHeader('Content-disposition', 'attachment; filename=' + self.fileName);
-          var workbook = new Excel.stream.xlsx.WorkbookWriter({
+          workbook = new Excel.stream.xlsx.WorkbookWriter({
             stream: res
           });
-          var worksheet = workbook.addWorksheet(self.table._label, "FFC0000");
+          worksheet = workbook.addWorksheet(self.table._label, "FFC0000");
           if (self.syntax === 'xlsx' || self.syntax === 'xlsx.nq') {
             worksheet.columns = Object.keys(self.table._columns).map(function(propertyName) {
               return { header: self.table._columns[propertyName]['label'], key: propertyName, width: 33};
@@ -357,7 +358,7 @@ module.exports = function(model) {
             submit(null, data);
           })).pipe(JSONStream.stringify(self.firstOnly ? false : undefined)).pipe(res);
         }
-        else {
+        else if (this.syntax === 'jsonld' || this.syntax === 'json') {
           return stream.pipe(es.map(function (data, submit) {
             submit(null, data._content.jsonld);
           })).pipe(JSONStream.stringify(self.firstOnly ? false : undefined)).pipe(res);
