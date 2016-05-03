@@ -68,8 +68,7 @@
     "sha1": "^1.1.1",
     "short-hash": "^1.0.0",
     "shortid": "^2.2.2",
-    "traverse": "^0.6.6",
-    "webpack": "^1.12.14"
+    "traverse": "^0.6.6"
   },
   "license": "MIT",
   "devDependencies": {
