@@ -76,7 +76,7 @@ module.exports = function(config, online) {
 
   var assetsPath = [path.resolve(extensionPath, './assets'), path.resolve(viewPath, './assets')].filter(fs.existsSync).shift();
   if (assetsPath === undefined) {
-    return online(e);
+    return online(new Error('assetsPath is not defnied'));
   }
 
   //
@@ -492,9 +492,18 @@ module.exports = function(config, online) {
   //
   var modules = config.get('browserifyModules');
   if (Array.isArray(modules) && modules.length > 0) {
-    app.get('/libs.js', browserify(modules, {
-      debug: true
-    }));
+
+    var browserifyOptions = {
+      transform : []
+    }
+    var browserifyTransformers = new Hook('browserifyTransformers')
+    filters.from(extensionPath, __dirname)
+    filters.over(config.get('browserifyTransformers'))
+    filters.apply(function(hash, func, item) {
+      browserifyOptions.transform.push([func, item.options]);
+    });
+
+    app.get('/libs.js', browserify(modules, browserifyOptions));
     app.get('/bundle.js', function(req, res) {
       console.warn('Depretacted route, use /libs.js');
       res.redirect(301, '/libs.js');
@@ -576,7 +585,7 @@ module.exports = function(config, online) {
 
     compiler.run(function(err, stats) {
       if (err) {
-        return online(e);
+        return online(err);
       }
       else {
         console.info(kuler('Webpack stats :', 'olive'));

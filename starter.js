@@ -139,6 +139,7 @@ module.exports = function(warmup) {
     config.fix('resources',            {}); // for apiv1
     config.fix('operators',            {});
     config.fix('browserifyModules',    []);
+    config.fix('browserifyTransformers', []);
     config.fix('corpusFields',         {});  // JBJ stylesheet to compute fields
     config.fix('driedFields',          {});  // JBJ stylesheet to expose fields with 'alt=dry'
     config.fix('documentFields',       {});  // JBJ stylesheet to generate new fields at load
