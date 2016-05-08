@@ -24,6 +24,7 @@ module.exports = function(model) {
         property.title = req.body.title || null;
         property.description = req.body.description || null;
         property.template = req.body.template || null;
+        property.ref = req.body.ref || null;
       }
       else if (req.body && req.body.name && req.body.name !== 'index') {
         property.previousName = req.routeParams.resourceName;
@@ -31,6 +32,7 @@ module.exports = function(model) {
         property.title = req.body.title || null;
         property.description= req.body.description || null;
         property.template = req.body.template || null;
+        property.ref = req.body.ref || null;
       }
       else if (req.body && req.body[req.routeParams.resourceName] == 'true' &&  req.routeParams.resourceName !== 'index') {
         property.name = false;
@@ -146,6 +148,9 @@ module.exports = function(model) {
         if (self.property.template !== null) {
           operation['$set']._template = self.property.template;
         }
+        if (self.property.ref !== null) {
+          operation['$set']._ref = self.property.ref;
+        }
 
         debug('update table', query, operation);
         self.mongoDatabaseHandle.collectionsIndex().updateOne(query, operation).then(fill).catch(fill);
@@ -167,6 +172,9 @@ module.exports = function(model) {
         }
         if (self.property.template !== null) {
           operation['$set']._template = self.property.template;
+        }
+        if (self.property.ref !== null) {
+          operation['$set']._ref = self.property.ref;
         }
         debug('rename table', query, operation);
         self.mongoDatabaseHandle.collectionsIndex().updateOne(query, operation).then(function(r) {
