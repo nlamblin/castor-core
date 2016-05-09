@@ -537,7 +537,12 @@ module.exports = function(config, online) {
     gzip          : false
   }));
 
-  var libsPath = [path.resolve(extensionPath, './libs'), path.resolve(viewPath, './libs')].filter(fs.existsSync).shift();
+  var libsPath = [
+    path.resolve(extensionPath, './libs'),
+    path.resolve(viewPath, './libs'),
+    path.resolve(__dirname, './libs'),
+  ].filter(fs.existsSync).shift();
+
   if (assetsPath !== undefined) {
     app.route('/libs/*').all(ecstatic({
       root          : libsPath,
