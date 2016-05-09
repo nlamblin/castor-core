@@ -108,11 +108,7 @@ module.exports = function(model) {
           "get": "_wid"
         },
         "$value": {
-          "get": [
-            "title",
-            "_label",
-            "_wid"
-          ],
+          "get": req.config.get('valueSelectors'),
           "deduplicate" : true,
           "first": true,
           "default" : "n/a"

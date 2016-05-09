@@ -9,6 +9,7 @@ var path = require('path')
   , mqs = require('mongodb-querystring')
   , Loader = require('castor-load')
   , JBJ = require('jbj')
+  , async = require('async')
   ;
 
 module.exports = function(model) {
@@ -57,17 +58,17 @@ module.exports = function(model) {
       }
       JBJ.render(self.stylesheet, input, submit);
     });
-    var c = 0;
-    self.loaderFiles.forEach(function (file) {
-      c++;
-      debug('push', file);
-      ldr.push(file, {}, {}, function(doc) {
-        doc.filename = self.filename;
-        doc.extension = path.extname(self.filename).replace('.', '');
-        doc.typ = self.type;
-      });
-    })
-    fill(c);
+
+    async.map(self.loaderFiles, ldr.submit.bind(ldr), function(err, results) {
+       console.log('err', err);
+      if (err) {
+        fill(err);
+      }
+      else {
+        fill(results);
+      }
+    });
+   fill(true);
   })
   .send(function(res, next) {
     return res.sendStatus(204);

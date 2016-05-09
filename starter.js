@@ -151,6 +151,8 @@ module.exports = function(warmup) {
     config.fix('defaultColumns',       defaultColumns);
     // Defaults colonnes for the collectionsIndex
     config.fix('indexColumns',         indexColumns);
+    // where to find the value for the default object { _id : , value : ...} 
+    config.fix('valueSelectors',       ["_content.json.title", "title", "basename"]);
 
     config.load(appname, argv);
 

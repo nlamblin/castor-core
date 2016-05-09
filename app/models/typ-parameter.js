@@ -6,6 +6,8 @@ var path = require('path')
   , debug = require('debug')('castor:models:' + basename)
   , mqs = require('mongodb-querystring')
   , URL = require('url')
+  , fs = require('fs')
+  , crypto = require('crypto')
   ;
 
 
@@ -73,12 +75,12 @@ module.exports = function(model) {
        protocol: "http",
        hostname: "127.0.0.1",
        port: req.core.config.get('port'),
-       pathname: "/-/echo/form.json",
+       pathname: "/-/echo/" + self.filename,
        query: self.input
      })]);
    }
    else if (self.type === 'uri') {
-     fill([input]);
+     fill([self.input]);
    }
    else if (self.type === 'fork' && typeof self.input === 'string') {
      fill([URL.format({
