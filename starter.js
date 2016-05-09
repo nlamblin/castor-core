@@ -132,7 +132,7 @@ module.exports = function(warmup) {
     config.fix('models',               {});
     config.fix('markdown',             undefined);
     config.fix('filters',              []);
-    config.fix('routes',               {});
+    config.fix('routes',               []);
     config.fix('loaders',              {});
     config.fix('heartbeats',           {});
     config.fix('middlewares',          []);
