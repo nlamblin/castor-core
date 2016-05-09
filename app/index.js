@@ -540,7 +540,7 @@ module.exports = function(config, online) {
   var libsPath = [
     path.resolve(extensionPath, './libs'),
     path.resolve(viewPath, './libs'),
-    path.resolve(__dirname, './libs'),
+    path.resolve(__dirname, './libs')
   ].filter(fs.existsSync).shift();
 
   if (assetsPath !== undefined) {
