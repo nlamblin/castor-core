@@ -75,7 +75,7 @@ module.exports = function(config, online) {
 
   var assetsPath = [path.resolve(extensionPath, './assets'), path.resolve(viewPath, './assets')].filter(fs.existsSync).shift();
   if (assetsPath === undefined) {
-    return online(new Error('assetsPath is not defnied'));
+    return online(new Error('assetsPath is not defined'));
   }
 
   //
