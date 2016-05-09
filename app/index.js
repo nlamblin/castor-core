@@ -73,7 +73,11 @@ module.exports = function(config, online) {
     return online(e);
   }
 
-  var assetsPath = [path.resolve(extensionPath, './assets'), path.resolve(viewPath, './assets')].filter(fs.existsSync).shift();
+  var assetsPath = [
+    path.resolve(extensionPath, './assets'),
+    path.resolve(viewPath, './assets'),
+    path.resolve(__dirname, './assets')
+  ].filter(fs.existsSync).shift();
   if (assetsPath === undefined) {
     return online(new Error('assetsPath is not defnied'));
   }
