@@ -8,21 +8,53 @@ var process      = require('process');
 var request      = require('supertest');
 
 
+/**
+ * query /-/v3/status.json until the initial synchronisation is done
+ *
+ * @param  {Object}   server server to query
+ * @param  {Function} cb     Callback to call (err)
+ */
+var untilSync = function untilSync (server, cb) {
+  // delay between two queries, in ms
+  var delay = 1000;
+
+  request(server)
+  .get('/-/v3/status.json')
+  .end(function(err, res) {
+    if (err) { cb(err); }
+
+    var status = JSON.parse(res.res.text);
+    if (status.hotfolder.first.syncOver) {
+      cb();
+    }
+    else {
+      setTimeout(untilSync, delay, server, cb)
+    }
+  });
+};
+
 describe('Operators', function () {
 
   var server = null;
 
-  // Run mocha --delay to make it wait more than 2000ms
   before(function(done) {
-
+    // Synchronisation may take time - you may increase the value (ms)
+    this.timeout(10000);
     process.chdir(__dirname);
 
     require('../starter.js')(function(config, start) {
+      var routes = config.get('routes');
+      routes.push('status.js');
+      config.set('routes', routes);
+      // Reduce the heartrate to be ready quicker (in milliseconds)
+      config.set('heartrate',100);
+
       start(function(err, serv) {
         server = serv;
         // Because some module removes console.log
         console.log = console.info;
-        done(err);
+
+        untilSync(server, done);
       });
     })
 
@@ -32,7 +64,6 @@ describe('Operators', function () {
 
   describe('count', function () {
 
-    this.timeout(500);
     it('should work', function () {
       assert(true);
     });
