@@ -15,7 +15,7 @@
   "scripts": {
     "lint": "jshint */**/*.js",
     "coverage": "istanbul cover ./node_modules/.bin/_mocha -- ",
-    "test": "mocha --"
+    "test": "mocha -- 2> /dev/null"
   },
   "bugs": {
     "url": "https://github.com/castorjs/castor-core/issues"
