@@ -8,6 +8,21 @@ var process      = require('process');
 var request      = require('supertest');
 var starter      = require('../starter.js');
 
+/**
+ * Test https://github.com/castorjs/castor-core/issues/21
+ *
+ * This bug was due the presence of a connectionURI within
+ * castor.config.js
+ *
+ * To make app1 should return the number of films in data fail,
+ * create a test/castor.config.js containing:
+ *
+ *  module.exports = {
+ *    connectionURI: 'mongodb://localhost:27017/bug21'
+ *  };
+ *
+ */
+
 
 /**
  * query /-/v3/status.json until the initial synchronisation is done
@@ -49,6 +64,7 @@ describe('Side by side', function () {
     process.chdir(__dirname);
 
     starter(function(config, start) {
+      config.set('dataPath', path.join(__dirname, 'data'));
       var routes = config.get('routes');
       routes.push('status.js');
       config.set('routes', routes);

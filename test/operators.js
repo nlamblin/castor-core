@@ -40,9 +40,9 @@ describe('Operators', function () {
   before(function(done) {
     // Synchronisation may take time - you may increase the value (ms)
     this.timeout(10000);
-    process.chdir(__dirname);
 
     require('../starter.js')(function(config, start) {
+      config.set('dataPath', path.join(__dirname, 'data'));
       var routes = config.get('routes');
       routes.push('status.js');
       config.set('routes', routes);
