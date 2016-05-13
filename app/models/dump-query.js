@@ -9,25 +9,20 @@ var path = require('path')
   , MongoClient = require('mongodb').MongoClient
   , JSONStream = require('JSONStream')
   , es = require('event-stream')
-  , EU = require('eu')
-  , LRU = require('lru-cache')
   , JBJ = require('jbj')
   , CSV = require('csv-string')
   , Excel = require("exceljs")
   , async = require('async')
-  , url = require('url')
+  , JURL = require('url')
   , jsonld = require('jsonld')
   , objectPath = require("object-path")
   ;
 
 module.exports = function(model) {
-  var store = new EU.MemoryStore(new LRU())
-    , cache = new EU.Cache(store)
-    , agent = new EU(cache);
 
   model
-  .declare('config', function(req, fill) {
-      fill(req.config);
+  .declare('core', function(req, fill) {
+      fill(req.core);
   })
   .declare('documentName', function(req, fill) {
       fill(req.routeParams.documentName);
@@ -86,9 +81,9 @@ module.exports = function(model) {
     stream = stream
     .pipe(es.map(function (data, submit) {
       // Add column info
-      if (self.collectionName === self.config.get('collectionsIndexName')) {
+      if (self.collectionName === self.core.config.get('collectionsIndexName')) {
         if (data._columns === undefined) {
-          data._columns = self.config.copy('defaultColumns')
+          data._columns = self.core.config.copy('defaultColumns')
         }
       }
       // Add table info
@@ -97,10 +92,10 @@ module.exports = function(model) {
       // check columns
       if (data._table._columns === undefined) {
         if (data._wid === 'index') {
-          data._table._columns = self.config.copy('indexColumns')
+          data._table._columns = self.core.config.copy('indexColumns')
         }
         else {
-          data._table._columns = self.config.copy('defaultColumns')
+          data._table._columns = self.core.config.copy('defaultColumns')
         }
       }
       submit(null, data);
@@ -270,47 +265,26 @@ module.exports = function(model) {
       // Resolve Resource Link
       //
       stream = stream.pipe(es.map(function (data, submit) {
-        var urls = [], keys = [], doc = data._content.jsonld;
-
-        Object.keys(doc["@context"]).forEach(function(key) {
-          if (doc["@context"][key]
-            && typeof doc["@context"][key] === 'object'
-            && doc["@context"][key]["@type"]
-            && doc["@context"][key]["@type"] === "@id"
-            && doc[key]
-            && typeof doc[key] === 'string'
-          ) {
-            var urlObj = url.parse(doc[key]);
-            if (urlObj.host !== null) {
-              urlObj.pathname = urlObj.pathname.concat('/$');
-              urls.push(url.format(urlObj));
+        if (data._ref && typeof data._ref === 'string') {
+          var url = JURL.parse(data._ref);
+          url.query = { 'alt': 'jsonld' };
+          self.core.agent.get(JURL.format(url), { json: true }, function(error, response, body) {
+            if (response && response.statusCode !== 200) {
+              body = undefined;
+            }
+            if (Array.isArray(body) && body.length === 1) {
+              data._referenced = body[0];
             }
             else {
-              urls.push(self.baseURI.concat('/').concat(urlObj.pathname).concat('/$'));
+              data._referenced = body;
             }
-            keys.push(key);
-          }
-        });
-        async.map(urls
-        , function(urlStr, callback) {
-            agent.get(urlStr, {json: true}, function(error, response, body) {
-              if (response && response.statusCode !== 200) {
-                body = undefined;
-              }
-              callback(error, body);
-            });
-          }
-        , function(err, results) {
-            if (err) {
-              return submit(err);
-            }
-            results.forEach(function(item, index) {
-              doc['$'+keys[index]] = item;
-            });
-            submit(null, data);
-
+            submit(error, data);
           });
-        }));
+        }
+        else {
+          submit(null, data);
+        }
+      }));
 
 
 
@@ -384,7 +358,7 @@ module.exports = function(model) {
              // user: self.user,
              // page: self.page,
              // parameters: self.parameters,
-             // config: self.config,
+             // config: self.core.config,
              // url: self.url
              // }
              debug('context', data);

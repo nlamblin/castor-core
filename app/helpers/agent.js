@@ -5,8 +5,9 @@ var path = require('path')
   , debug = require('debug')('castor:helpers:' + basename)
   , assert = require('assert')
   , util = require('util')
-  , got = require('got')
   , qs = require('qs')
+  , EU = require('eu')
+  , LRU = require('lru-cache')
   , URL = require('url')
   ;
 
@@ -20,27 +21,34 @@ function Agent(port, options) {
   var self = this;
   self.options = options;
   self.port = port;
+
+  var store = new EU.MemoryStore(new LRU())
+    , cache = new EU.Cache(store);
+
+  self.request = new EU(cache);
 }
 
-Agent.prototype.fix = function (url) {
+Agent.prototype.fix = function (url, options) {
   var target = URL.parse(url);
-  target.protocol = 'http';
-  target.slashes = true
-  target.port = this.port;
-  target.hostname =  '127.0.0.1';
-  target.host = null;
-  delete url.host;
+  if (options && options.internal === true) {
+    target.protocol = 'http';
+    target.slashes = true
+    target.port = this.port;
+    target.hostname =  '127.0.0.1';
+    target.host = null;
+    delete url.host;
+  }
   debug('url', URL.format(target))
   return URL.format(target);
 }
 
-Agent.prototype.get = function (url, options)
+Agent.prototype.get = function (url, options, callback)
 {
   debug('get', options)
-  return got.get(this.fix(url), options)
+  return this.request.get(this.fix(url, options), options, callback)
 }
 
-Agent.prototype.post = function (url, options)
+Agent.prototype.post = function (url, options, callback)
 {
   if (typeof options.body === 'object') {
     options.body = qs.stringify(options.body);
@@ -51,27 +59,27 @@ Agent.prototype.post = function (url, options)
     options.headers['Content-Length'] = options.body.length
   }
   debug('post', options)
-  return got.post(this.fix(url), options)
+  return this.request.post(this.fix(url, options), options, callback)
 }
 
-Agent.prototype.head = function (url, options)
+Agent.prototype.head = function (url, options, callback)
 {
-  return got.head(this.fix(url), options)
+  return this.request.head(this.fix(url, options), options, callback)
 }
 
-Agent.prototype.patch = function (url, options)
+Agent.prototype.patch = function (url, options, callback)
 {
-  return got.patch(this.fix(url), options)
+  return this.request.patch(this.fix(url, options), options, callback)
 }
 
-Agent.prototype.delete = function (url, options)
+Agent.prototype.delete = function (url, options, callback)
 {
-  return got.delete(this.fix(url), options)
+  return this.request.delete(this.fix(url, options), options, callback)
 }
 
-Agent.prototype.put = function (url, options)
+Agent.prototype.put = function (url, options, callback)
 {
-  return got.put(this.fix(url), options)
+  return this.put(this.fix(url, options), options, callback)
 }
 
 
