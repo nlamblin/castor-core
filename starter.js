@@ -62,9 +62,9 @@ module.exports = function(warmup) {
       process.exit(0);
     }
 
-    if (!argv.verbose) {
-      console.log = require('debug')('console:log');
-    }
+    // if (!argv.verbose) {
+    //   console.log = require('debug')('console:log');
+    // }
 
     var defaultColumns = {
       "_wid" : {
@@ -151,7 +151,7 @@ module.exports = function(warmup) {
     config.fix('defaultColumns',       defaultColumns);
     // Defaults colonnes for the collectionsIndex
     config.fix('indexColumns',         indexColumns);
-    // where to find the value for the default object { _id : , value : ...} 
+    // where to find the value for the default object { _id : , value : ...}
     config.fix('valueSelectors',       ["_content.json.title", "title", "basename"]);
 
     config.load(appname, argv);
