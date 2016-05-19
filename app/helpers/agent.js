@@ -25,7 +25,8 @@ function Agent(port, options) {
   var store = new EU.MemoryStore(new LRU())
     , cache = new EU.Cache(store);
 
-  self.request = new EU(cache);
+  self.requestRO = new EU(cache);
+  self.request = require('got')
 }
 
 Agent.prototype.fix = function (url, options) {
@@ -45,7 +46,7 @@ Agent.prototype.fix = function (url, options) {
 Agent.prototype.get = function (url, options, callback)
 {
   debug('get', options)
-  return this.request.get(this.fix(url, options), options, callback)
+  return this.requestRO.get(this.fix(url, options), options, callback)
 }
 
 Agent.prototype.post = function (url, options, callback)
