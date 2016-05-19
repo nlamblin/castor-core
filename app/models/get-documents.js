@@ -23,7 +23,11 @@ module.exports = function(model) {
   .declare('mongoQuery', function(req, fill) {
     var q = mqs.create(req.query).$query();
     if (req.routeParams.resourceName === 'index') {
-      q = { _wid: { $ne: "index" } }
+      if (!q._wid) {
+        q._wid = {
+          $ne: "index"
+        }
+      }
     }
     q.state = {
       $nin: [ "deleted", "hidden" ]
