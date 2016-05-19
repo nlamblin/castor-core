@@ -68,10 +68,17 @@ module.exports = function(model) {
         fill(results);
       }
     });
-   fill(true);
   })
   .send(function(res, next) {
-    return res.sendStatus(204);
+    var qry = {
+      "alt" : "raw",
+      "$query" : {
+        "fid" : this.loaderDocs[0].fid
+      }
+    }
+    var url = '/' + this.collectionName + '/*?' + mqs.stringify(qry, {});
+    res.location(url);
+    res.sendStatus(201);
   });
 
   return model;
