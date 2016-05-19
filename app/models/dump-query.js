@@ -74,6 +74,7 @@ module.exports = function(model) {
     var counter = 0;
 
     debug('syntax', self.syntax, self.stylesheet);
+    debug('query', self.query);
 
     //
     // checkup & complete
