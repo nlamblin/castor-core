@@ -95,14 +95,20 @@ module.exports = function(warmup) {
         "get": "_text"
       }
     }
+    //
+    // Environement vars (form docker )
+    //
+    // to allow mongodb host and port injection thanks
+    // to the MONGODB_PORT environment parameter
+    var mongoHostPort = process.env.MONGODB_PORT ? process.env.MONGODB_PORT.replace('tcp://', '') : 'localhost:27017';
+
 
     //
     // Default config parameters
     //
-    var Configurator = require('./configurator.js');
+    var Configurator = require('./configurator.js')
     var config = new Configurator();
-    config.fix('connectionURI',        'mongodb://localhost:27017/' + appname);
-    config.fix('connexionURI',         config.get('connectionURI'));
+    config.fix('connectionURI',        'mongodb://' + mongoHostPort + '/' + appname);
     config.fix('collectionsIndexName', 'index');
     config.fix('collectionName',       'hotfolder');
     config.fix('debug',                false);
