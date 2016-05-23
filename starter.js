@@ -96,19 +96,25 @@ module.exports = function(warmup) {
       }
     }
     //
-    // Environement vars (form docker )
+    // Environement vars
     //
-    // to allow mongodb host and port injection thanks
-    // to the MONGODB_PORT environment parameter
-    var mongoHostPort = process.env.MONGODB_PORT ? process.env.MONGODB_PORT.replace('tcp://', '') : 'localhost:27017';
-
+    // Docker and/or ezmaster
+    //
+    var mongoHostPort = process.env.MONGODB_PORT
+    ? process.env.MONGODB_PORT.replace('tcp://', '')
+    : 'localhost:27017'
+    ;
+    var connectionURI = process.env.EZMASTER_MONGODB_URI
+    ? process.env.EZMASTER_MONGODB_URI
+    : 'mongodb://' + mongoHostPort + '/' + appname
+    ;
 
     //
     // Default config parameters
     //
     var Configurator = require('./configurator.js')
     var config = new Configurator();
-    config.fix('connectionURI',        'mongodb://' + mongoHostPort + '/' + appname);
+    config.fix('connectionURI',        connectionURI);
     config.fix('collectionsIndexName', 'index');
     config.fix('collectionName',       'hotfolder');
     config.fix('debug',                false);
