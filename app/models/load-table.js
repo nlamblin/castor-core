@@ -58,7 +58,6 @@ module.exports = function(model) {
       }
       JBJ.render(self.stylesheet, input, submit);
     });
-
     async.map(self.loaderFiles, ldr.submit.bind(ldr), function(err, results) {
        console.log('err', err);
       if (err) {

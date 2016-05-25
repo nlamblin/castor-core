@@ -56,6 +56,7 @@ module.exports = function(model) {
  })
  .prepend('loaderFiles', function(req, fill) {
    var self = this;
+   debug(self.type, self.input);
    if (self.type === 'file' && typeof self.input === 'object') {
      var p = require('os').tmpdir(); // upload go to tmpdir
      fs.readdir(p, function (err, files) {

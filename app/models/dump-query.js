@@ -254,7 +254,7 @@ module.exports = function(model) {
           if (field.language !== undefined) {
             doc['@context'][propertyName]['@language'] = field.language;
           }
-          doc[propertyName] = data[propertyName] || null;
+          doc[propertyName] = data[propertyName] === undefined ? null : data[propertyName];
         });
         if (data._content === undefined) {
           data._content = {};
