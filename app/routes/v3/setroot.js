@@ -3,16 +3,18 @@
 
 var path = require('path')
   , basename = path.basename(__filename, '.js')
+  , debug = require('debug')('castor:routes:' + basename)
   , bodyParser = require('body-parser')
 
 module.exports = function(router, core) {
 
   router.route('/-/setroot')
-  .post(bodyParser.urlencoded({ extended: true}))
+  .post(bodyParser.json()) // for this.$http.post (vue-resource)
+  .post(bodyParser.urlencoded({ extended: true})) // for $.ajax (jquery)
   .post(function(req, res, next) {
       core.connect().then(function(db) {
           db.collection(core.config.get('collectionsIndexName'), function(err, coll) {
-              console.log('coll', coll.update);
+              debug('body', req.body);
               coll.updateMany({}, {
                   $set: {
                     _root : false
@@ -21,7 +23,7 @@ module.exports = function(router, core) {
                   w : 1,
                   multi : true
               }).then(function(res1) {
-                  console.log(res1.modifiedCount + ' / ' + res1.matchedCount);
+                  debug(res1.modifiedCount + ' / ' + res1.matchedCount);
                   coll.updateOne({
                       _wid: req.body.origin
                     },
@@ -31,7 +33,7 @@ module.exports = function(router, core) {
                       }
                     }
                   ).then(function(res2) {
-                      console.log(res2.modifiedCount + ' / ' + res2.matchedCount);
+                      debug(res2.modifiedCount + ' / ' + res2.matchedCount);
                       res.sendStatus(204);
                   }).catch(next);
               }).catch(next);
