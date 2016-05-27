@@ -171,7 +171,7 @@ module.exports = function(router, core) {
     }
     req.query.field = '_label';
     req.routeParams.resourceName = 'index';
-    req.routeParams.operato = core.computer.operator('labelize');
+    req.routeParams.operator = core.computer.operator('labelize');
     datamodel([core.models.mongo, core.models.computeDocuments])
     .apply(req, res, next);
   });
