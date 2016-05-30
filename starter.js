@@ -107,8 +107,8 @@ module.exports = function(warmup) {
     : 'localhost:27017'
     ;
 
-    mongoHostPort = process.env.EZMASTER_MONGO_HOST_PORT
-    ? process.env.EZMASTER_MONGO_HOST_PORT.replace('tcp://', '') 
+    mongoHostPort = process.env.EZMASTER_MONGODB_HOST_PORT
+    ? process.env.EZMASTER_MONGODB_HOST_PORT.replace('tcp://', '') 
     : mongoHostPort
     ;
 
@@ -170,6 +170,7 @@ module.exports = function(warmup) {
     config.fix('indexColumns',         indexColumns);
     // where to find the value for the default object { _id : , value : ...}
     config.fix('valueSelectors',       ["_content.json.title", "title", "basename"]);
+    config.fix('timeout', 120000);
 
     config.load(appname, argv);
 
@@ -246,6 +247,7 @@ module.exports = function(warmup) {
             }
           }
           var srv = app(config, online);
+          srv.timeout = config.get('timeout');
 
           process.on('SIGINT', function() {
             console.info(kuler('Server is killed.', 'olive'),  kuler('Caught SIGINT exiting', "limegreen"));
